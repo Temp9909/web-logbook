@@ -11,7 +11,7 @@ import XToolbarColumnsPanel from './XToolbarColumnsPanel';
 import XToolbarFilterPanel from './XToolbarFilterPanel';
 import { FilterProvider, useFilter } from './FilterContext';
 import Box from '@mui/material/Box';
-import { styled } from '@mui/material/styles';
+import { styled, alpha } from '@mui/material/styles';
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -28,82 +28,72 @@ const toMinutes = (val) => {
 
 const StyledDataGrid = styled(DataGrid)(({ theme }) => {
   const isLight = theme.palette.mode === 'light';
+  // Apple hairline separator + subtle fill
+  const separator = isLight ? 'rgba(60, 60, 67, 0.18)' : 'rgba(84, 84, 88, 0.60)';
+  const fill = isLight ? 'rgba(116, 116, 128, 0.08)' : 'rgba(120, 120, 128, 0.20)';
+  const accent = theme.palette.primary.main;
+  const tint = (a) => alpha(accent, a);
 
   return {
     border: 0,
+    borderRadius: 14,
     backgroundColor: theme.palette.background.paper,
-    color: isLight ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.85)',
-    fontFamily: [
-      '-apple-system',
-      'BlinkMacSystemFont',
-      '"Segoe UI"',
-      'Roboto',
-      '"Helvetica Neue"',
-      'Arial',
-      'sans-serif',
-      '"Apple Color Emoji"',
-      '"Segoe UI Emoji"',
-      '"Segoe UI Symbol"',
-    ].join(','),
-    WebkitFontSmoothing: 'auto',
-    letterSpacing: 'normal',
+    color: theme.palette.text.primary,
+    fontFamily: theme.typography.fontFamily,
+    fontSize: '0.8125rem',
+    letterSpacing: '-0.005em',
+    WebkitFontSmoothing: 'antialiased',
 
-    // Column header container
-    '& .MuiDataGrid-columnsContainer': {
-      backgroundColor: theme.palette.background.paper,
-      borderBottom: `1px solid ${isLight ? '#e0e0e0' : '#303030'}`,
+    // Column headers - quiet, uppercase, no vertical rules
+    '& .MuiDataGrid-columnHeaders': {
+      borderBottom: `1px solid ${separator}`,
     },
-
-    // Column headers
     '& .MuiDataGrid-columnHeader': {
-      borderRight: `1px solid ${isLight ? '#e0e0e0' : '#303030'}`,
-      fontWeight: 600,
-      backgroundColor: theme.palette.background.paper,
-
+      backgroundColor: 'transparent',
+      borderRight: 0,
     },
+    '& .MuiDataGrid-columnHeaderTitle': {
+      fontSize: '0.6875rem',
+      fontWeight: 600,
+      letterSpacing: '0.04em',
+      textTransform: 'uppercase',
+      color: theme.palette.text.secondary,
+    },
+    '& .MuiDataGrid-columnSeparator': { display: 'none' },
 
     '& .MuiDataGrid-filler': {
-      backgroundColor: `${theme.palette.background.paper} !important`,
+      backgroundColor: 'transparent',
     },
 
-    // Cells
+    // Cells - horizontal hairlines only
     '& .MuiDataGrid-cell': {
-      borderRight: `1px solid ${isLight ? '#e0e0e0' : '#303030'}`,
-      borderBottom: `1px solid ${isLight ? '#e0e0e0' : '#303030'}`,
-      color: isLight ? 'rgba(0,0,0,0.87)' : 'rgba(255,255,255,0.65)',
-      backgroundColor: theme.palette.background.paper,
+      borderRight: 0,
+      borderBottom: `1px solid ${separator}`,
+      backgroundColor: 'transparent',
+      color: theme.palette.text.primary,
     },
 
-    '& .MuiDataGrid-columnSeparator': {
-      color: isLight ? '#e0e0e0' : '#303030',
-    },
-
-    // Row hover effect
+    // Row hover / selection use the system accent tint
     '& .MuiDataGrid-row:hover, & .MuiDataGrid-row:hover .MuiDataGrid-cell': {
-      backgroundColor: isLight
-        ? 'rgba(0, 0, 0, 0.08) !important' // slightly darker than row bg
-        : 'rgba(255, 255, 255, 0.08) !important',
+      backgroundColor: `${fill} !important`,
     },
-
-    // Pagination items
-    '& .MuiPaginationItem-root': {
-      borderRadius: 0,
-    },
-
-    // Sort icons / checkbox colors
-    '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-cell:focus': {
-      outline: 'none',
-    },
-
     '& .MuiDataGrid-row.Mui-selected, & .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell': {
-      backgroundColor: isLight
-        ? 'rgba(0, 0, 0, 0.12) !important' // slightly darker than row bg
-        : 'rgba(255, 255, 255, 0.12) !important',
+      backgroundColor: `${tint(isLight ? 0.10 : 0.24)} !important`,
     },
     '& .MuiDataGrid-row.Mui-selected:hover, & .MuiDataGrid-row.Mui-selected:hover .MuiDataGrid-cell': {
-      backgroundColor: isLight
-        ? 'rgba(0, 0, 0, 0.12) !important' // slightly darker than row bg
-        : 'rgba(255, 255, 255, 0.12) !important',
+      backgroundColor: `${tint(isLight ? 0.14 : 0.30)} !important`,
+    },
+
+    '& .MuiDataGrid-footerContainer': {
+      borderTop: `1px solid ${separator}`,
+    },
+
+    '& .MuiPaginationItem-root': {
+      borderRadius: 8,
+    },
+
+    '& .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within': {
+      outline: 'none',
     },
   };
 });
