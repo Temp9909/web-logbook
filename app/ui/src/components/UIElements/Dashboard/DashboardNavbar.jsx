@@ -105,7 +105,7 @@ const PopoverNavItems = ({ items, onClose, basePath = '' }) => {
                 onClick={onClose}
                 sx={{ px: 2, backgroundColor: isSelected ? theme.palette.action.selected : 'transparent' }}
               >
-                <ListItemIcon sx={{ minWidth: 32, '& .MuiSvgIcon-root': { color: isSelected ? 'primary.dark' : 'inherit' } }}>
+                <ListItemIcon sx={{ minWidth: 32, '& .MuiSvgIcon-root': { color: isSelected ? 'primary.main' : 'inherit' } }}>
                   {child.icon}
                 </ListItemIcon>
                 <ListItemText>
@@ -174,8 +174,8 @@ const NavItem = ({ item, depth = 0, expanded, onClose, basePath = '' }) => {
               minWidth: 0,
               mr: expanded ? 1 : 0,
               justifyContent: 'center',
-              color: isSelected ? 'primary.dark' : 'inherit',
-              '& .MuiSvgIcon-root': { color: isSelected ? 'primary.dark' : 'inherit' },
+              color: isSelected ? 'primary.main' : 'inherit',
+              '& .MuiSvgIcon-root': { color: isSelected ? 'primary.main' : 'inherit' },
             }}
           >
             {item.icon}
@@ -187,7 +187,7 @@ const NavItem = ({ item, depth = 0, expanded, onClose, basePath = '' }) => {
               <ListItemText
                 sx={{
                   fontWeight: isSelected ? 600 : 400,
-                  color: isSelected ? 'primary.dark' : 'inherit',
+                  color: isSelected ? 'primary.main' : 'inherit',
                   m: 0,
                 }}
               >
@@ -206,7 +206,7 @@ const NavItem = ({ item, depth = 0, expanded, onClose, basePath = '' }) => {
                 lineHeight: 1.2,
                 textAlign: 'center',
                 fontWeight: isSelected ? 600 : 400,
-                color: isSelected ? 'primary.dark' : 'text.secondary',
+                color: isSelected ? 'primary.main' : 'text.secondary',
                 wordBreak: 'break-word',
                 maxWidth: '100%',
               }}

@@ -46,7 +46,7 @@ const AppTitle = () => {
 
   return (
     <Stack direction="row" alignItems="center" spacing={2}>
-      <Typography variant="h6">Logbook</Typography>
+      <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: '-0.015em' }}>Logbook</Typography>
       <Badge color="primary" badgeContent="New" invisible={!isNewReleaseAvailable}>
         <Chip
           size="small" label={version} color="success" variant="outlined"
@@ -92,7 +92,7 @@ export const DashboardToolbar = ({ handleMenuToggle, expanded, isMobile }) => {
       position="fixed"
       color="inherit"
       elevation={0}
-      sx={{ zIndex: 30000, borderBottom: '1px solid', borderColor: 'divider' }}
+      sx={{ zIndex: 30000 }}
     >
       <Toolbar>
         <IconButton edge="start" aria-label="toggle drawer" onClick={handleMenuToggle} sx={{ mr: 1 }}>
