@@ -1,0 +1,3 @@
+V7 FULL BUILD FIX
+This archive is the COMPLETE repository, not a patch.
+It includes app/ui/package.json and app/ui/package-lock.json.

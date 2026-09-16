@@ -1,0 +1,48 @@
+import { createContext, useContext, useCallback } from 'react';
+import { CODEC_JSON, useLocalStorageState } from '../../../hooks/useLocalStorageState';
+
+const FilterContext = createContext();
+
+export const FilterProvider = ({ storageKey, children }) => {
+  const [filterModel, setFilterModel] = useLocalStorageState(`${storageKey}-filter-model`, { items: [] }, { codec: CODEC_JSON });
+  const [quickFilterModel, setQuickFilterModel] = useLocalStorageState(`${storageKey}-quick-filter-model`, { items: [], quickFilterValues: [] }, { codec: CODEC_JSON });
+
+  const updateFilter = useCallback((field, operator, value) => {
+    setFilterModel((prev) => {
+      const newItems = prev.items.filter(item => !(item.field === field && item.operator === operator));
+
+      if (value !== '' && value !== null && value !== undefined) {
+        newItems.push({
+          id: `${field}-${operator}`,
+          field,
+          operator,
+          value,
+        });
+      }
+
+      return {
+        ...prev,
+        items: newItems,
+      };
+    });
+  }, [setFilterModel]);
+
+  const clearFilters = useCallback(() => {
+    setFilterModel({ items: [] });
+  }, [setFilterModel]);
+
+  return (
+    <FilterContext.Provider value={{ filterModel, updateFilter, clearFilters, quickFilterModel, setQuickFilterModel }}>
+      {children}
+    </FilterContext.Provider>
+  );
+};
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useFilter = () => {
+  const context = useContext(FilterContext);
+  if (!context) {
+    throw new Error('useFilter must be used within a FilterProvider');
+  }
+  return context;
+};
