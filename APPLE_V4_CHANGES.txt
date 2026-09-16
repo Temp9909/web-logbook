@@ -1,0 +1,10 @@
+APPLE V4 — global theme pass
+
+- Apple font/theme applied globally to legacy MUI pages, dialogs, menus, submenus and popovers
+- Compact switches
+- Currency removed from navigation and router
+- Stats dashboard restored to the original rich functionality, now styled by the Apple theme
+- Logbook summary cards configurable (4 user-selected time totals, persisted in localStorage)
+- Missing separator between DATE and PLACE fixed
+
+Copy this folder over the repository root, replace files, commit to apple-design, then push.

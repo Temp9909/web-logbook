@@ -1,74 +1,126 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import LinearProgress from '@mui/material/LinearProgress';
-import { fetchLogbookData } from '../../../util/http/logbook';
-import { useErrorNotification } from '../../../hooks/useAppNotifications';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+// MUI
+import Grid from "@mui/material/Grid";
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import LinearProgress from "@mui/material/LinearProgress";
+// Custom
+import CardHeader from "../../UIElements/CardHeader";
+import Filters from "../../UIElements/Filters";
+import { useErrorNotification } from "../../../hooks/useAppNotifications";
+import { fetchLogbookData } from "../../../util/http/logbook";
+import DashboardTiles from "./DashboardTiles";
+import CustomFieldsTiles from "./CustomFieldsTiles";
+import useCustomFields from "../../../hooks/useCustomFields";
+import { fetchAirports } from "../../../util/http/airport";
+import { useLocalStorageState, CODEC_JSON } from "../../../hooks/useLocalStorageState";
+import DashboardOptions from "./DashboardOptions";
+import useSettings from "../../../hooks/useSettings";
 
-const toMinutes = (value) => {
-  if (!value || typeof value !== 'string') return 0;
-  const [h='0',m='0'] = value.split(':');
-  return (Number.parseInt(h,10)||0)*60 + (Number.parseInt(m,10)||0);
-};
-const fmt = (minutes) => `${Math.floor((minutes||0)/60).toLocaleString()}:${String((minutes||0)%60).padStart(2,'0')}`;
-const parseDate = (value) => {
-  if (!value) return null;
-  const s = String(value);
-  let m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
-  if (m) return new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
-  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
-  return null;
-};
-const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+export const TotalsDashboard = () => {
+  const [dashboardData, setDashboardData] = useState([]);
+  const [dashboardOptions, setDashboardOptions] = useLocalStorageState("dashboard-options", {}, { codec: CODEC_JSON });
+  const [airportsMap, setAirportsMap] = useState(new Map());
+  const { settings } = useSettings();
 
-export default function TotalsDashboard() {
-  const { data = [], isLoading, isError, error } = useQuery({
-    queryKey:['logbook'], queryFn:({signal})=>fetchLogbookData({signal}), staleTime:3600000, gcTime:3600000
+  const { data: rawData, isLoading, isError, error } = useQuery({
+    queryKey: ['logbook'],
+    queryFn: ({ signal }) => fetchLogbookData({ signal }),
+    staleTime: 3600000,
+    gcTime: 3600000,
+    select: (data) => data || [],
   });
-  useErrorNotification({ isError, error, fallbackMessage:'Failed to load logbook' });
+  useErrorNotification({ isError, error, fallbackMessage: 'Failed to load logbook' });
 
-  const stats = useMemo(() => {
-    const rows = (Array.isArray(data) ? data : []).filter(r => r?.uuid !== 'previous-experience-artificial-uuid');
-    const now = new Date();
-    const months = [];
-    for (let i=11;i>=0;i--) {
-      const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-      months.push({ key:monthKey(d), label:d.toLocaleDateString('en-GB',{month:'short'}).slice(0,1).toUpperCase(), minutes:0 });
+  const data = useMemo(() => {
+    if (!rawData) return rawData;
+    if (!settings || !settings.previous_experience) return rawData;
+
+    const prev = settings.previous_experience;
+
+    const artificialFlight = {
+      uuid: "previous-experience-artificial-uuid",
+      date: "17/12/1903",
+      departure: { place: "" },
+      arrival: { place: "" },
+      aircraft: { reg_name: "", model: "" },
+      time: {
+        se_time: prev.se_time || "",
+        me_time: prev.me_total_time || "",
+        mcc_time: prev.mcc_time || "",
+        total_time: prev.total_time || "",
+        night_time: prev.night_time || "",
+        ifr_time: prev.ifr_time || "",
+        pic_time: prev.pic_time || "",
+        co_pilot_time: prev.co_pilot_time || "",
+        dual_time: prev.dual_time || "",
+        instructor_time: prev.instructor_time || "",
+        cc_time: prev.cc_time || "",
+      },
+      landings: {
+        day: prev.landings_day || 0,
+        night: prev.landings_night || 0,
+      },
+      sim: {
+        type: "",
+        time: prev.sim_time || "",
+      },
+      distance: 0,
+      custom_fields: {},
+      tags: "",
+    };
+
+    return [artificialFlight, ...rawData];
+  }, [rawData, settings]);
+
+  const { data: airports } = useQuery({
+    queryKey: ['airports'],
+    queryFn: ({ signal }) => fetchAirports({ signal }),
+    staleTime: 3600000,
+    gcTime: 3600000,
+  });
+
+  useEffect(() => {
+    if (airports) {
+      const map = new Map();
+      airports.forEach(a => {
+        map.set(a.icao, a);
+        if (a.iata) {
+          map.set(a.iata, a);
+        }
+      });
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAirportsMap(map);
     }
-    const map = new Map(months.map(m => [m.key,m]));
-    let thisYear = 0;
-    const types = new Set();
-    rows.forEach(r => {
-      const mins = toMinutes(r?.time?.total_time);
-      const d = parseDate(r.date);
-      if (d && map.has(monthKey(d))) map.get(monthKey(d)).minutes += mins;
-      if (d && d.getFullYear() === now.getFullYear()) thisYear += mins;
-      if (r?.aircraft?.model) types.add(r.aircraft.model);
-    });
-    const periodTotal = months.reduce((a,m)=>a+m.minutes,0);
-    const avg = Math.round(periodTotal/12);
-    const best = months.reduce((a,m)=>m.minutes>a.minutes?m:a, months[0] || {minutes:0,label:'—'});
-    const max = Math.max(1,...months.map(m=>m.minutes));
-    return { months, thisYear, types:types.size, periodTotal, avg, best, max };
-  }, [data]);
+  }, [airports]);
+
+  const { customFields } = useCustomFields();
+
+  const callbackFunction = useCallback((filteredData) => { setDashboardData(filteredData) }, []);
 
   return (
-    <section className="active apple-page-shell">
-      <h1 className="page-title">Stats</h1>
-      <p className="page-sub">Flight hours by month — last 12 months</p>
-      {isLoading && <LinearProgress sx={{mb:1.5,borderRadius:99}} />}
-      <div className="tiles">
-        <div className="card tile"><div className="cap">This year</div><div className="val mono">{fmt(stats.thisYear)}</div></div>
-        <div className="card tile"><div className="cap">Average / month</div><div className="val mono">{fmt(stats.avg)}</div></div>
-        <div className="card tile"><div className="cap">Best month</div><div className="val mono">{fmt(stats.best.minutes)}</div><div className="delta">{stats.best.label}</div></div>
-        <div className="card tile"><div className="cap">Aircraft types</div><div className="val mono">{stats.types}</div></div>
-      </div>
-      <div className="card">
-        <div className="bars">
-          {stats.months.map(m => <div className="bar" key={m.key}><div className="fill" style={{height:`${Math.max(3,Math.round((m.minutes/stats.max)*100))}%`}}></div><div className="cap">{m.label}</div></div>)}
-        </div>
-        <div className="legend">Total for the period: {fmt(stats.periodTotal)} — peak in {stats.best.label} with {fmt(stats.best.minutes)} flown.</div>
-      </div>
-    </section>
+    <>
+      {isLoading && <LinearProgress />}
+      <Grid container spacing={1} >
+        <Grid size={{ xs: 12, sm: 12, md: 3, lg: 3, xl: 3 }}>
+          <Card variant="outlined" sx={{ mb: 1 }}>
+            <CardContent>
+              <CardHeader title="Filters" />
+              <Filters data={data} callbackFunction={callbackFunction} quickSelect={"All Time"} />
+            </CardContent>
+          </Card >
+          <DashboardOptions dashboardOptions={dashboardOptions} setDashboardOptions={setDashboardOptions} />
+
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 12, md: 9, lg: 9, xl: 9 }}>
+          <DashboardTiles data={dashboardData} dashboardOptions={dashboardOptions} airportsMap={airportsMap} />
+          <CustomFieldsTiles data={dashboardData} customFields={customFields} />
+        </Grid>
+      </Grid>
+    </>
   );
 }
+
+export default TotalsDashboard;

@@ -175,11 +175,11 @@
   .grow:last-child { border-bottom: 0; }
   .grow .lbl { flex: 1; font-size: 14px; }
   .grow .sub { font-size: 12.5px; color: var(--secondary); margin-top: 1px; }
-  .switch { width: 51px; height: 31px; border-radius: 999px; background: #E9E9EA; position: relative; cursor: pointer; flex-shrink: 0; transition: background .25s ease; }
+  .switch { width: 40px; height: 24px; border-radius: 999px; background: #E9E9EA; position: relative; cursor: pointer; flex-shrink: 0; transition: background .25s ease; }
   [data-theme="dark"] .switch { background: #39393D; }
-  .switch::after { content:""; position:absolute; width:27px; height:27px; border-radius:50%; background:#fff; top:2px; left:2px; box-shadow:0 3px 8px rgba(0,0,0,.15); transition: transform .25s ease; }
+  .switch::after { content:""; position:absolute; width:20px; height:20px; border-radius:50%; background:#fff; top:2px; left:2px; box-shadow:0 3px 8px rgba(0,0,0,.15); transition: transform .25s ease; }
   .switch.on { background: var(--green); }
-  .switch.on::after { transform: translateX(20px); }
+  .switch.on::after { transform: translateX(16px); }
   .chev { color: var(--secondary); opacity:.6; }
   .chev svg { width: 15px; height: 15px; }
 
@@ -271,4 +271,264 @@ button, input { font-family: inherit; }
   .segmented button { flex:1; }
   .search { max-width:none; width:100%; }
   .row .spacer { display:none; }
+}
+
+/* ========================================================================== */
+/* Apple theme bridge for every legacy MUI page, submenu, dialog and popover. */
+/* ========================================================================== */
+
+/* Typography everywhere, including portal-rendered dialogs/menus. */
+.MuiTypography-root,
+.MuiButton-root,
+.MuiInputBase-root,
+.MuiInputLabel-root,
+.MuiFormLabel-root,
+.MuiMenuItem-root,
+.MuiTab-root,
+.MuiChip-root,
+.MuiTableCell-root,
+.MuiDataGrid-root,
+.MuiTooltip-tooltip,
+.MuiDialog-root,
+.MuiPopover-root,
+.MuiDrawer-root {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", Arial, sans-serif !important;
+  letter-spacing: -0.005em;
+}
+
+/* Generic surfaces */
+.MuiPaper-root,
+.MuiCard-root,
+.MuiAccordion-root,
+.MuiDialog-paper,
+.MuiPopover-paper,
+.MuiMenu-paper {
+  background-image: none !important;
+  background-color: var(--paper) !important;
+  color: var(--label) !important;
+  border: 1px solid var(--separator) !important;
+  box-shadow: 0 10px 36px rgba(0,0,0,.10) !important;
+}
+.MuiCard-root,
+.MuiAccordion-root { border-radius: 14px !important; }
+.MuiDialog-paper { border-radius: 18px !important; }
+.MuiPopover-paper,
+.MuiMenu-paper { border-radius: 12px !important; }
+.MuiAccordion-root::before { display:none !important; }
+.MuiAccordionSummary-root { min-height: 44px !important; }
+.MuiAccordionSummary-content { margin: 10px 0 !important; }
+
+/* Buttons / icon buttons */
+.MuiButton-root {
+  border-radius: 980px !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+  min-height: 32px !important;
+  padding: 5px 14px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+.MuiButton-containedPrimary { background: var(--blue) !important; color:#fff !important; }
+.MuiButton-outlined { border-color: rgba(0,122,255,.38) !important; }
+.MuiIconButton-root {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  color: var(--secondary) !important;
+}
+.MuiIconButton-root:hover { background: var(--fill) !important; color:var(--label) !important; }
+
+/* Inputs, selects, textareas, autocompletes */
+.MuiOutlinedInput-root,
+.MuiInputBase-root.MuiOutlinedInput-root {
+  border-radius: 9px !important;
+  background: var(--paper) !important;
+  color: var(--label) !important;
+  font-size: 13.5px !important;
+}
+.MuiOutlinedInput-notchedOutline { border-color: var(--separator) !important; }
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline { border-color: rgba(60,60,67,.35) !important; }
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--blue) !important;
+  border-width: 1px !important;
+}
+.MuiOutlinedInput-root.Mui-focused { box-shadow: 0 0 0 3.5px rgba(0,122,255,.18) !important; }
+.MuiInputLabel-root,
+.MuiFormLabel-root { color: var(--secondary) !important; font-size: 13px !important; }
+.MuiInputLabel-root.Mui-focused,
+.MuiFormLabel-root.Mui-focused { color: var(--blue) !important; }
+.MuiSelect-icon { color: var(--secondary) !important; }
+.MuiAutocomplete-paper { border-radius: 12px !important; }
+.MuiAutocomplete-option { font-size: 13.5px !important; }
+.MuiAutocomplete-option[aria-selected="true"] { background: var(--tint) !important; }
+
+/* Compact Apple switch: intentionally smaller than default MUI/iOS switch. */
+.MuiSwitch-root {
+  width: 38px !important;
+  height: 22px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+.MuiSwitch-switchBase {
+  padding: 2px !important;
+  color: #fff !important;
+}
+.MuiSwitch-thumb {
+  width: 18px !important;
+  height: 18px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18) !important;
+}
+.MuiSwitch-track {
+  border-radius: 999px !important;
+  background: #D8D8DC !important;
+  opacity: 1 !important;
+}
+[data-theme="dark"] .MuiSwitch-track { background:#3A3A3E !important; }
+.MuiSwitch-switchBase.Mui-checked { transform: translateX(16px) !important; color:#fff !important; }
+.MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track { background:var(--green) !important; opacity:1 !important; }
+
+/* Checkbox / radio */
+.MuiCheckbox-root,
+.MuiRadio-root { color: var(--secondary) !important; padding:6px !important; }
+.MuiCheckbox-root.Mui-checked,
+.MuiRadio-root.Mui-checked { color:var(--blue) !important; }
+
+/* Tabs */
+.MuiTabs-root { min-height: 38px !important; }
+.MuiTab-root {
+  min-height: 34px !important;
+  min-width: 0 !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-transform:none !important;
+  color:var(--secondary) !important;
+}
+.MuiTab-root.Mui-selected { color:var(--blue) !important; font-weight:600 !important; }
+.MuiTabs-indicator { background:var(--blue) !important; height:2px !important; border-radius:2px !important; }
+
+/* Chips */
+.MuiChip-root {
+  height: 24px !important;
+  border-radius: 999px !important;
+  font-size: 11.5px !important;
+  font-weight: 600 !important;
+  background: var(--fill) !important;
+  color:var(--label) !important;
+}
+
+/* Dialogs */
+.MuiDialogTitle-root { font-size: 18px !important; font-weight: 700 !important; letter-spacing:-.018em !important; padding:18px 20px 8px !important; }
+.MuiDialogContent-root { padding:12px 20px 18px !important; }
+.MuiDialogActions-root { padding:10px 20px 18px !important; gap:8px !important; }
+.MuiBackdrop-root { background-color:rgba(0,0,0,.24) !important; backdrop-filter:blur(3px); }
+
+/* Menus / list rows */
+.MuiMenu-list { padding:5px !important; }
+.MuiMenuItem-root,
+.MuiListItemButton-root {
+  border-radius:8px !important;
+  font-size:13.5px !important;
+}
+.MuiMenuItem-root { min-height:34px !important; padding:7px 10px !important; }
+.MuiMenuItem-root:hover,
+.MuiListItemButton-root:hover { background:var(--fill) !important; }
+.MuiMenuItem-root.Mui-selected { background:var(--tint) !important; color:var(--blue) !important; }
+
+/* DataGrid: keep all legacy features, only replace the visual language. */
+.MuiDataGrid-root {
+  border:1px solid var(--separator) !important;
+  border-radius:14px !important;
+  background:var(--paper) !important;
+  color:var(--label) !important;
+  font-size:12.5px !important;
+  box-shadow:none !important;
+}
+.MuiDataGrid-columnHeaders,
+.MuiDataGrid-columnHeader,
+.MuiDataGrid-filler,
+.MuiDataGrid-scrollbarFiller {
+  background:var(--paper) !important;
+}
+.MuiDataGrid-columnHeaderTitle {
+  font-size:10.5px !important;
+  font-weight:600 !important;
+  letter-spacing:.045em !important;
+  text-transform:uppercase !important;
+  color:var(--secondary) !important;
+}
+.MuiDataGrid-cell,
+.MuiDataGrid-columnHeader,
+.MuiDataGrid-row,
+.MuiDataGrid-footerContainer { border-color:var(--separator) !important; }
+.MuiDataGrid-row:hover { background:var(--fill) !important; }
+.MuiDataGrid-row.Mui-selected { background:var(--tint-soft) !important; }
+.MuiDataGrid-footerContainer { min-height:46px !important; background:var(--paper) !important; }
+.MuiDataGrid-toolbarContainer { gap:6px !important; padding:8px !important; }
+
+/* Legacy Material tables */
+.MuiTableContainer-root { border-radius:14px !important; }
+.MuiTableCell-root { border-color:var(--separator) !important; font-size:12.5px !important; }
+.MuiTableCell-head { color:var(--secondary) !important; font-size:10.5px !important; font-weight:600 !important; letter-spacing:.045em !important; text-transform:uppercase !important; }
+.MuiTableRow-root:hover { background:var(--fill); }
+
+/* Pagination */
+.MuiPaginationItem-root { border-radius:8px !important; font-size:12.5px !important; }
+.MuiPaginationItem-root.Mui-selected { background:var(--tint) !important; color:var(--blue) !important; }
+.MuiTablePagination-root { color:var(--secondary) !important; font-size:12px !important; }
+
+/* Pickers / date-time popups */
+.MuiPickersLayout-root,
+.MuiDateCalendar-root,
+.MuiMultiSectionDigitalClock-root { background:var(--paper) !important; color:var(--label) !important; }
+.MuiPickersDay-root { border-radius:50% !important; }
+.MuiPickersDay-root.Mui-selected { background:var(--blue) !important; }
+.MuiPickersToolbar-root { color:var(--label) !important; }
+
+/* Sliders / progress */
+.MuiSlider-root { color:var(--blue) !important; }
+.MuiLinearProgress-root { border-radius:999px !important; background:var(--fill) !important; }
+.MuiLinearProgress-bar { border-radius:999px !important; background:var(--blue) !important; }
+
+/* Tooltips / alerts */
+.MuiTooltip-tooltip { background:rgba(35,35,38,.94) !important; color:#fff !important; border-radius:7px !important; font-size:11.5px !important; }
+.MuiAlert-root { border-radius:12px !important; }
+
+/* Page-level spacing for all legacy screens and nested submenus. */
+.apple-page-generic .MuiGrid-container { row-gap:8px; }
+.apple-page-generic .MuiCardContent-root { padding:16px !important; }
+.apple-page-generic .MuiCardHeader-root { padding:14px 16px 8px !important; }
+.apple-page-generic .MuiCardHeader-title { font-size:15px !important; font-weight:600 !important; }
+.apple-page-generic h1,
+.apple-page-generic h2,
+.apple-page-generic h3,
+.apple-page-generic h4,
+.apple-page-generic h5,
+.apple-page-generic h6 { letter-spacing:-.018em; }
+
+/* Fix the missing visual separator between DATE and the first PLACE column. */
+.apple-logbook-table thead tr.sub th:first-child { border-left:1px solid var(--separator) !important; }
+.apple-logbook-table tbody td:nth-child(2) { border-left:1px solid var(--separator) !important; }
+
+/* Configurable logbook top metrics. */
+.apple-page-heading-row { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.apple-customize-button { margin-top:2px; flex-shrink:0; }
+.apple-metrics-panel { padding:14px 16px; margin:-8px 0 14px; }
+.apple-metrics-panel-title { font-size:12.5px; color:var(--secondary); margin-bottom:10px; }
+.apple-metric-selectors { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.apple-metric-field { display:flex; flex-direction:column; gap:5px; }
+.apple-metric-field > span { font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color:var(--secondary); }
+.apple-metric-field select {
+  width:100%; min-width:0; border:1px solid var(--separator); border-radius:9px; padding:7px 30px 7px 10px;
+  background:var(--paper); color:var(--label); font:inherit; font-size:13px; outline:none;
+}
+.apple-metric-field select:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(0,122,255,.16); }
+
+@media (max-width: 900px) {
+  .apple-metric-selectors { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 560px) {
+  .apple-page-heading-row { flex-direction:column; gap:8px; }
+  .apple-customize-button { margin-top:-10px; }
+  .apple-metric-selectors { grid-template-columns:1fr; }
 }
