@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -44,8 +44,33 @@ const humanDate = (date) => {
 const rowTime = (r, key) => r?.time?.[key] || '';
 const rowLanding = (r, key) => r?.landings?.[key] || 0;
 
-function SummaryTile({ title, value, delta, total }) {
-  return <div className="card tile"><div className="cap">{title}</div><div className="val mono">{value}</div><div className="delta">+{delta}{total ? ' this year' : ''}</div></div>;
+const METRICS = [
+  { key: 'total_time', label: 'Total time', read: r => r?.time?.total_time },
+  { key: 'pic_time', label: 'PIC', read: r => r?.time?.pic_time },
+  { key: 'se_time', label: 'Single-engine', read: r => r?.time?.se_time },
+  { key: 'me_time', label: 'Multi-engine', read: r => r?.time?.me_time },
+  { key: 'mcc_time', label: 'Multi-pilot', read: r => r?.time?.mcc_time },
+  { key: 'night_time', label: 'Night', read: r => r?.time?.night_time },
+  { key: 'ifr_time', label: 'IFR', read: r => r?.time?.ifr_time },
+  { key: 'co_pilot_time', label: 'Co-pilot', read: r => r?.time?.co_pilot_time },
+  { key: 'dual_time', label: 'Dual', read: r => r?.time?.dual_time },
+  { key: 'instructor_time', label: 'Instructor', read: r => r?.time?.instructor_time },
+  { key: 'cc_time', label: 'Cross-country', read: r => r?.time?.cc_time },
+  { key: 'sim_time', label: 'FSTD / Sim', read: r => r?.sim?.time },
+];
+const METRIC_MAP = new Map(METRICS.map(m => [m.key, m]));
+const DEFAULT_METRICS = ['total_time','pic_time','me_time','ifr_time'];
+
+function loadSelectedMetrics() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem('logbook-summary-metrics') || '[]');
+    if (Array.isArray(parsed) && parsed.length === 4 && parsed.every(k => METRIC_MAP.has(k))) return parsed;
+  } catch { /* ignore invalid local state */ }
+  return DEFAULT_METRICS;
+}
+
+function SummaryTile({ title, value, delta }) {
+  return <div className="card tile"><div className="cap">{title}</div><div className="val mono">{value}</div><div className="delta">+{delta} this year</div></div>;
 }
 
 function EasaTable({ rows, onOpen }) {
@@ -115,26 +140,33 @@ export default function Logbook() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [segment, setSegment] = useState('all');
+  const [customizeOpen, setCustomizeOpen] = useState(false);
+  const [selectedMetrics, setSelectedMetrics] = useState(loadSelectedMetrics);
   const { data = [], isLoading, isError, error } = useQuery({
     queryKey:['logbook'], queryFn:({signal})=>fetchLogbookData({signal}), staleTime:3600000, gcTime:3600000
   });
   useErrorNotification({ isError, error, fallbackMessage:'Failed to load logbook' });
 
+  useEffect(() => {
+    localStorage.setItem('logbook-summary-metrics', JSON.stringify(selectedMetrics));
+  }, [selectedMetrics]);
+
   const rows = useMemo(() => (Array.isArray(data) ? data.filter(r => r?.uuid !== 'previous-experience-artificial-uuid') : []), [data]);
   const currentYear = String(new Date().getFullYear());
 
-  const summary = useMemo(() => {
-    const totals = { total:0,pic:0,me:0,ifr:0,landings:0,ytotal:0,ypic:0,yme:0,yifr:0 };
+  const allSummaries = useMemo(() => {
+    const result = {};
+    for (const metric of METRICS) result[metric.key] = { all:0, year:0 };
+    let landings = 0;
     rows.forEach(r => {
-      const total = toMinutes(rowTime(r,'total_time'));
-      const pic = toMinutes(rowTime(r,'pic_time'));
-      const me = toMinutes(rowTime(r,'me_time')) + toMinutes(rowTime(r,'mcc_time'));
-      const ifr = toMinutes(rowTime(r,'ifr_time'));
-      totals.total += total; totals.pic += pic; totals.me += me; totals.ifr += ifr;
-      totals.landings += rowLanding(r,'day') + rowLanding(r,'night');
-      if (yearOf(r.date) === currentYear) { totals.ytotal += total; totals.ypic += pic; totals.yme += me; totals.yifr += ifr; }
+      for (const metric of METRICS) {
+        const mins = toMinutes(metric.read(r));
+        result[metric.key].all += mins;
+        if (yearOf(r.date) === currentYear) result[metric.key].year += mins;
+      }
+      landings += rowLanding(r,'day') + rowLanding(r,'night');
     });
-    return totals;
+    return { metrics: result, landings };
   }, [rows, currentYear]);
 
   const filtered = useMemo(() => rows.filter((r) => {
@@ -147,17 +179,43 @@ export default function Logbook() {
     return haystack.includes(q);
   }), [rows, search, segment]);
 
+  const setMetricSlot = (index, key) => {
+    setSelectedMetrics(prev => prev.map((value, i) => i === index ? key : value));
+  };
+
   const last = rows[0]?.date ? humanDate(rows[0].date) : '';
+  const total = allSummaries.metrics.total_time?.all || 0;
   return (
     <section className="active apple-page-shell">
-      <h1 className="page-title">Flight records</h1>
-      <p className="page-sub">{formatMinutes(summary.total).split(':')[0].replace(/,/g,',')} hours flown · {summary.landings.toLocaleString()} landings{last ? ` · last entry on ${last}` : ''}</p>
+      <div className="apple-page-heading-row">
+        <div>
+          <h1 className="page-title">Flight records</h1>
+          <p className="page-sub">{formatMinutes(total).split(':')[0]} hours flown · {allSummaries.landings.toLocaleString()} landings{last ? ` · last entry on ${last}` : ''}</p>
+        </div>
+        <button className="btn ghost apple-customize-button" onClick={()=>setCustomizeOpen(v=>!v)}>Customize totals</button>
+      </div>
+      {customizeOpen && (
+        <div className="card apple-metrics-panel">
+          <div className="apple-metrics-panel-title">Choose the four time totals shown above the logbook</div>
+          <div className="apple-metric-selectors">
+            {selectedMetrics.map((metricKey, index) => (
+              <label key={index} className="apple-metric-field">
+                <span>Card {index + 1}</span>
+                <select value={metricKey} onChange={(e)=>setMetricSlot(index,e.target.value)}>
+                  {METRICS.map(metric => <option key={metric.key} value={metric.key}>{metric.label}</option>)}
+                </select>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
       {isLoading && <LinearProgress sx={{ mb: 1.5, borderRadius:99 }} />}
       <div className="tiles">
-        <SummaryTile title="Total time" value={formatMinutes(summary.total)} delta={formatMinutes(summary.ytotal)} total />
-        <SummaryTile title="PIC" value={formatMinutes(summary.pic)} delta={formatMinutes(summary.ypic)} />
-        <SummaryTile title="Multi-engine" value={formatMinutes(summary.me)} delta={formatMinutes(summary.yme)} />
-        <SummaryTile title="IFR" value={formatMinutes(summary.ifr)} delta={formatMinutes(summary.yifr)} />
+        {selectedMetrics.map((metricKey, index) => {
+          const metric = METRIC_MAP.get(metricKey) || METRICS[0];
+          const summary = allSummaries.metrics[metric.key] || { all:0, year:0 };
+          return <SummaryTile key={`${metricKey}-${index}`} title={metric.label} value={formatMinutes(summary.all)} delta={formatMinutes(summary.year)} />;
+        })}
       </div>
       <div className="row">
         <div className="search">
