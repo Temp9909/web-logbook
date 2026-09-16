@@ -10,6 +10,7 @@ import XToolbarQuickFilter from './XToolbarQuickFilter';
 import XToolbarResetColumns from './XToolbarResetColumns';
 import XToolbarColumnsPanelTrigger from './XToolbarColumnsPanel';
 import XToolbarFilterPanelTrigger from './XToolbarFilterPanel';
+import { Toolbar } from '@mui/x-data-grid';
 import { useFilter } from './FilterContext';
 
 const EMPTY_COLUMNS = [];
@@ -66,7 +67,7 @@ export const XToolbar = ({
 
   if (isMobile) {
     return (
-      <div className="apple-grid-toolbar apple-grid-toolbar-mobile">
+      <Toolbar className="apple-grid-toolbar apple-grid-toolbar-mobile">
         <ToolbarTitle icon={icon} title={title} />
         <div className="apple-grid-toolbar-actions">
           {showQuickFilter ? <XToolbarQuickFilter /> : null}
@@ -85,12 +86,12 @@ export const XToolbar = ({
         >
           {mobileMenuItems}
         </Menu>
-      </div>
+      </Toolbar>
     );
   }
 
   return (
-    <div className="apple-grid-toolbar">
+    <Toolbar className="apple-grid-toolbar">
       <ToolbarTitle icon={icon} title={title} />
       <div className="apple-grid-toolbar-actions">
         {customActions}
@@ -99,7 +100,7 @@ export const XToolbar = ({
         {showColumnsPanel ? <XToolbarColumnsPanelTrigger /> : null}
         {showResetColumns ? <XToolbarResetColumns initialColumns={initialColumns} /> : null}
       </div>
-    </div>
+    </Toolbar>
   );
 }
 

@@ -1,33 +1,42 @@
-import { useCallback } from 'react';
-import { DatePicker as MUIDatePicker } from '@mui/x-date-pickers/DatePicker';
-import Grid from '@mui/material/Grid';
-import Tooltip from '@mui/material/Tooltip';
+import { useCallback, useMemo } from 'react';
 import dayjs from 'dayjs';
 
-export const DatePicker = ({ gsize, id, name = id, label, handleChange, tooltip = label, ...props }) => {
+const sizeClass = (gsize) => {
+  if (!gsize || typeof gsize !== 'object') return 'apple-span-xs-12';
+  return ['xs','sm','md','lg','xl']
+    .map(bp => Number.isFinite(Number(gsize[bp])) ? `apple-span-${bp}-${Math.max(1, Math.min(12, Number(gsize[bp])))}` : '')
+    .filter(Boolean)
+    .join(' ');
+};
 
-  const onDateChange = useCallback((value) => {
-    handleChange(id, value ? dayjs(value).format("DD/MM/YYYY") : "")
-  }, [handleChange, id])
+export const DatePicker = ({ gsize, id, name = id, label, handleChange, tooltip = label, value, clearable, ...props }) => {
+  const nativeValue = useMemo(() => {
+    if (!value) return '';
+    const d = dayjs(value);
+    return d.isValid() ? d.format('YYYY-MM-DD') : '';
+  }, [value]);
+
+  const onDateChange = useCallback((event) => {
+    const raw = event.target.value;
+    handleChange?.(id, raw ? dayjs(raw, 'YYYY-MM-DD').format('DD/MM/YYYY') : '');
+  }, [handleChange, id]);
 
   return (
-    <Grid size={gsize}>
-      <Tooltip title={tooltip} disableInteractive>
-        <div>
-          <MUIDatePicker
-            id={id}
-            name={name}
-            label={label}
-            format="DD/MM/YYYY"
-            onChange={onDateChange}
-            slotProps={{ field: { size: "small", fullWidth: true, clearable: props.clearable } }}
-            minDate={dayjs('17/12/1903', 'DD/MM/YYYY')} // pilots looking down at people since 17/12/1903
-            {...props}
-          />
-        </div>
-      </Tooltip>
-    </Grid >
-  )
-}
+    <label className={`apple-field ${sizeClass(gsize)}`} title={typeof tooltip === 'string' ? tooltip : undefined}>
+      {label ? <span className="apple-field-label">{label}</span> : null}
+      <input
+        className="apple-field-control apple-date-control"
+        type="date"
+        id={id}
+        name={name}
+        value={nativeValue}
+        onChange={onDateChange}
+        min="1903-12-17"
+        disabled={props.disabled}
+        aria-label={typeof label === 'string' ? label : id}
+      />
+    </label>
+  );
+};
 
 export default DatePicker;

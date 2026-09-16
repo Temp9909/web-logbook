@@ -1,86 +1,44 @@
 import { useCallback } from "react";
-// MUI
 import Grid from "@mui/material/Grid";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-// Custom
 import TextField from "../../UIElements/TextField";
 
-export const OtherSettings = ({ settings, handleChange }) => {
-  const getDefaultPagination = useCallback(() => {
-    // Return default pagination if the setting is empty or undefined
-    return settings.logbook_pagination && settings.logbook_pagination.trim() !== ''
-      ? settings.logbook_pagination
-      : "5, 10, 15, 20, 25, 30, 50, 100";
-  }, [settings.logbook_pagination]);
+const SegmentedSetting = ({ label, value, options, onChange }) => (
+  <div className="apple-settings-row">
+    <span className="apple-settings-row-label">{label}</span>
+    <div className="segmented">
+      {options.map((option) => (
+        <button key={option.value} type="button" className={Number(value) === option.value ? 'on' : ''} onClick={() => onChange(option.value)}>
+          {option.label}
+        </button>
+      ))}
+    </div>
+  </div>
+);
 
-  const onFormatChange = useCallback((_, value) => {
-    handleChange('time_fields_auto_format', parseInt(value));
-  }, [handleChange]);
-
-  const onTotalsViewChange = useCallback((_, value) => {
-    handleChange('logbook_totals_view', parseInt(value));
-  }, [handleChange]);
+export const OtherSettings = ({ settings = {}, handleChange }) => {
+  const getDefaultPagination = useCallback(() => settings.logbook_pagination?.trim() || "5, 10, 15, 20, 25, 30, 50, 100", [settings.logbook_pagination]);
 
   return (
-    <Grid container spacing={1} sx={{ mt: 2 }}>
-      <TextField
-        gsize={{ xs: 12, sm: 6, md: 6, lg: 6, xl: 6 }}
-        id="logbook_pagination"
-        label="Logbook Pagination"
-        handleChange={handleChange}
-        value={getDefaultPagination()}
-        tooltip="Logbook Pagination (comma-separated values, e.g. 5,10,15)"
-      />
-      <TextField
-        gsize={{ xs: 12, sm: 6, md: 6, lg: 6, xl: 6 }}
-        id="self_pic_label"
-        label="Self PIC Label"
-        handleChange={handleChange}
-        value={settings.self_pic_label || "Self"}
-        tooltip="Text used when you are PIC"
-      />
-      <Grid size={{ xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }}>
-        <FormControlLabel
-          sx={{ m: 0, width: '100%', display: 'flex', justifyContent: 'space-between' }}
-          control={
-            <ToggleButtonGroup
-              size="small"
-              sx={{ ml: 1 }}
-              value={parseInt(settings.time_fields_auto_format) || 0}
-              onChange={onFormatChange}
-              exclusive
-            >
-              <ToggleButton value={0}>None</ToggleButton>
-              <ToggleButton value={1}>HH:MM</ToggleButton>
-              <ToggleButton value={2}>H:MM</ToggleButton>
-            </ToggleButtonGroup>
-          }
+    <>
+      <Grid container spacing={1}>
+        <TextField gsize={{ xs: 12, sm: 6 }} id="logbook_pagination" label="Logbook Pagination" handleChange={handleChange} value={getDefaultPagination()} />
+        <TextField gsize={{ xs: 12, sm: 6 }} id="self_pic_label" label="Self PIC Label" handleChange={handleChange} value={settings.self_pic_label || "Self"} />
+      </Grid>
+      <div className="apple-settings-choice-list">
+        <SegmentedSetting
           label="Logbook table time fields autoformat"
-          labelPlacement="start"
+          value={parseInt(settings.time_fields_auto_format) || 0}
+          onChange={(value) => handleChange('time_fields_auto_format', value)}
+          options={[{ value: 0, label: 'None' }, { value: 1, label: 'HH:MM' }, { value: 2, label: 'H:MM' }]}
         />
-      </Grid>
-      <Grid size={{ xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }}>
-        <FormControlLabel
-          sx={{ m: 0, width: '100%', display: 'flex', justifyContent: 'space-between' }}
-          control={
-            <ToggleButtonGroup
-              size="small"
-              sx={{ ml: 1 }}
-              value={parseInt(settings.logbook_totals_view) || 0}
-              onChange={onTotalsViewChange}
-              exclusive
-            >
-              <ToggleButton value={0}>Standard</ToggleButton>
-              <ToggleButton value={1}>Paper Logbook</ToggleButton>
-            </ToggleButtonGroup>
-          }
+        <SegmentedSetting
           label="Logbook table totals view"
-          labelPlacement="start"
+          value={parseInt(settings.logbook_totals_view) || 0}
+          onChange={(value) => handleChange('logbook_totals_view', value)}
+          options={[{ value: 0, label: 'Standard' }, { value: 1, label: 'Paper Logbook' }]}
         />
-      </Grid>
-    </Grid>
+      </div>
+    </>
   );
 };
 

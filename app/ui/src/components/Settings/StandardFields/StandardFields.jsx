@@ -1,11 +1,9 @@
-import { useTheme } from '@mui/material/styles';
 import { useCallback } from 'react';
 // MUI
 import Grid from "@mui/material/Grid";
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
 // Custom
 import TextField from "../../UIElements/TextField";
+import OptionSwitch from "../../UIElements/OptionSwitch";
 import SaveSettingsButton from '../SaveSettingsButton';
 import RestoreDefaultsButton from './RestoreDefaultsButton';
 import HelpButton from './HelpButton';
@@ -113,9 +111,6 @@ const ActionButtons = ({ settings, handleChange }) => (
 );
 
 export const StandardFields = ({ settings = {}, handleChange }) => {
-  const theme = useTheme();
-  const borderRadius = theme.shape.borderRadius;
-
   const handleHeaderChange = useCallback((id, value) => {
     handleChange(`standard_fields_headers.${id}`, value);
   }, [handleChange]);
@@ -127,13 +122,11 @@ export const StandardFields = ({ settings = {}, handleChange }) => {
       actions={<ActionButtons settings={settings} handleChange={handleHeaderChange} />}
     >
         <Grid container spacing={1} sx={{ mb: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={settings?.enable_custom_names ?? false}
-                onChange={(event) => handleChange("enable_custom_names", event.target.checked)}
-              />
-            }
+          <OptionSwitch
+            id="enable_custom_names"
+            gsize={{ xs: 12 }}
+            checked={settings?.enable_custom_names ?? false}
+            handleChange={handleChange}
             label="Enable custom names for standard fields"
           />
         </Grid>
@@ -150,15 +143,6 @@ export const StandardFields = ({ settings = {}, handleChange }) => {
                     gsize={fieldSize}
                     tooltip={label}
                     disabled={!settings?.enable_custom_names}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 0,
-                        borderTopLeftRadius: fieldIndex === 0 ? borderRadius : 0,
-                        borderBottomLeftRadius: fieldIndex === 0 ? borderRadius : 0,
-                        borderTopRightRadius: fieldIndex === group.length - 1 ? borderRadius : 0,
-                        borderBottomRightRadius: fieldIndex === group.length - 1 ? borderRadius : 0,
-                      }
-                    }}
                   />
                 ))}
               </Grid>
