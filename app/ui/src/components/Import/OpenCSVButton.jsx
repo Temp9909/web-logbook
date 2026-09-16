@@ -1,3 +1,4 @@
+import AppleToolbarButton from '../UIElements/AppleToolbarButton';
 import Papa from 'papaparse';
 // MUI UI elements
 import Tooltip from "@mui/material/Tooltip";
@@ -6,7 +7,6 @@ import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 // Custom components
 import MapFieldsDialog from "./MapFieldsDialog";
 import { autoTimeRecog, convertToDDMMYYYY, marshallItem } from './helpers';
-import { ToolbarButton } from '@mui/x-data-grid';
 import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 
 export const OpenCSVButton = ({ setData }) => {
@@ -78,10 +78,10 @@ export const OpenCSVButton = ({ setData }) => {
 
   return (
     <Tooltip title="Open CSV for import">
-      <ToolbarButton color="default" label="Open CSV" component="label" ><AddBoxOutlinedIcon />
+      <AppleToolbarButton color="default" label="Open CSV" component="label" ><AddBoxOutlinedIcon />
         <input hidden type="file" name="document" id="document" onChange={handleFileChange}
           accept=".csv, text/csv, application/csv, text/comma-separated-values" />
-      </ToolbarButton>
+      </AppleToolbarButton>
     </Tooltip>
   );
 }

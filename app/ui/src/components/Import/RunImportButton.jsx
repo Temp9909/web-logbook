@@ -1,4 +1,4 @@
-import { ToolbarButton } from "@mui/x-data-grid";
+import AppleToolbarButton from '../UIElements/AppleToolbarButton';
 // MUI UI elements
 import Tooltip from "@mui/material/Tooltip";
 // MUI Icons
@@ -48,9 +48,9 @@ export const RunImportButton = ({ data }) => {
   return (
     <Tooltip title="Run Import">
       <span>
-        <ToolbarButton disabled={data.length === 0} onClick={handleImportClick} color="default" label="Run Import">
+        <AppleToolbarButton disabled={data.length === 0} onClick={handleImportClick} color="default" label="Run Import">
           <FileUploadOutlinedIcon />
-        </ToolbarButton>
+        </AppleToolbarButton>
       </span>
     </Tooltip>
   );

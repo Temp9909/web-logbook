@@ -1,7 +1,7 @@
+import AppleToolbarButton from '../AppleToolbarButton';
 import { useEffect } from 'react';
 import { styled } from '@mui/material/styles';
 import {
-  ToolbarButton,
   QuickFilter,
   QuickFilterControl,
   QuickFilterClear,
@@ -18,7 +18,7 @@ const StyledQuickFilter = styled(QuickFilter)({
   alignItems: 'center',
 });
 
-const StyledToolbarButton = styled(ToolbarButton)(({ theme, ownerState }) => ({
+const StyledAppleToolbarButton = styled(AppleToolbarButton)(({ theme, ownerState }) => ({
   gridArea: '1 / 1',
   width: 'min-content',
   height: 'min-content',
@@ -54,14 +54,14 @@ export const XToolbarQuickFilter = ({ onActiveChange }) => {
           <>
             <StateHandler expanded={state.expanded} onActiveChange={onActiveChange} />
             <Tooltip title="Search" enterDelay={0}>
-              <StyledToolbarButton
+              <StyledAppleToolbarButton
                 {...triggerProps}
                 ownerState={{ expanded: state.expanded }}
                 color="default"
                 aria-disabled={state.expanded}
               >
                 <SearchOutlinedIcon />
-              </StyledToolbarButton>
+              </StyledAppleToolbarButton>
             </Tooltip>
           </>
         )}

@@ -1,6 +1,6 @@
+import AppleToolbarButton from '../UIElements/AppleToolbarButton';
 import { useCallback, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { ToolbarButton } from '@mui/x-data-grid';
 // MUI UI elements
 import Tooltip from '@mui/material/Tooltip';
 import Menu from '@mui/material/Menu';
@@ -44,9 +44,9 @@ export const PDFExportButton = () => {
   return (
     <>
       <Tooltip title="PDF Export">
-        <ToolbarButton onClick={handleClick} color="default" label='PDF Export'>
+        <AppleToolbarButton onClick={handleClick} color="default" label='PDF Export'>
           <PictureAsPdfOutlinedIcon />
-        </ToolbarButton>
+        </AppleToolbarButton>
       </Tooltip>
       <Menu
         anchorEl={anchorEl}

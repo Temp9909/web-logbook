@@ -1,3 +1,4 @@
+import AppleToolbarButton from '../AppleToolbarButton';
 import { useCallback, useMemo, useState } from 'react';
 import {
   gridColumnVisibilityModelSelector,
@@ -6,7 +7,6 @@ import {
   isLeaf,
   gridColumnLookupSelector,
   useGridSelector,
-  ToolbarButton,
 } from '@mui/x-data-grid';
 import Box from '@mui/material/Box';
 import Switch from '@mui/material/Switch';
@@ -213,9 +213,9 @@ export const XToolbarColumnsPanelTrigger = () => {
   return (
     <>
       <Tooltip title="Columns">
-        <ToolbarButton color="default" onClick={() => setOpen(true)}>
+        <AppleToolbarButton color="default" onClick={() => setOpen(true)}>
           <ViewColumnIcon />
-        </ToolbarButton>
+        </AppleToolbarButton>
       </Tooltip>
 
       <Drawer anchor="right" open={open} onClose={() => setOpen(false)} sx={DRAWER_SX}>

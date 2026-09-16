@@ -1,3 +1,4 @@
+import AppleToolbarButton from '../UIElements/AppleToolbarButton';
 import { useCallback } from 'react';
 // MUI Icons
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
@@ -5,7 +6,6 @@ import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import Tooltip from '@mui/material/Tooltip';
 // Custom components and libraries
 import AddEditCustomAirportModal from './AddEditCustomAirportModal';
-import { ToolbarButton } from '@mui/x-data-grid';
 import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 
 export const AddCustomAirportButton = () => {
@@ -18,9 +18,9 @@ export const AddCustomAirportButton = () => {
 
   return (
     <Tooltip title="New Custom Airport">
-      <ToolbarButton onClick={handleOnClick} color="default" label="Add Custom Airport">
+      <AppleToolbarButton onClick={handleOnClick} color="default" label="Add Custom Airport">
         <AddBoxOutlinedIcon fontSize='small' />
-      </ToolbarButton>
+      </AppleToolbarButton>
     </Tooltip >
   )
 }

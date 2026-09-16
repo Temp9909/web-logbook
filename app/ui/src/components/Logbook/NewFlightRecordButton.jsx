@@ -1,6 +1,6 @@
+import AppleToolbarButton from '../UIElements/AppleToolbarButton';
 import { useNavigate } from 'react-router-dom';
 import { useCallback } from 'react';
-import { ToolbarButton } from '@mui/x-data-grid';
 // MUI UI elements
 import Tooltip from '@mui/material/Tooltip';
 // MUI Icons
@@ -15,9 +15,9 @@ export const NewFlightRecordButton = () => {
 
   return (
     <Tooltip title="Add New Flight Record">
-      <ToolbarButton onClick={handleOnClick} color="default" label='Add New Flight Record'>
+      <AppleToolbarButton onClick={handleOnClick} color="default" label='Add New Flight Record'>
         <AddBoxOutlinedIcon />
-      </ToolbarButton>
+      </AppleToolbarButton>
     </Tooltip>
   )
 }

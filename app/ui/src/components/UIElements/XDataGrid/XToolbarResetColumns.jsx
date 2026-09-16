@@ -1,4 +1,5 @@
-import { ToolbarButton, useGridApiContext } from "@mui/x-data-grid";
+import AppleToolbarButton from '../AppleToolbarButton';
+import { useGridApiContext } from "@mui/x-data-grid";
 import { useCallback } from "react";
 import Tooltip from "@mui/material/Tooltip";
 import SettingsBackupRestoreOutlinedIcon from '@mui/icons-material/SettingsBackupRestoreOutlined';
@@ -16,9 +17,9 @@ export const XToolbarResetColumns = ({ initialColumns = [] }) => {
 
   return (
     <Tooltip title="Reset Column Sizing">
-      <ToolbarButton onClick={resetColumns} color="default">
+      <AppleToolbarButton onClick={resetColumns} color="default">
         <SettingsBackupRestoreOutlinedIcon />
-      </ToolbarButton>
+      </AppleToolbarButton>
     </Tooltip>
   );
 }

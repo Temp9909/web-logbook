@@ -1,6 +1,6 @@
+import AppleToolbarButton from './AppleToolbarButton';
 import { useCallback } from 'react';
 import { mkConfig, generateCsv, download } from 'export-to-csv';
-import { ToolbarButton } from '@mui/x-data-grid';
 // MUI UI elements
 import Tooltip from '@mui/material/Tooltip';
 // MUI Icons
@@ -179,9 +179,9 @@ export const CSVExportButton = ({ type, apiRef }) => {
 
   return (
     <Tooltip title="Quick CSV Export">
-      <ToolbarButton onClick={handleCSVExport} color="default" label='Quick CSV Export'>
+      <AppleToolbarButton onClick={handleCSVExport} color="default" label='Quick CSV Export'>
         <CsvIcon />
-      </ToolbarButton>
+      </AppleToolbarButton>
     </Tooltip>
   )
 }

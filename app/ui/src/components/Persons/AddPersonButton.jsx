@@ -1,5 +1,5 @@
+import AppleToolbarButton from '../UIElements/AppleToolbarButton';
 import { useCallback } from 'react';
-import { ToolbarButton } from '@mui/x-data-grid';
 // MUI Icons
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 // MUI UI elements
@@ -20,9 +20,9 @@ export const AddPersonButton = ({ onSave, isToolbarButton = true }) => {
   return (
     <Tooltip title="Add Person">
       {isToolbarButton
-        ? <ToolbarButton onClick={handleOnClick} color="default" label="Add Person">
+        ? <AppleToolbarButton onClick={handleOnClick} color="default" label="Add Person">
           <AddBoxOutlinedIcon />
-        </ToolbarButton>
+        </AppleToolbarButton>
         : <IconButton size="small" component="label" onClick={handleOnClick}>
           <AddBoxOutlinedIcon />
         </IconButton>}

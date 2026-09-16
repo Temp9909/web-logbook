@@ -1,10 +1,10 @@
+import AppleToolbarButton from '../AppleToolbarButton';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import {
   useGridApiContext,
   useGridSelector,
   gridVisibleColumnDefinitionsSelector,
-  ToolbarButton,
   useGridRootProps,
   isLeaf,
 } from '@mui/x-data-grid';
@@ -381,11 +381,11 @@ export const XToolbarFilterPanelTrigger = () => {
   return (
     <>
       <Tooltip title="Filters">
-        <ToolbarButton color="default" onClick={toggleFilterDrawerOpen}>
+        <AppleToolbarButton color="default" onClick={toggleFilterDrawerOpen}>
           <Badge badgeContent={filterModel.items.length} color="primary">
             <FilterListIcon />
           </Badge>
-        </ToolbarButton>
+        </AppleToolbarButton>
       </Tooltip >
       <Drawer anchor="right" open={filterDrawerOpen} onClose={toggleFilterDrawerClose} sx={DRAWER_SX}>
         <Box sx={{ width: 350, p: 2 }}>

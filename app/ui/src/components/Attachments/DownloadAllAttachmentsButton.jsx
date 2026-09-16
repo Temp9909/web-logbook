@@ -1,5 +1,5 @@
+import AppleToolbarButton from '../UIElements/AppleToolbarButton';
 import { useCallback } from 'react';
-import { ToolbarButton } from '@mui/x-data-grid';
 import { useMutation } from '@tanstack/react-query';
 // MUI
 import Tooltip from '@mui/material/Tooltip';
@@ -49,9 +49,9 @@ export const DownloadAllAttachmentsButton = ({ filteredRows }) => {
   return (
     <Tooltip title="Download all/filtered attachments">
       <div>
-        <ToolbarButton disabled={disabled} onClick={handleDownloadAll} color="default" label='Download all/filtered attachments'>
+        <AppleToolbarButton disabled={disabled} onClick={handleDownloadAll} color="default" label='Download all/filtered attachments'>
           <CloudDownloadOutlinedIcon />
-        </ToolbarButton>
+        </AppleToolbarButton>
       </div>
     </Tooltip>
   );

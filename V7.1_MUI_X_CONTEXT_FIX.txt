@@ -1,0 +1,1 @@
+V7.1: removes every direct MUI X ToolbarButton usage from the application and replaces it with a context-free Material IconButton wrapper.
