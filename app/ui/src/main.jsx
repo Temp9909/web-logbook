@@ -22,6 +22,7 @@ import StatsByCategoryPage from './pages/StatsByCategoryPage.jsx';
 import PdfExportA4Page from './pages/PdfExportA4Page.jsx';
 import PdfExportA5Page from './pages/PdfExportA5Page.jsx';
 import ImportPage from './pages/ImportPage.jsx';
+import CurrencyPage from './pages/CurrencyPage.jsx';
 import PersonsPage from './pages/PersonsPage.jsx'
 import PersonViewPage from './pages/PersonViewPage.jsx';
 import ErrorPage from './pages/ErrorPage.jsx';
@@ -71,6 +72,7 @@ const router = createBrowserRouter([
               { path: 'by-category', element: <StatsByCategoryPage /> },
             ]
           },
+          { path: 'currency', element: <CurrencyPage /> },
           {
             path: 'export', children: [
               { index: true, element: <PdfExportA4Page /> },
