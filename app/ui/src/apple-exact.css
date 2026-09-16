@@ -2032,3 +2032,104 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 .exact-pdf-preview-frame{width:100%;height:min(74vh,860px);min-height:560px;border:1px solid var(--separator);border-radius:10px;background:#fff;display:block}
 .exact-preview-loading{min-height:560px;display:grid;place-items:center;color:var(--secondary);font-size:13px;border:1px solid var(--separator);border-radius:10px;background:var(--fill)}
 .exact-preview-error{margin-bottom:10px;color:var(--red)}
+
+
+/* === GLOBAL IOS26 SWITCH OVERRIDE === */
+:root {
+  --ios-toggle-width: 59px;
+  --ios-toggle-height: 25px;
+  --ios-toggle-knob-width: 34px;
+  --ios-toggle-knob-height: 21px;
+  --ios-toggle-shift: 21px;
+  --ios-toggle-off: #D8D8DC;
+}
+
+.MuiSwitch-root,
+.apple-legacy-page .MuiSwitch-root,
+body.apple-legacy-page .MuiSwitch-root {
+  width: var(--ios-toggle-width) !important;
+  height: var(--ios-toggle-height) !important;
+  min-width: var(--ios-toggle-width) !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  transform: none !important;
+  margin-right: 0 !important;
+}
+
+.MuiSwitch-switchBase,
+.apple-legacy-page .MuiSwitch-switchBase,
+body.apple-legacy-page .MuiSwitch-switchBase {
+  padding: 2px !important;
+}
+
+.MuiSwitch-thumb,
+.apple-legacy-page .MuiSwitch-thumb,
+body.apple-legacy-page .MuiSwitch-thumb {
+  width: var(--ios-toggle-knob-width) !important;
+  height: var(--ios-toggle-knob-height) !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18) !important;
+}
+
+.MuiSwitch-track,
+.apple-legacy-page .MuiSwitch-track,
+body.apple-legacy-page .MuiSwitch-track {
+  border-radius: 999px !important;
+  background: var(--ios-toggle-off) !important;
+  opacity: 1 !important;
+}
+
+[data-theme="dark"] .MuiSwitch-track,
+[data-theme="dark"] .apple-legacy-page .MuiSwitch-track,
+body.apple-legacy-page[data-theme="dark"] .MuiSwitch-track {
+  background: #3A3A3E !important;
+}
+
+.MuiSwitch-switchBase.Mui-checked,
+.apple-legacy-page .MuiSwitch-switchBase.Mui-checked,
+body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked {
+  transform: translateX(var(--ios-toggle-shift)) !important;
+  color: #fff !important;
+}
+
+.MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track,
+.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track,
+body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background: var(--switch-on-color, var(--green)) !important;
+  opacity: 1 !important;
+}
+
+.switch,
+.apple-switch-control {
+  width: var(--ios-toggle-width) !important;
+  height: var(--ios-toggle-height) !important;
+  border-radius: 999px !important;
+  padding: 0 !important;
+  background: var(--ios-toggle-off) !important;
+}
+
+[data-theme="dark"] .switch,
+[data-theme="dark"] .apple-switch-control {
+  background: #3A3A3E !important;
+}
+
+.switch::after,
+.apple-switch-knob {
+  width: var(--ios-toggle-knob-width) !important;
+  height: var(--ios-toggle-knob-height) !important;
+  border-radius: 999px !important;
+  top: 2px !important;
+  left: 2px !important;
+  box-shadow: 0 1px 4px rgba(0,0,0,.18) !important;
+}
+
+.switch.on,
+.apple-switch-control.on {
+  background: var(--switch-on-color, var(--green)) !important;
+}
+
+.switch.on::after,
+.apple-switch-control.on .apple-switch-knob {
+  transform: translateX(var(--ios-toggle-shift)) !important;
+}
