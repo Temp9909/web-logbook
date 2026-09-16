@@ -14,6 +14,7 @@ export default function DashboardToolbar({ onMenu }) {
       <button className="icon-btn" title="Menu" aria-label="Menu" onClick={onMenu}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
+      <img className="topbar-logo" src="/aircraft-menu-icon.svg" alt="" aria-hidden="true" />
       <span className="title">{TITLES[segment] || 'Logbook'}</span>
       <span className="spacer" />
       <button className="icon-btn" title="Light / dark mode" aria-label="Light / dark mode" onClick={toggleColorMode}>

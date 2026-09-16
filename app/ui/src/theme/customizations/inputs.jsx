@@ -156,8 +156,8 @@ export const inputsCustomizations = {
     styleOverrides: {
       root: {
         // iOS-style toggle
-        width: 51,
-        height: 31,
+        width: 63,
+        height: 28,
         padding: 0,
         overflow: 'visible',
       },
@@ -165,10 +165,10 @@ export const inputsCustomizations = {
         padding: 2,
         transitionDuration: '260ms',
         '&.Mui-checked': {
-          transform: 'translateX(20px)',
+          transform: 'translateX(35px)',
           color: '#FFFFFF',
           '& + .MuiSwitch-track': {
-            backgroundColor: theme.palette.mode === 'dark' ? '#30D158' : '#34C759',
+            backgroundColor: theme.palette.mode === 'dark' ? '#0A84FF' : '#007AFF',
             opacity: 1,
             border: 0,
           },
@@ -180,23 +180,23 @@ export const inputsCustomizations = {
       }),
       thumb: {
         boxSizing: 'border-box',
-        width: 27,
-        height: 27,
+        width: 24,
+        height: 24,
         backgroundColor: '#FFFFFF',
         boxShadow: '0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16)',
       },
       track: ({ theme }) => ({
-        borderRadius: 31 / 2,
+        borderRadius: 14,
         backgroundColor: theme.palette.mode === 'dark' ? '#39393D' : '#E9E9EA',
         opacity: 1,
         transition: 'background-color 260ms ease',
       }),
       sizeSmall: {
-        width: 40,
-        height: 24,
-        '& .MuiSwitch-thumb': { width: 20, height: 20 },
-        '& .MuiSwitch-switchBase.Mui-checked': { transform: 'translateX(16px)' },
-        '& .MuiSwitch-track': { borderRadius: 12 },
+        width: 63,
+        height: 28,
+        '& .MuiSwitch-thumb': { width: 24, height: 24 },
+        '& .MuiSwitch-switchBase.Mui-checked': { transform: 'translateX(35px)' },
+        '& .MuiSwitch-track': { borderRadius: 14 },
       },
     },
   },

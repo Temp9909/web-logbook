@@ -8,7 +8,7 @@ import { calculateExpiry } from '../../Licensing/helpers';
 const BookIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>;
 const LicenseIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2"/><path d="M15 10h4M15 14h4"/></svg>;
 const MapIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9 20l-6-2V4l6 2 6-2 6 2v14l-6-2-6 2z"/><path d="M9 6v14M15 4v14"/></svg>;
-const AircraftIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M2 16l20-6-3 8-4-2-3 4-2-6-8 2z"/></svg>;
+const AircraftIcon = () => <img className="nav-aircraft-icon" src="/aircraft-menu-icon.svg" alt="" aria-hidden="true"/>;
 const PersonIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>;
 const AttachmentIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11l-8.5 8.5a4 4 0 0 1-5.7-5.7L15 5.5a2.5 2.5 0 0 1 3.5 3.5L10 17.5"/></svg>;
 const StatsIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>;
@@ -63,6 +63,12 @@ export default function DashboardNavbar({ open, onNavigate }) {
 
   return (
     <aside className={`sidebar${open ? ' open' : ''}`}>
+      <Link className="sidebar-brand" to="/logbook" onClick={onNavigate} aria-label="Web Logbook home">
+        <span className="sidebar-brand-mark" aria-hidden="true">
+          <img src="/aircraft-menu-icon.svg" alt="" />
+        </span>
+        <span>Web Logbook</span>
+      </Link>
       <MainLink to="/logbook" segment="logbook" label="Logbook" Icon={BookIcon} onNavigate={onNavigate} location={location}/>
       <MainLink to="/licensing" segment="licensing" label="Licensing" Icon={LicenseIcon} count={<LicensingCount/>} onNavigate={onNavigate} location={location}/>
       <MainLink to="/map" segment="map" label="Map" Icon={MapIcon} onNavigate={onNavigate} location={location}/>

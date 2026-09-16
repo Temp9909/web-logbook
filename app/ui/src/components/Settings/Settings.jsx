@@ -16,7 +16,7 @@ const standardLabels={date:'Date',departure:'Departure Header',dep_place:'Place'
 const previousFields=[['total_time','Total time'],['se_time','SP SE'],['me_time','SP ME'],['mcc_time','Multi-pilot'],['night_time','Night'],['ifr_time','IFR'],['pic_time','PIC'],['co_pilot_time','Co-pilot'],['dual_time','Dual'],['instructor_time','Instructor'],['sim_time','FSTD / Sim'],['me_total_time','Total ME'],['cc_time','Cross country'],['landings_day','Day landings'],['landings_night','Night landings']];
 const fieldTypes=['text','number','time','duration','enroute'];
 const statsByType={text:['none','count'],number:['none','sum','average','count'],time:['none','count'],duration:['none','sum','average','count'],enroute:['none']};
-const switchColors=[['#34C759','Green'],['#007AFF','Blue'],['#FF9500','Orange'],['#FF3B30','Red'],['#AF52DE','Purple'],['#FF2D55','Pink'],['#5AC8FA','Teal'],['#FFCC00','Yellow']];
+const switchColors=[['#007AFF','Blue'],['#34C759','Green'],['#FF9500','Orange'],['#FF3B30','Red'],['#AF52DE','Purple'],['#FF2D55','Pink'],['#5AC8FA','Teal'],['#FFCC00','Yellow']];
 
 function SignatureEditor({settings,setSettings,onSave}){
   const canvasRef=useRef(null);const padRef=useRef(null);const fileRef=useRef(null);
@@ -80,9 +80,9 @@ export const Settings=()=>{
             <span className="spacer"/>
             <div className="switch-color-settings">
               <div className="switch-color-swatches" aria-label="Switch color presets">
-                {switchColors.map(([color,name])=><button key={color} type="button" title={name} aria-label={name} className={`switch-color-swatch${(settings.switch_color||'#34C759').toUpperCase()===color?' selected':''}`} style={{background:color}} onClick={()=>changeSwitchColor(color)}/>)}
+                {switchColors.map(([color,name])=><button key={color} type="button" title={name} aria-label={name} className={`switch-color-swatch${(settings.switch_color||'#007AFF').toUpperCase()===color?' selected':''}`} style={{background:color}} onClick={()=>changeSwitchColor(color)}/>)}
               </div>
-              <input className="switch-color-custom" aria-label="Custom switch color" title="Custom color" type="color" value={settings.switch_color||'#34C759'} onChange={e=>changeSwitchColor(e.target.value)}/>
+              <input className="switch-color-custom" aria-label="Custom switch color" title="Custom color" type="color" value={settings.switch_color||'#007AFF'} onChange={e=>changeSwitchColor(e.target.value)}/>
               <button type="button" className="btn small" onClick={()=>changeSwitchColor('')}>Default</button>
             </div>
           </div>
