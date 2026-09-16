@@ -21,10 +21,10 @@ const yearOf = (date) => {
 const shortDate = (date) => {
   if (!date) return '—';
   const s = String(date);
-  const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-]\d{4}/);
-  if (m) return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}`;
-  const iso = s.match(/^\d{4}-(\d{2})-(\d{2})/);
-  if (iso) return `${iso[2]}/${iso[1]}`;
+  const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
+  if (m) return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${m[3]}`;
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
   return s;
 };
 const humanDate = (date) => {

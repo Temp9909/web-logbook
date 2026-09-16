@@ -57,6 +57,7 @@ export const TotalsByYear = () => {
       exportFilename={`stats-by-year-${selectedYear || 'all'}.csv`}
       showTotals
       loading={isLoading}
+      stickyGroup={false}
     />
   </section>;
 };

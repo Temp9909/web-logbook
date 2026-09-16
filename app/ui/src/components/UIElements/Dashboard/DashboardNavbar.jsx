@@ -30,13 +30,24 @@ function LicensingCount() {
   return count > 0 ? <span className="chip warn licensing-count">{count}</span> : null;
 }
 
-const MainLink = ({ to, segment, label, Icon, count, caret, caretOpen, onNavigate, onClick, location }) => {
+const MainLink = ({ to, segment, label, Icon, count, onNavigate, location }) => {
   const selected = location.pathname === '/' ? segment === 'logbook' : location.pathname.startsWith(`/${segment}`);
-  const handleClick = (event) => {
-    onClick?.(event, selected);
-    onNavigate?.();
-  };
-  return <Link to={to} className={`nav-item${selected ? ' selected' : ''}`} onClick={handleClick}><Icon />{label}{count}{caret ? <Caret open={caretOpen}/> : null}</Link>;
+  return <Link to={to} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}><Icon />{label}{count}</Link>;
+};
+
+const MainToggle = ({ segment, label, Icon, open, onToggle, location }) => {
+  const selected = location.pathname.startsWith(`/${segment}`);
+  return (
+    <button
+      type="button"
+      className={`nav-item${selected ? ' selected' : ''}`}
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-controls={`${segment}-submenu`}
+    >
+      <Icon />{label}<Caret open={open}/>
+    </button>
+  );
 };
 
 export default function DashboardNavbar({ open, onNavigate }) {
@@ -47,8 +58,8 @@ export default function DashboardNavbar({ open, onNavigate }) {
   const [exportOpen, setExportOpen] = useState(exportSelected);
   const subClass = (path) => location.pathname === path ? 'selected' : '';
 
-  const toggleStats = () => setStatsOpen((current) => statSelected ? !current : true);
-  const toggleExport = () => setExportOpen((current) => exportSelected ? !current : true);
+  const toggleStats = () => setStatsOpen((current) => !current);
+  const toggleExport = () => setExportOpen((current) => !current);
 
   return (
     <aside className={`sidebar${open ? ' open' : ''}`}>
@@ -59,11 +70,11 @@ export default function DashboardNavbar({ open, onNavigate }) {
       <MainLink to="/persons" segment="persons" label="Persons" Icon={PersonIcon} onNavigate={onNavigate} location={location}/>
       <MainLink to="/attachments" segment="attachments" label="Attachments" Icon={AttachmentIcon} onNavigate={onNavigate} location={location}/>
       <div className="nav-sep"/>
-      <MainLink to="/stats" segment="stats" label="Stats" Icon={StatsIcon} caret caretOpen={statsOpen} onClick={toggleStats} onNavigate={onNavigate} location={location}/>
-      {statsOpen ? <div className="nav-group-sub"><Link className={subClass('/stats/dashboard')} to="/stats/dashboard" onClick={onNavigate}>Dashboard</Link><Link className={subClass('/stats/by-year')} to="/stats/by-year" onClick={onNavigate}>By year</Link><Link className={subClass('/stats/by-type')} to="/stats/by-type" onClick={onNavigate}>By type</Link><Link className={subClass('/stats/by-category')} to="/stats/by-category" onClick={onNavigate}>By category</Link></div> : null}
+      <MainToggle segment="stats" label="Stats" Icon={StatsIcon} open={statsOpen} onToggle={toggleStats} location={location}/>
+      {statsOpen ? <div id="stats-submenu" className="nav-group-sub"><Link className={subClass('/stats/dashboard')} to="/stats/dashboard" onClick={onNavigate}>Dashboard</Link><Link className={subClass('/stats/by-year')} to="/stats/by-year" onClick={onNavigate}>By year</Link><Link className={subClass('/stats/by-type')} to="/stats/by-type" onClick={onNavigate}>By type</Link><Link className={subClass('/stats/by-category')} to="/stats/by-category" onClick={onNavigate}>By category</Link></div> : null}
       <div className="nav-sep"/>
-      <MainLink to="/export" segment="export" label="Export" Icon={ExportIcon} caret caretOpen={exportOpen} onClick={toggleExport} onNavigate={onNavigate} location={location}/>
-      {exportOpen ? <div className="nav-group-sub"><Link className={subClass('/export/a4')} to="/export/a4" onClick={onNavigate}>A4</Link><Link className={subClass('/export/a5')} to="/export/a5" onClick={onNavigate}>A5</Link></div> : null}
+      <MainToggle segment="export" label="Export" Icon={ExportIcon} open={exportOpen} onToggle={toggleExport} location={location}/>
+      {exportOpen ? <div id="export-submenu" className="nav-group-sub"><Link className={subClass('/export/a4')} to="/export/a4" onClick={onNavigate}>A4</Link><Link className={subClass('/export/a5')} to="/export/a5" onClick={onNavigate}>A5</Link></div> : null}
       <MainLink to="/import" segment="import" label="Import" Icon={ImportIcon} onNavigate={onNavigate} location={location}/>
       <div className="nav-sep"/>
       <MainLink to="/settings" segment="settings" label="Settings" Icon={SettingsIcon} onNavigate={onNavigate} location={location}/>
