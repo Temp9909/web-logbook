@@ -1,87 +1,71 @@
-import { fileTypeFromBuffer } from 'file-type';
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-// MUI
-import LinearProgress from '@mui/material/LinearProgress';
-// Custom
 import { fetchAttachment } from '../../util/http/attachment';
-import { useErrorNotification } from '../../hooks/useAppNotifications';
-import ApplePanel from '../UIElements/ApplePanel';
+import { Card, EmptyState, Loading } from '../AppleExact/Primitives';
+
+const MIME_BY_EXT = {
+  pdf:'application/pdf', png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp', bmp:'image/bmp', svg:'image/svg+xml',
+  txt:'text/plain', csv:'text/csv', json:'application/json', xml:'text/xml', log:'text/plain',
+};
+const TEXT_EXT = new Set(['txt','csv','json','xml','log']);
+
+const extensionOf = (name='') => String(name).split('.').pop()?.toLowerCase() || '';
+
+function decodeBase64(document='') {
+  const binary = atob(document || '');
+  const bytes = new Uint8Array(binary.length);
+  for (let i=0;i<binary.length;i+=1) bytes[i]=binary.charCodeAt(i);
+  return bytes;
+}
 
 export const AttachmentPreview = ({ attachment }) => {
-  const [blobUrl, setBlobUrl] = useState(null);
-  const [mimeType, setMimeType] = useState(null);
+  const [blobUrl,setBlobUrl]=useState('');
+  const [textPreview,setTextPreview]=useState('');
+  const ext=extensionOf(attachment?.document_name);
+  const mime=MIME_BY_EXT[ext] || 'application/octet-stream';
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['attachments', 'attachment', attachment.uuid],
-    queryFn: () => fetchAttachment({ id: attachment.uuid }),
-    staleTime: 3600000,
-    gcTime: 3600000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    enabled: attachment && attachment.uuid !== "",
+  const {data,isLoading,isError}=useQuery({
+    queryKey:['attachments','attachment',attachment?.uuid],
+    queryFn:()=>fetchAttachment({id:attachment.uuid}),
+    staleTime:3600000,
+    gcTime:3600000,
+    refetchOnWindowFocus:false,
+    enabled:Boolean(attachment?.uuid),
   });
-  useErrorNotification({ isError, error, fallbackMessage: 'Failed to load preview', });
 
-  useEffect(() => {
-    if (data) {
-      const loadAttachment = async () => {
-        const binary = atob(data.document);
-        const byteArray = Uint8Array.from(binary, char => char.charCodeAt(0));
-
-        // Detect MIME type using file-type
-        const fileType = await fileTypeFromBuffer(byteArray);
-        const resolvedMime = fileType?.mime || 'application/octet-stream';
-        setMimeType(resolvedMime);
-
-        const blob = new Blob([byteArray], { type: resolvedMime });
-        const url = URL.createObjectURL(blob);
-        setBlobUrl(url);
+  useEffect(()=>{
+    setTextPreview('');
+    setBlobUrl((current)=>{if(current)URL.revokeObjectURL(current);return '';});
+    if(!data?.document)return undefined;
+    try{
+      const bytes=decodeBase64(data.document);
+      if(TEXT_EXT.has(ext)){
+        setTextPreview(new TextDecoder('utf-8').decode(bytes));
+        return undefined;
       }
-      loadAttachment();
+      const url=URL.createObjectURL(new Blob([bytes],{type:mime}));
+      setBlobUrl(url);
+      return ()=>URL.revokeObjectURL(url);
+    }catch{
+      return undefined;
     }
-  }, [data]); // trigger load
+  },[data,ext,mime]);
 
-  // Separate effect strictly for blob cleanup
-  useEffect(() => {
-    return () => {
-      if (blobUrl) {
-        URL.revokeObjectURL(blobUrl);
-      }
-    };
-  }, [blobUrl]); // Only runs when blobUrl changes (or unmounts)
+  const subtitle=useMemo(()=>{
+    if(!attachment?.uuid)return 'Select a document from the list.';
+    return [attachment.flight_date,attachment.flight_info].filter(Boolean).join(' · ') || 'Logbook attachment';
+  },[attachment]);
 
-  const renderPreview = () => {
-    if (!attachment || !attachment.uuid) {
-      return (<div className="apple-empty-state">No attachment selected</div>);
-    }
+  let body=null;
+  if(!attachment?.uuid) body=<EmptyState>No attachment selected</EmptyState>;
+  else if(isLoading) body=<Loading/>;
+  else if(isError || !data?.document) body=<EmptyState>Unable to load this attachment.</EmptyState>;
+  else if(mime.startsWith('image/') && blobUrl) body=<img className="exact-attachment-image" src={blobUrl} alt={attachment.document_name || 'Attachment'} />;
+  else if(mime==='application/pdf' && blobUrl) body=<iframe className="exact-attachment-frame" src={blobUrl} title={attachment.document_name || 'PDF attachment'} />;
+  else if(TEXT_EXT.has(ext)) body=<pre className="exact-attachment-text">{textPreview || 'Empty file'}</pre>;
+  else body=<div className="exact-attachment-generic"><div className="exact-file-badge">{ext ? ext.toUpperCase() : 'FILE'}</div><strong>{attachment.document_name || 'Attachment'}</strong><span>Preview is not available for this file type. Use Download to open the original file.</span></div>;
 
-    if (mimeType.startsWith("image/")) {
-      return (
-        <img src={blobUrl} alt={attachment.document_name} style={{ width: '100%' }} />
-      );
-    } else if (mimeType === "application/pdf") {
-      return (
-        <iframe
-          src={blobUrl}
-          title={attachment.document_name}
-          width="100%"
-          height={window.innerHeight - 200}
-          style={{ border: 'none' }}
-        />
-      );
-    } else {
-      return (<div className="apple-empty-state">No preview available for this file type</div>);
-    }
-  };
-
-  return (
-    <ApplePanel title="Attachment preview" subtitle="Preview the selected document.">
-      {isLoading && <LinearProgress />}
-      {!isLoading && (!blobUrl || !mimeType) ? renderPreview() : null}
-      {!isLoading && blobUrl && mimeType ? <div className="apple-document-preview">{renderPreview()}</div> : null}
-    </ApplePanel>
-  );
+  return <Card title={attachment?.document_name || 'Attachment preview'} subtitle={subtitle} className="exact-attachment-preview-card">{body}</Card>;
 };
 
 export default AttachmentPreview;

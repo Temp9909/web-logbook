@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
 // pages
 import { authLoader } from './util/auth.jsx';
 import Root from './pages/Root';
@@ -14,7 +14,6 @@ import SettingsPage from './pages/SettingsPage.jsx';
 import SignInPage from './pages/SignInPage.jsx';
 import LogoutPage from './pages/LogoutPage.jsx';
 import AircraftsPage from './pages/AircraftsPage.jsx';
-import AirportsPage from './pages/AirportsPage.jsx';
 import StatsDashboardPage from './pages/StatsDashboardPage.jsx';
 import StatsByYearPage from './pages/StatsByYearPage.jsx';
 import StatsByTypePage from './pages/StatsByTypePage.jsx';
@@ -61,7 +60,7 @@ const router = createBrowserRouter([
             ]
           },
           { path: 'attachments', element: <AttachmentsPage /> },
-          { path: 'airports', element: <AirportsPage /> },
+          { path: 'airports', element: <Navigate to="/settings?tab=airports" replace /> },
           {
             path: 'stats', children: [
               { index: true, element: <StatsDashboardPage /> },

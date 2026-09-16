@@ -165,4 +165,7 @@ export const fromInputDate = (value) => {
   return y && m && d ? `${d}/${m}/${y}` : value;
 };
 
-export const personName = (person = {}) => [person.first_name, person.middle_name, person.last_name].filter(Boolean).join(' ') || 'Person';
+export const personName = (person) => {
+  const value = person && typeof person === 'object' ? person : {};
+  return [value.first_name, value.middle_name, value.last_name].filter(Boolean).join(' ') || 'Person';
+};

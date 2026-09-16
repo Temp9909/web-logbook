@@ -1843,3 +1843,30 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 .exact-import-log{margin-top:12px;background:#111;color:#eee;border-radius:10px;padding:12px;height:240px;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}.exact-full-span{grid-column:1/-1}
 /* OpenLayers controls are also rendered in the approved Apple visual language. */
 .exact-map-host .ol-control{background:transparent!important;padding:0!important}.exact-map-host .ol-control button{width:32px!important;height:32px!important;margin:0!important;border:1px solid var(--separator)!important;border-radius:8px!important;background:var(--bar)!important;color:var(--label)!important;backdrop-filter:blur(16px);font-size:17px!important}.exact-map-host .ol-control button:hover{background:var(--paper)!important}.exact-map-host .ol-attribution{border-radius:8px!important;background:var(--bar)!important;color:var(--secondary)!important}.exact-map-host .ol-attribution a{color:var(--blue)!important}
+
+/* V8.1 targeted fixes: compact Airports settings + complete Attachments UI */
+.exact-table-count{font-size:12px;color:var(--secondary);white-space:nowrap}
+.exact-airport-directory{max-height:420px;overflow:auto}
+.exact-airport-directory thead th{position:sticky;top:0;z-index:2;background:var(--paper)}
+.exact-airport-directory td:nth-child(3){max-width:280px;overflow:hidden;text-overflow:ellipsis}
+.exact-airport-empty{text-align:center!important;color:var(--secondary);padding:22px!important}
+.exact-airport-note{margin-top:10px}
+.exact-settings-airports{display:block}
+.exact-attachment-note{margin:0 0 12px}
+.exact-attachments-split{grid-template-columns:minmax(560px,1.2fr) minmax(340px,.8fr);align-items:start}
+.exact-attachments-table-wrap{max-height:620px;overflow:auto}
+.exact-attachments-table-wrap thead th{position:sticky;top:0;z-index:2;background:var(--paper)}
+.exact-attachments-table-wrap tr.clickable{cursor:pointer}
+.exact-attachments-table-wrap tr.exact-selected-row td{background:var(--tint-soft)}
+.exact-attachment-name{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.exact-inline-link{border:0;background:transparent;color:var(--blue);padding:0;font:inherit;text-align:left;cursor:pointer}
+.exact-inline-link:hover{text-decoration:underline}
+.exact-attachment-preview-card{min-height:420px}
+.exact-attachment-frame{display:block;width:100%;height:560px;border:0;border-radius:9px;background:#fff}
+.exact-attachment-image{display:block;max-width:100%;max-height:620px;margin:auto;border-radius:9px;object-fit:contain}
+.exact-attachment-text{max-height:560px;overflow:auto;margin:0;padding:14px;border:1px solid var(--separator);border-radius:9px;background:var(--fill);color:var(--label);font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
+.exact-attachment-generic{min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;color:var(--secondary);padding:24px}
+.exact-attachment-generic strong{color:var(--label);font-size:14px;max-width:100%;overflow-wrap:anywhere}
+.exact-attachment-generic span{max-width:360px;font-size:12.5px;line-height:1.45}
+.exact-file-badge{min-width:66px;height:66px;border-radius:15px;background:var(--tint);color:var(--blue);display:grid;place-items:center;font-size:14px;font-weight:700;letter-spacing:.04em}
+@media(max-width:1100px){.exact-attachments-split{grid-template-columns:1fr}.exact-attachment-frame{height:480px}}
