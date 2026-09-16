@@ -12,6 +12,19 @@ export const fetchExport = async (format) => {
   return blob;
 }
 
+export const fetchExportPreview = async ({ format, settings }) => {
+  const url = `${API_URL}/export/preview/${format}`;
+  const options = {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${getAuthToken()}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(settings),
+  };
+  return await handleFetch(url, options, 'Cannot generate PDF preview', false);
+}
+
 export const uploadCustomTitle = async ({ payload }) => {
   const url = `${API_URL}/export/custom-title`;
   const options = {

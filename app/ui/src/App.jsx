@@ -14,6 +14,8 @@ import { setNavigate } from './util/navigation';
 import { ColorModeContext } from './context/ColorModeContext';
 import { DialogsProvider } from './hooks/useDialogs/useDialogs';
 import './apple-exact.css';
+import './switch-color.css';
+import useSettings from './hooks/useSettings';
 
 dayjs.extend(updateLocale);
 dayjs.updateLocale("en", { weekStart: 1 });
@@ -21,6 +23,21 @@ dayjs.updateLocale("en", { weekStart: 1 });
 function NavigationSetter() {
   const navigate = useNavigate();
   setNavigate(navigate);
+  return null;
+}
+
+function SwitchColorSync() {
+  const { data } = useSettings();
+
+  useEffect(() => {
+    const color = data?.switch_color;
+    if (typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color)) {
+      document.documentElement.style.setProperty('--switch-on-color', color);
+    } else {
+      document.documentElement.style.removeProperty('--switch-on-color');
+    }
+  }, [data?.switch_color]);
+
   return null;
 }
 
@@ -63,6 +80,7 @@ function App() {
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <QueryClientProvider client={queryClient}>
             <NotificationsProvider>
+              <SwitchColorSync />
               <DialogsProvider>
                 <Outlet />
               </DialogsProvider>

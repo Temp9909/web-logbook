@@ -128,6 +128,7 @@ func (app *application) routes() *chi.Mux {
 
 		// export
 		r.Route("/export", func(r chi.Router) {
+			r.Post("/preview/{format}", app.HandlerApiPreviewLogbook)
 			r.Get("/{format}", app.HandlerApiExportLogbook)
 			r.Post("/custom-title", app.HandlerApiUploadCustomTitle)
 		})

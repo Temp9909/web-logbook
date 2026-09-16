@@ -16,6 +16,7 @@ const standardLabels={date:'Date',departure:'Departure Header',dep_place:'Place'
 const previousFields=[['total_time','Total time'],['se_time','SP SE'],['me_time','SP ME'],['mcc_time','Multi-pilot'],['night_time','Night'],['ifr_time','IFR'],['pic_time','PIC'],['co_pilot_time','Co-pilot'],['dual_time','Dual'],['instructor_time','Instructor'],['sim_time','FSTD / Sim'],['me_total_time','Total ME'],['cc_time','Cross country'],['landings_day','Day landings'],['landings_night','Night landings']];
 const fieldTypes=['text','number','time','duration','enroute'];
 const statsByType={text:['none','count'],number:['none','sum','average','count'],time:['none','count'],duration:['none','sum','average','count'],enroute:['none']};
+const switchColors=[['#34C759','Green'],['#007AFF','Blue'],['#FF9500','Orange'],['#FF3B30','Red'],['#AF52DE','Purple'],['#FF2D55','Pink'],['#5AC8FA','Teal'],['#FFCC00','Yellow']];
 
 function SignatureEditor({settings,setSettings,onSave}){
   const canvasRef=useRef(null);const padRef=useRef(null);const fileRef=useRef(null);
@@ -50,6 +51,7 @@ export const Settings=()=>{
     else setSearchParams({tab:id}, {replace:true});
   },[setSearchParams]);
   const change=useCallback((key,value)=>setSettings(prev=>setNested(prev,key,value)),[]);
+  const changeSwitchColor=useCallback((value)=>{change('switch_color',value);if(/^#[0-9a-f]{6}$/i.test(value))document.documentElement.style.setProperty('--switch-on-color',value);else document.documentElement.style.removeProperty('--switch-on-color')},[change]);
   const save=useMutation({mutationFn:()=>updateSettings({settings}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['settings']})});
   const saveSignature=useMutation({mutationFn:()=>updateSignature({settings}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['settings']})});
   const downloadDb=useMutation({mutationFn:downloadDBFile,onSuccess:(blob)=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='web-logbook.sql';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}});
@@ -71,6 +73,20 @@ export const Settings=()=>{
         <div className="section-label">Owner information</div><div className="form-grid two"><Field label="Owner name" value={settings.owner_name||''} onChange={v=>change('owner_name',v)}/><Field label="Licence number" value={settings.license_number||''} onChange={v=>change('license_number',v)}/><Field label="Address" value={settings.address||''} onChange={v=>change('address',v)}/><Field label="Signature text" value={settings.signature_text||''} onChange={v=>change('signature_text',v)}/></div>
         <div className="section-label" style={{marginTop:15}}>Logbook</div><div className="form-grid two"><Field label="Logbook pagination" value={settings.logbook_pagination||''} onChange={v=>change('logbook_pagination',v)}/><Field label="Self PIC label" value={settings.self_pic_label||'Self'} onChange={v=>change('self_pic_label',v)}/><Field label="Expiry warning period (days)" type="number" value={settings.licenses_expiration?.warning_period||90} onChange={v=>change('licenses_expiration.warning_period',v)}/></div>
         <div className="card rows" style={{borderRadius:10,marginTop:12}}><SwitchRow label="Show licence warning" checked={Boolean(settings.licenses_expiration?.show_warning)} onChange={v=>change('licenses_expiration.show_warning',v)}/><SwitchRow label="Show expired licences" checked={Boolean(settings.licenses_expiration?.show_expired)} onChange={v=>change('licenses_expiration.show_expired',v)}/></div>
+        <div className="section-label" style={{marginTop:15}}>Appearance</div>
+        <div className="card rows" style={{borderRadius:10}}>
+          <div className="setting-row">
+            <div><div className="lbl">On / Off switch color</div><div className="sub">Choose the color used when switches are enabled across the app.</div></div>
+            <span className="spacer"/>
+            <div className="switch-color-settings">
+              <div className="switch-color-swatches" aria-label="Switch color presets">
+                {switchColors.map(([color,name])=><button key={color} type="button" title={name} aria-label={name} className={`switch-color-swatch${(settings.switch_color||'#34C759').toUpperCase()===color?' selected':''}`} style={{background:color}} onClick={()=>changeSwitchColor(color)}/>)}
+              </div>
+              <input className="switch-color-custom" aria-label="Custom switch color" title="Custom color" type="color" value={settings.switch_color||'#34C759'} onChange={e=>changeSwitchColor(e.target.value)}/>
+              <button type="button" className="btn small" onClick={()=>changeSwitchColor('')}>Default</button>
+            </div>
+          </div>
+        </div>
       </Card>
       <Card title="Security & database" subtitle="Authentication, formatting and database operations.">
         <div className="card rows" style={{borderRadius:10}}><SwitchRow label="Enable authentication" checked={Boolean(settings.auth_enabled)} onChange={v=>{change('auth_enabled',v);if(v&&!settings.secret_key){const a=new Uint8Array(32);crypto.getRandomValues(a);change('secret_key',btoa(String.fromCharCode.apply(null,a)))}}}/></div>

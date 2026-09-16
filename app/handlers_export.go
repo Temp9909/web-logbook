@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -164,6 +165,77 @@ func (app *application) HandlerApiExportLogbook(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
 
 	err = exportFunc()
+	if err != nil {
+		app.handleError(w, err)
+	}
+}
+
+// HandlerApiPreviewLogbook generates a real PDF preview using the settings
+// sent by the UI without persisting them to the database.
+func (app *application) HandlerApiPreviewLogbook(w http.ResponseWriter, r *http.Request) {
+	format := chi.URLParam(r, "format")
+	if format != exportA4 && format != exportA5 {
+		http.Error(w, "unsupported export format", http.StatusBadRequest)
+		return
+	}
+
+	var exportSettings models.ExportPDF
+	if err := json.NewDecoder(r.Body).Decode(&exportSettings); err != nil {
+		app.handleError(w, err)
+		return
+	}
+
+	flightRecords, err := app.db.GetFlightRecordsForExport()
+	if err != nil {
+		app.handleError(w, err)
+		return
+	}
+
+	settings, err := app.db.GetSettings()
+	if err != nil {
+		app.handleError(w, err)
+		return
+	}
+
+	var previousExperience models.FlightRecord
+	previousExperience.Time.SE = settings.PreviousExperience.SE
+	previousExperience.Time.ME = settings.PreviousExperience.ME
+	previousExperience.Time.Total = settings.PreviousExperience.Total
+	previousExperience.Time.MCC = settings.PreviousExperience.MCC
+	previousExperience.Time.Night = settings.PreviousExperience.Night
+	previousExperience.Time.IFR = settings.PreviousExperience.IFR
+	previousExperience.Time.PIC = settings.PreviousExperience.PIC
+	previousExperience.Time.CoPilot = settings.PreviousExperience.CoPilot
+	previousExperience.Time.Dual = settings.PreviousExperience.Dual
+	previousExperience.Time.Instructor = settings.PreviousExperience.Instructor
+	previousExperience.Landings.Day = settings.PreviousExperience.LandingsDay
+	previousExperience.Landings.Night = settings.PreviousExperience.LandingsNight
+	previousExperience.SIM.Time = settings.PreviousExperience.SimTime
+
+	// Reuse the existing custom title page, if one is configured.
+	id := fmt.Sprintf("custom_title_%s", strings.ToLower(format))
+	att, _ := app.db.GetAttachmentByID(id)
+	exportSettings.CustomTitleBlob = att.Document
+
+	pdfExporter, err := pdfexport.NewPDFExporter(
+		format,
+		settings.OwnerName, settings.LicenseNumber, settings.Address,
+		settings.SignatureText, settings.SignatureImage, exportSettings,
+		previousExperience,
+	)
+	if err != nil {
+		app.handleError(w, err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", "inline; filename=logbook-preview.pdf")
+
+	if format == exportA4 {
+		err = pdfExporter.ExportA4(flightRecords, w)
+	} else {
+		err = pdfExporter.ExportA5(flightRecords, w)
+	}
 	if err != nil {
 		app.handleError(w, err)
 	}

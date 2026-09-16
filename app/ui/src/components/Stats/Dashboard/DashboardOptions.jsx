@@ -39,7 +39,26 @@ export const DashboardOptions = ({ dashboardOptions, setDashboardOptions }) => {
           </AccordionSummary>
           <AccordionDetails>
             {STATS_FILTERS.map(({ id, label }) => (
-              <FormControlLabel key={id} label={`Show ${label}`} id={id} sx={{ width: '100%' }}
+              <FormControlLabel
+                key={id}
+                label={`Show ${label}`}
+                id={id}
+                labelPlacement="start"
+                sx={{
+                  width: '100%',
+                  m: 0,
+                  py: 0.25,
+                  justifyContent: 'space-between',
+                  '& .MuiFormControlLabel-label': {
+                    flex: 1,
+                    textAlign: 'left',
+                  },
+                  '& .MuiSwitch-root': {
+                    ml: 2,
+                    mr: 0,
+                    flexShrink: 0,
+                  },
+                }}
                 control={
                   <Switch
                     checked={dashboardOptions[id] ?? true}

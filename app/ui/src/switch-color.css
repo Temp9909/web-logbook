@@ -1,0 +1,56 @@
+/* V8.6.7 — user-selectable global On/Off switch color. */
+.switch.on,
+.apple-switch-control.on {
+  background: var(--switch-on-color, var(--green)) !important;
+}
+
+.MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track,
+.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track,
+body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+  background: var(--switch-on-color, var(--green)) !important;
+  opacity: 1 !important;
+}
+
+.switch-color-settings {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.switch-color-swatches {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.switch-color-swatch {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 2px solid var(--paper);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--separator);
+  cursor: pointer;
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+
+.switch-color-swatch:hover { transform: scale(1.08); }
+.switch-color-swatch.selected {
+  box-shadow: 0 0 0 2px var(--blue), inset 0 0 0 1px rgba(255,255,255,.7);
+}
+
+.switch-color-custom {
+  width: 34px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  background: var(--paper);
+  overflow: hidden;
+  cursor: pointer;
+}
+.switch-color-custom::-webkit-color-swatch-wrapper { padding: 2px; }
+.switch-color-custom::-webkit-color-swatch { border: 0; border-radius: 5px; }
+.switch-color-custom::-moz-color-swatch { border: 0; border-radius: 5px; }

@@ -2,25 +2,65 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchSettings, fetchPdfDefaults, updatePdfSettings } from '../../util/http/settings';
-import { fetchExport } from '../../util/http/export';
+import { fetchExport, fetchExportPreview } from '../../util/http/export';
 import { queryClient } from '../../util/http/http';
 import { Card, Field, Loading, PageHead, SwitchRow } from '../AppleExact/Primitives';
 
 const downloadBlob=(blob,name)=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)};
 const numericFields=[['logbook_rows','Rows per page'],['fill','Fill every X row'],['top_margin','Top margin'],['body_row_height','Row height'],['footer_row_height','Footer row height']];
+const numericSettingKeys=['logbook_rows','fill','left_margin','left_margin_a','left_margin_b','top_margin','body_row_height','footer_row_height','time_fields_auto_format'];
+const asNumber=(value)=>{const n=Number(value);return Number.isFinite(n)?n:0};
+const normalizePdfSettings=(source)=>{
+  const next={...source,columns:{...(source?.columns||{})}};
+  numericSettingKeys.forEach((key)=>{if(key in next)next[key]=asNumber(next[key])});
+  Object.keys(next.columns).forEach((key)=>{next.columns[key]=asNumber(next.columns[key])});
+  return next;
+};
 
 export const PdfExport=({format})=>{
   const navigate=useNavigate();
   const [settings,setSettings]=useState({columns:{},headers:{}});
+  const [previewUrl,setPreviewUrl]=useState('');
+  const [previewError,setPreviewError]=useState('');
   const {data,isLoading}=useQuery({queryKey:['settings'],queryFn:({signal})=>fetchSettings({signal})});
-  useEffect(()=>{if(data){setSettings(format==='A4'?data.export_a4:data.export_a5)}},[data,format]);
-  const save=useMutation({mutationFn:()=>updatePdfSettings({settings,format}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['settings']})});
-  const restore=useMutation({mutationFn:()=>fetchPdfDefaults({format}),onSuccess:(v)=>setSettings(v)});
+
+  const replacePreview=(blob)=>{
+    const next=URL.createObjectURL(blob);
+    setPreviewUrl((current)=>{if(current) URL.revokeObjectURL(current);return next});
+  };
+
+  const preview=useMutation({
+    mutationFn:(previewSettings)=>fetchExportPreview({format,settings:normalizePdfSettings(previewSettings)}),
+    onMutate:()=>setPreviewError(''),
+    onSuccess:(blob)=>replacePreview(blob),
+    onError:(error)=>setPreviewError(error?.info?.message||error?.message||'Could not generate the PDF preview.'),
+  });
+
+  useEffect(()=>{
+    if(!data)return;
+    const next=format==='A4'?data.export_a4:data.export_a5;
+    setSettings(next);
+    preview.mutate(next);
+  // preview.mutate is intentionally omitted: reload only when the loaded format/settings change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[data,format]);
+
+  useEffect(()=>()=>{if(previewUrl)URL.revokeObjectURL(previewUrl)},[previewUrl]);
+
+  const save=useMutation({
+    mutationFn:()=>updatePdfSettings({settings:normalizePdfSettings(settings),format}),
+    onSuccess:()=>{queryClient.invalidateQueries({queryKey:['settings']});preview.mutate(settings)},
+  });
+  const restore=useMutation({
+    mutationFn:()=>fetchPdfDefaults({format}),
+    onSuccess:(v)=>{setSettings(v);preview.mutate(v)},
+  });
   const exp=useMutation({mutationFn:()=>fetchExport(format),onSuccess:(blob)=>downloadBlob(blob,`logbook-${format.toLowerCase()}.pdf`)});
   const change=(key,val)=>setSettings(p=>({...p,[key]:val}));
+
   return <section className="exact-react-page">
     <PageHead title="Export" subtitle={`Configure and preview your ${format} PDF logbook.`} actions={<><button className="btn ghost" disabled={restore.isPending} onClick={()=>restore.mutate()}>Restore defaults</button><button className="btn" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save settings'}</button><button className="btn primary" disabled={exp.isPending} onClick={()=>exp.mutate()}>{exp.isPending?'Preparing…':'Export PDF'}</button></>} />
-    <Loading show={isLoading||save.isPending||restore.isPending||exp.isPending}/>
+    <Loading show={isLoading||save.isPending||restore.isPending||exp.isPending||preview.isPending}/>
     <div className="mini-tabs"><button className={format==='A4'?'on':''} type="button" onClick={()=>navigate('/export/a4')}>A4</button><button className={format==='A5'?'on':''} type="button" onClick={()=>navigate('/export/a5')}>A5</button></div>
     <div className="split">
       <div className="grid">
@@ -41,12 +81,18 @@ export const PdfExport=({format})=>{
         </Card>
         <Card title="Column widths" subtitle="Set a width to 0 to hide a column.">
           <div className="form-grid">
-            {Object.keys(settings.columns||{}).map(key=><Field key={key} label={key.toUpperCase()} value={settings.columns[key]??''} onChange={v=>setSettings(p=>({...p,columns:{...p.columns,[key]:v}}))}/>) }
+            {Object.keys(settings.columns||{}).map(key=><Field key={key} label={key.toUpperCase()} value={settings.columns[key]??''} onChange={v=>setSettings(p=>({...p,columns:{...p.columns,[key]:v}}))}/>)}
           </div>
         </Card>
       </div>
-      <Card title="Preview" subtitle="Preview of the exported logbook.">
-        <div className="exact-preview-sheet"><div style={{textAlign:'center',marginTop:28}}><div className="muted" style={{fontSize:12,textTransform:'uppercase',letterSpacing:'.08em'}}>Pilot logbook</div><h1 style={{fontSize:34,margin:'8px 0'}}>Web Logbook</h1><div className="muted">{format} · EASA flight records</div></div><div style={{height:90}}/><div className="exact-preview-line"/><div className="exact-preview-line"/><div className="exact-preview-line med"/><div style={{height:85}}/><div className="exact-preview-line short"/></div>
+      <Card
+        title="Preview"
+        subtitle="Real preview generated from your logbook and the current settings."
+        actions={<button className="btn small" type="button" disabled={preview.isPending||isLoading} onClick={()=>preview.mutate(settings)}>{preview.isPending?'Generating…':'Refresh preview'}</button>}
+      >
+        {previewError?<div className="note exact-preview-error">{previewError}</div>:null}
+        {!previewError&&previewUrl?<iframe className="exact-pdf-preview-frame" src={previewUrl} title={`${format} PDF preview`} />:null}
+        {!previewError&&!previewUrl?<div className="exact-preview-loading">Generating real PDF preview…</div>:null}
       </Card>
     </div>
   </section>

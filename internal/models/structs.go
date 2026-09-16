@@ -277,6 +277,7 @@ type Settings struct {
 	SelfPICLabel          string        `json:"self_pic_label"`
 	LogbookTotalsView     byte          `json:"logbook_totals_view"`
 	TimeFieldsAutoFormat  byte          `json:"time_fields_auto_format"`
+	SwitchColor           string        `json:"switch_color"`
 	EnableCustomNames     bool          `json:"enable_custom_names"`
 	StandardFieldsHeaders ColumnsHeader `json:"standard_fields_headers"`
 
