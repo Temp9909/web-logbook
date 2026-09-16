@@ -48,8 +48,9 @@ const getAirportData = async (id, airportsMap) => {
   }
 }
 
-export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap }) => {
-  const [options] = useLocalStorageState(MAP_OPTIONS_NAME, DEFAULT_MAP_OPTIONS, { codec: CODEC_JSON });
+export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedded = false, optionsOverride = null }) => {
+  const [storedOptions] = useLocalStorageState(MAP_OPTIONS_NAME, DEFAULT_MAP_OPTIONS, { codec: CODEC_JSON });
+  const options = optionsOverride || storedOptions;
 
   const mapRef = useRef(null);
   const containerRef = useRef(null);
@@ -205,27 +206,20 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap }) => {
 
   if (!data) return null;
 
+  const mapCanvas = (
+    <div className="apple-map-canvas-wrap" style={sx}>
+      <div ref={mapRef} className="apple-map-canvas" />
+      {distance > 0 && <div className="apple-map-distance">{`Distance: ${distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} nm / ${(distance * 1.852).toLocaleString(undefined, { maximumFractionDigits: 2 })} km`}</div>}
+    </div>
+  );
+
   return (
     <>
-      <ApplePanel
-        className="apple-map-panel"
-        title={title}
-        actions={(
-          <>
-            <DownloadMapButton map={map} />
-            <MapOptionsButton />
-          </>
-        )}
-      >
-        <div className="apple-map-canvas-wrap" style={sx}>
-          <div ref={mapRef} className="apple-map-canvas" />
-          {distance > 0 && (
-            <div className="apple-map-distance">
-              {`Distance: ${distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} nm / ${(distance * 1.852).toLocaleString(undefined, { maximumFractionDigits: 2 })} km`}
-            </div>
-          )}
-        </div>
-      </ApplePanel>
+      {embedded ? mapCanvas : (
+        <ApplePanel className="apple-map-panel" title={title} actions={<><DownloadMapButton map={map} /><MapOptionsButton /></>}>
+          {mapCanvas}
+        </ApplePanel>
+      )}
 
       <div ref={containerRef} className={`apple-map-popup card${selectedFeature ? ' is-open' : ''}`}>
         <a href="#" id="popup-closer" onClick={handleClosePopup} aria-label="Close airport details"></a>

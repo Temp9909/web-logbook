@@ -16,21 +16,13 @@ const StatsIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColo
 const ExportIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>;
 const ImportIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>;
 const SettingsIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.4 1z"/></svg>;
-const Caret = () => <svg className="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:13,height:13}}><path d="M9 18l6-6-6-6"/></svg>;
-
-const items = [
-  ['logbook','Logbook',BookIcon], ['licensing','Licensing',LicenseIcon], ['map','Map',MapIcon], ['aircrafts','Aircrafts',AircraftIcon],
-  ['airports','Airports',AirportIcon], ['persons','Persons',PersonIcon], ['attachments','Attachments',AttachmentIcon],
-  ['sep'], ['stats','Stats',StatsIcon,true], ['sep'], ['export','Export',ExportIcon,true], ['import','Import',ImportIcon], ['sep'], ['settings','Settings',SettingsIcon]
-];
+const Caret = () => <span className="nav-caret">›</span>;
 
 function LicensingCount() {
   const { settings } = useSettings();
   const { data: licenses = [] } = useQuery({ queryKey:['licensing'], queryFn:({signal})=>fetchLicenses({signal}), staleTime:3600000, gcTime:3600000 });
   const count = useMemo(() => {
-    const cfg = settings?.licenses_expiration;
-    if (!cfg) return 0;
-    const warningPeriod = cfg.warning_period || 90;
+    const warningPeriod = settings?.licenses_expiration?.warning_period || 90;
     return (Array.isArray(licenses) ? licenses : []).reduce((n, license) => {
       const exp = calculateExpiry(license?.valid_until || '');
       return n + (exp && exp.diffDays < warningPeriod ? 1 : 0);
@@ -39,23 +31,34 @@ function LicensingCount() {
   return count > 0 ? <span className="chip warn licensing-count">{count}</span> : null;
 }
 
+const MainLink = ({ to, segment, label, Icon, count, caret, onNavigate, location }) => {
+  const selected = location.pathname === '/' ? segment === 'logbook' : location.pathname.startsWith(`/${segment}`);
+  return <Link to={to} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}><Icon />{label}{count}{caret ? <Caret/> : null}</Link>;
+};
+
 export default function DashboardNavbar({ open, onNavigate }) {
   const location = useLocation();
+  const statSelected = location.pathname.startsWith('/stats');
+  const exportSelected = location.pathname.startsWith('/export');
+  const subClass = (path) => location.pathname === path ? 'selected' : '';
   return (
     <aside className={`sidebar${open ? ' open' : ''}`}>
-      {items.map((item, i) => {
-        if (item[0] === 'sep') return <div className="nav-sep" key={`s${i}`} />;
-        const [segment,label,Icon,caret] = item;
-        const selected = location.pathname === '/' ? segment === 'logbook' : location.pathname.startsWith(`/${segment}`);
-        return (
-          <Link key={segment} to={`/${segment}`} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}>
-            <Icon />
-            {label}
-            {segment === 'licensing' && <LicensingCount />}
-            {caret && <Caret />}
-          </Link>
-        );
-      })}
+      <MainLink to="/logbook" segment="logbook" label="Logbook" Icon={BookIcon} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/licensing" segment="licensing" label="Licensing" Icon={LicenseIcon} count={<LicensingCount/>} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/map" segment="map" label="Map" Icon={MapIcon} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/aircrafts" segment="aircrafts" label="Aircrafts" Icon={AircraftIcon} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/airports" segment="airports" label="Airports" Icon={AirportIcon} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/persons" segment="persons" label="Persons" Icon={PersonIcon} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/attachments" segment="attachments" label="Attachments" Icon={AttachmentIcon} onNavigate={onNavigate} location={location}/>
+      <div className="nav-sep"/>
+      <MainLink to="/stats" segment="stats" label="Stats" Icon={StatsIcon} caret onNavigate={onNavigate} location={location}/>
+      {statSelected ? <div className="nav-group-sub"><Link className={subClass('/stats/dashboard')} to="/stats/dashboard" onClick={onNavigate}>Dashboard</Link><Link className={subClass('/stats/by-year')} to="/stats/by-year" onClick={onNavigate}>By year</Link><Link className={subClass('/stats/by-type')} to="/stats/by-type" onClick={onNavigate}>By type</Link><Link className={subClass('/stats/by-category')} to="/stats/by-category" onClick={onNavigate}>By category</Link></div> : null}
+      <div className="nav-sep"/>
+      <MainLink to="/export" segment="export" label="Export" Icon={ExportIcon} caret onNavigate={onNavigate} location={location}/>
+      {exportSelected ? <div className="nav-group-sub"><Link className={subClass('/export/a4')} to="/export/a4" onClick={onNavigate}>A4</Link><Link className={subClass('/export/a5')} to="/export/a5" onClick={onNavigate}>A5</Link></div> : null}
+      <MainLink to="/import" segment="import" label="Import" Icon={ImportIcon} onNavigate={onNavigate} location={location}/>
+      <div className="nav-sep"/>
+      <MainLink to="/settings" segment="settings" label="Settings" Icon={SettingsIcon} onNavigate={onNavigate} location={location}/>
     </aside>
   );
 }

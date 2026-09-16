@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="fr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web Logbook — Aperçu complet Apple</title>
+<style>
+:root{
+  --blue:#007AFF;--green:#34C759;--orange:#FF9500;--red:#FF3B30;
+  --label:#1D1D1F;--secondary:rgba(60,60,67,.60);--tertiary:rgba(60,60,67,.30);
+  --separator:rgba(60,60,67,.18);--fill:rgba(116,116,128,.08);
+  --fill2:rgba(116,116,128,.14);--bg:#F2F2F7;--paper:#fff;
+  --sidebar:rgba(246,246,248,.82);--bar:rgba(255,255,255,.78);
+  --tint:rgba(0,122,255,.12);--tint2:rgba(0,122,255,.08);
+  --shadow:0 12px 40px rgba(0,0,0,.08);
+}
+[data-theme="dark"]{
+  --blue:#0A84FF;--green:#30D158;--orange:#FF9F0A;--red:#FF453A;
+  --label:#F5F5F7;--secondary:rgba(235,235,245,.60);--tertiary:rgba(235,235,245,.28);
+  --separator:rgba(84,84,88,.58);--fill:rgba(120,120,128,.20);
+  --fill2:rgba(120,120,128,.30);--bg:#161618;--paper:#1F1F22;
+  --sidebar:rgba(28,28,31,.88);--bar:rgba(31,31,34,.82);
+  --tint:rgba(10,132,255,.25);--tint2:rgba(10,132,255,.14);
+  --shadow:0 18px 50px rgba(0,0,0,.32);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--bg);color:var(--label);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue","Segoe UI",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;letter-spacing:-.006em;font-size:14px;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.app{height:100vh;display:flex;overflow:hidden}
+.sidebar{
+  width:232px;flex:0 0 232px;padding:58px 8px 16px;overflow-y:auto;
+  background:var(--sidebar);backdrop-filter:saturate(180%) blur(22px);
+  -webkit-backdrop-filter:saturate(180%) blur(22px);border-right:1px solid var(--separator);
+}
+.nav-item{
+  width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;color:var(--label);
+  padding:7px 10px;margin:1px 0;border-radius:8px;font-size:13.5px;font-weight:500;text-align:left;
+}
+.nav-item svg{width:17px;height:17px;opacity:.84;flex:0 0 auto}
+.nav-item:hover{background:var(--fill)}
+.nav-item.selected{background:var(--tint);color:var(--blue);font-weight:600}
+.nav-sep{height:1px;background:var(--separator);margin:7px 10px}
+.nav-caret{margin-left:auto;opacity:.5}
+.nav-sub{display:none;padding:2px 0 3px 28px}
+.nav-parent.open + .nav-sub{display:block}
+.nav-sub button{
+  width:100%;border:0;background:transparent;color:var(--secondary);text-align:left;
+  padding:6px 10px;border-radius:7px;font-size:12.5px;
+}
+.nav-sub button:hover,.nav-sub button.selected{background:var(--fill);color:var(--label)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  height:52px;flex:0 0 52px;display:flex;align-items:center;gap:10px;padding:0 18px;
+  background:var(--bar);backdrop-filter:saturate(180%) blur(22px);
+  -webkit-backdrop-filter:saturate(180%) blur(22px);border-bottom:1px solid var(--separator);
+}
+.top-title{font-size:17px;font-weight:600;letter-spacing:-.016em}
+.spacer{flex:1}
+.icon-btn{
+  width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:var(--secondary);
+  display:grid;place-items:center
+}
+.icon-btn:hover{background:var(--fill);color:var(--label)}
+.icon-btn svg{width:17px;height:17px}
+.content{flex:1;overflow:auto;padding:22px 24px 44px}
+.page{display:none;animation:fade .16s ease}
+.page.active{display:block}
+@keyframes fade{from{opacity:.45;transform:translateY(2px)}to{opacity:1;transform:none}}
+.page-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:19px}
+.page-title{font-size:27px;line-height:1.1;font-weight:700;letter-spacing:-.025em;margin:0 0 3px}
+.page-sub{font-size:13.5px;color:var(--secondary);margin:0;line-height:1.4}
+.card{background:var(--paper);border:1px solid var(--separator);border-radius:14px}
+.panel{padding:16px}
+.panel-title{font-size:15px;font-weight:650;letter-spacing:-.012em;margin-bottom:3px}
+.panel-sub{font-size:12.5px;color:var(--secondary);margin-bottom:14px}
+.grid{display:grid;gap:12px}
+.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.tile{padding:14px 16px}
+.tile .cap{font-size:10.5px;text-transform:uppercase;letter-spacing:.065em;font-weight:650;color:var(--secondary)}
+.tile .val{font-size:27px;font-weight:700;letter-spacing:-.025em;margin-top:3px;font-variant-numeric:tabular-nums}
+.tile .delta{font-size:12px;color:var(--green);margin-top:3px}
+.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.row.space{justify-content:space-between}
+.toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+.btn{
+  border:0;border-radius:980px;padding:7px 15px;font-size:13px;font-weight:600;
+  background:var(--fill);color:var(--label)
+}
+.btn:hover{filter:brightness(.98)}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.ghost{background:transparent;color:var(--blue);border:1px solid rgba(0,122,255,.34)}
+.btn.danger{background:rgba(255,59,48,.11);color:var(--red)}
+.btn.small{padding:5px 11px;font-size:12px}
+.segmented{display:inline-flex;padding:2px;background:var(--fill);border-radius:9px;gap:2px}
+.segmented button{
+  border:0;background:transparent;color:var(--label);padding:5px 11px;border-radius:7px;font-size:12.5px
+}
+.segmented button.on{background:var(--paper);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.search{
+  display:flex;align-items:center;gap:7px;min-width:210px;max-width:320px;flex:1;
+  background:var(--paper);border:1px solid var(--separator);border-radius:9px;padding:7px 10px
+}
+.search input{border:0;outline:0;background:transparent;width:100%;font-size:13px}
+.search:focus-within,.field:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.16)}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11.5px;font-weight:600;color:var(--secondary)}
+.input,.select,.textarea{
+  width:100%;border:1px solid var(--separator);border-radius:9px;background:var(--paper);
+  padding:8px 10px;outline:0;font-size:13.5px
+}
+.textarea{min-height:84px;resize:vertical}
+.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.form-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.form-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{
+  text-align:left;padding:9px 11px;font-size:10.5px;font-weight:650;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--secondary);border-bottom:1px solid var(--separator)
+}
+td{padding:10px 11px;border-bottom:1px solid var(--separator);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--fill)}
+.table-wrap{overflow:auto}
+.mono{font-variant-numeric:tabular-nums}
+.muted{color:var(--secondary)}
+.chip{
+  display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:650
+}
+.chip.ok{background:rgba(52,199,89,.14);color:#248A3D}
+.chip.warn{background:rgba(255,149,0,.16);color:#A35B00}
+.chip.bad{background:rgba(255,59,48,.14);color:#C7000B}
+[data-theme="dark"] .chip.ok{color:#30D158}
+[data-theme="dark"] .chip.warn{color:#FF9F0A}
+[data-theme="dark"] .chip.bad{color:#FF453A}
+.section-label{
+  font-size:10.5px;font-weight:650;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--secondary);padding:0 4px 7px;margin-top:2px
+}
+.group{margin-bottom:17px}
+.rows{overflow:hidden}
+.setting-row{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--separator)
+}
+.setting-row:last-child{border-bottom:0}
+.setting-row .lbl{font-size:13.5px;font-weight:500}
+.setting-row .sub{font-size:12px;color:var(--secondary);margin-top:2px}
+.switch{width:38px;height:22px;border-radius:999px;background:#D8D8DC;position:relative;flex:0 0 auto}
+.switch:after{
+  content:"";position:absolute;width:18px;height:18px;left:2px;top:2px;background:#fff;border-radius:50%;
+  box-shadow:0 1px 4px rgba(0,0,0,.18);transition:.2s
+}
+.switch.on{background:var(--green)}
+.switch.on:after{transform:translateX(16px)}
+[data-theme="dark"] .switch{background:#3A3A3E}
+.split{display:grid;grid-template-columns:minmax(260px,.85fr) minmax(0,1.65fr);gap:12px}
+.fake-map{
+  min-height:480px;position:relative;overflow:hidden;background:
+  linear-gradient(rgba(0,122,255,.05),rgba(0,122,255,.03)),
+  repeating-linear-gradient(0deg,transparent 0 44px,var(--separator) 45px),
+  repeating-linear-gradient(90deg,transparent 0 54px,var(--separator) 55px);
+}
+.fake-map:before,.fake-map:after{
+  content:"";position:absolute;border-radius:50%;background:var(--blue);box-shadow:0 0 0 7px var(--tint)
+}
+.fake-map:before{width:8px;height:8px;left:20%;top:68%}
+.fake-map:after{width:8px;height:8px;right:20%;top:26%}
+.route-line{
+  position:absolute;width:66%;height:2px;background:var(--blue);left:20%;top:51%;
+  transform:rotate(-18deg);transform-origin:left center;box-shadow:0 0 0 1px rgba(0,122,255,.04)
+}
+.map-label{position:absolute;background:var(--paper);border:1px solid var(--separator);border-radius:7px;padding:4px 7px;font-size:11px;box-shadow:0 4px 16px rgba(0,0,0,.07)}
+.map-label.a{left:16%;top:71%}.map-label.b{right:15%;top:20%}
+.preview-sheet{
+  background:#fff;color:#111;border-radius:8px;box-shadow:0 12px 36px rgba(0,0,0,.12);padding:28px;
+  min-height:430px;max-width:650px;margin:auto
+}
+.preview-sheet .line{height:8px;background:#eee;border-radius:4px;margin:8px 0}
+.preview-sheet .line.short{width:45%}.preview-sheet .line.med{width:72%}
+.upload{
+  border:1.5px dashed var(--separator);border-radius:14px;padding:34px;text-align:center;background:var(--paper)
+}
+.upload strong{display:block;font-size:15px;margin-bottom:4px}.upload span{color:var(--secondary);font-size:12.5px}
+.signature{
+  height:160px;border:1px dashed var(--separator);border-radius:12px;background:
+  linear-gradient(transparent 78%,rgba(0,0,0,.04) 79%,transparent 80%);
+  display:flex;align-items:center;justify-content:center;color:var(--tertiary);font-size:36px;font-family:cursive
+}
+.stats-bars{height:210px;display:flex;align-items:flex-end;gap:10px;padding:18px 16px 12px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px}
+.bar-fill{width:100%;max-width:44px;background:var(--blue);border-radius:6px 6px 3px 3px}
+.bar-cap{font-size:10.5px;color:var(--secondary)}
+.modal-backdrop{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.28);backdrop-filter:blur(3px);
+  z-index:100;align-items:center;justify-content:center;padding:20px
+}
+.modal-backdrop.show{display:flex}
+.modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:var(--paper);border:1px solid var(--separator);border-radius:18px;box-shadow:var(--shadow)}
+.modal-head{padding:17px 19px 9px;font-size:18px;font-weight:700}
+.modal-body{padding:10px 19px 18px}
+.modal-actions{padding:10px 19px 17px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--separator)}
+.easa{font-size:11px}
+.easa th,.easa td{text-align:center;padding:6px 7px}
+.easa thead tr.grp th{border-left:1px solid var(--separator);font-size:9px}
+.easa thead tr.grp th:first-child{border-left:0}
+.easa thead tr.sub th{border-left:1px solid var(--separator);font-size:9px}
+.easa td{border-left:1px solid var(--separator)}
+.easa td:first-child{border-left:0}
+.settings-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}
+.settings-tabs button{border:0;background:var(--fill);border-radius:999px;padding:6px 12px;color:var(--secondary);font-size:12.5px}
+.settings-tabs button.on{background:var(--tint);color:var(--blue);font-weight:600}
+.settings-pane{display:none}.settings-pane.active{display:block}
+.mini-tabs{display:flex;gap:4px;margin-bottom:12px}
+.mini-tabs button{border:0;background:transparent;padding:6px 10px;border-radius:7px;color:var(--secondary);font-size:12.5px}
+.mini-tabs button.on{background:var(--tint);color:var(--blue);font-weight:600}
+.note{font-size:12px;color:var(--secondary);padding:10px 12px;border-radius:9px;background:var(--fill)}
+@media(max-width:980px){
+  .sidebar{position:fixed;z-index:80;left:0;top:0;bottom:0;transform:translateX(-100%);transition:.2s}
+  .sidebar.open{transform:none}
+  .tiles,.grid.four{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid.three,.grid.two,.split{grid-template-columns:1fr}
+  .form-grid,.form-grid.two,.form-grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  .content{padding:18px 14px 32px}
+  .tiles,.grid.four,.form-grid,.form-grid.two,.form-grid.three{grid-template-columns:1fr}
+  .page-title{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <button class="nav-item selected" data-page="logbook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Logbook</button>
+    <button class="nav-item" data-page="licensing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2"/><path d="M15 10h4M15 14h4"/></svg>Licensing<span class="chip warn" style="margin-left:auto">2</span></button>
+    <button class="nav-item" data-page="map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 20l-6-2V4l6 2 6-2 6 2v14l-6-2-6 2z"/><path d="M9 6v14M15 4v14"/></svg>Map</button>
+    <button class="nav-item" data-page="aircrafts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M2 16l20-6-3 8-4-2-3 4-2-6-8 2z"/></svg>Aircrafts</button>
+    <button class="nav-item" data-page="airports"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 21h18M6 21V8l6-5 6 5v13"/><path d="M10 21v-6h4v6"/></svg>Airports</button>
+    <button class="nav-item" data-page="persons"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>Persons</button>
+    <button class="nav-item" data-page="attachments"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 11l-8.5 8.5a4 4 0 0 1-5.7-5.7L15 5.5a2.5 2.5 0 0 1 3.5 3.5L10 17.5"/></svg>Attachments</button>
+
+    <div class="nav-sep"></div>
+
+    <button class="nav-item nav-parent" data-page="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Stats<span class="nav-caret">›</span></button>
+    <div class="nav-sub">
+      <button data-page="stats" data-mode="dashboard">Dashboard</button>
+      <button data-page="stats" data-mode="year">By year</button>
+      <button data-page="stats" data-mode="type">By type</button>
+      <button data-page="stats" data-mode="category">By category</button>
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <button class="nav-item nav-parent" data-page="export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Export<span class="nav-caret">›</span></button>
+    <div class="nav-sub">
+      <button data-page="export" data-mode="a4">A4</button>
+      <button data-page="export" data-mode="a5">A5</button>
+    </div>
+    <button class="nav-item" data-page="import"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>Import</button>
+
+    <div class="nav-sep"></div>
+
+    <button class="nav-item" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.4 1z"/></svg>Settings</button>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <span class="top-title" id="topTitle">Logbook</span><span class="spacer"></span>
+      <button class="icon-btn" id="themeBtn" title="Mode clair/sombre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+      <button class="icon-btn" title="Compte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg></button>
+    </header>
+
+    <div class="content">
+      <!-- LOGBOOK -->
+      <section class="page active" id="page-logbook">
+        <div class="page-head"><div><h1 class="page-title">Flight records</h1><p class="page-sub">1,248 hours flown · 642 landings · last entry on 12 Sep 2026</p></div><span class="spacer"></span><button class="btn ghost" onclick="openModal('totalsModal')">Customize totals</button></div>
+        <div class="tiles">
+          <div class="card tile"><div class="cap">Total time</div><div class="val">1,248:35</div><div class="delta">+86:12 this year</div></div>
+          <div class="card tile"><div class="cap">PIC</div><div class="val">942:10</div><div class="delta">+61:40</div></div>
+          <div class="card tile"><div class="cap">Multi-engine</div><div class="val">218:05</div><div class="delta">+12:30</div></div>
+          <div class="card tile"><div class="cap">IFR</div><div class="val">176:20</div><div class="delta">+9:05</div></div>
+        </div>
+        <div class="toolbar">
+          <div class="search"><span>⌕</span><input placeholder="Search a flight, aircraft, airport…"></div>
+          <div class="segmented"><button class="on">All</button><button>PIC</button><button>IFR</button><button>Night</button></div>
+          <span class="spacer"></span><button class="btn ghost" onclick="go('export')">Export</button><button class="btn primary" onclick="go('newflight')">＋ New flight</button>
+        </div>
+        <div class="card table-wrap">
+          <table class="easa">
+            <thead><tr class="grp"><th rowspan="2">Date</th><th colspan="2">Departure</th><th colspan="2">Arrival</th><th colspan="2">Aircraft</th><th colspan="2">Single Pilot Time</th><th rowspan="2">Multi<br>Pilot</th><th rowspan="2">Total</th><th rowspan="2">PIC Name</th><th colspan="2">Landings</th><th colspan="2">Operational</th><th colspan="4">Pilot Function</th><th colspan="2">FSTD</th><th rowspan="2">Remarks</th></tr>
+            <tr class="sub"><th>Place</th><th>Time</th><th>Place</th><th>Time</th><th>Type</th><th>Reg</th><th>SE</th><th>ME</th><th>Day</th><th>Night</th><th>Night</th><th>IFR</th><th>PIC</th><th>COP</th><th>Dual</th><th>Instr</th><th>Type</th><th>Time</th></tr></thead>
+            <tbody>
+              <tr><td>12/09</td><td>LFPG</td><td>08:15</td><td>EGLL</td><td>09:35</td><td>DA42</td><td>F-GABC</td><td>—</td><td>1:20</td><td>—</td><td>1:20</td><td>J. Smith</td><td>1</td><td>—</td><td>—</td><td>0:25</td><td>1:20</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="muted">IFR nav</td></tr>
+              <tr><td>10/09</td><td>EGLL</td><td>14:05</td><td>LFPG</td><td>15:20</td><td>DA42</td><td>F-GABC</td><td>—</td><td>1:15</td><td>—</td><td>1:15</td><td>J. Smith</td><td>1</td><td>—</td><td>—</td><td>0:10</td><td>1:15</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="muted">Return leg</td></tr>
+              <tr><td>08/09</td><td>LFPG</td><td>10:00</td><td>LFBO</td><td>11:05</td><td>DA40</td><td>F-HXYZ</td><td>1:05</td><td>—</td><td>—</td><td>1:05</td><td>Self</td><td>2</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>1:05</td><td>—</td><td>—</td><td>—</td><td class="muted">Instruction given</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- NEW FLIGHT -->
+      <section class="page" id="page-newflight">
+        <div class="page-head"><div><h1 class="page-title">New flight</h1><p class="page-sub">Create a new logbook entry.</p></div><span class="spacer"></span><button class="btn ghost" onclick="go('logbook')">Cancel</button><button class="btn primary">Save flight</button></div>
+        <div class="grid two">
+          <div class="card panel">
+            <div class="panel-title">Flight</div><div class="panel-sub">Date, departure and arrival.</div>
+            <div class="form-grid two">
+              <div class="field"><label>Date</label><input class="input" type="date" value="2026-09-16"></div>
+              <div class="field"><label>Tags</label><input class="input" placeholder="training, IFR"></div>
+              <div class="field"><label>Departure place</label><input class="input" value="LFPG"></div>
+              <div class="field"><label>Departure time</label><input class="input" type="time" value="08:15"></div>
+              <div class="field"><label>Arrival place</label><input class="input" value="EGLL"></div>
+              <div class="field"><label>Arrival time</label><input class="input" type="time" value="09:35"></div>
+            </div>
+          </div>
+          <div class="card panel">
+            <div class="panel-title">Aircraft</div><div class="panel-sub">Registration, type and pilot in command.</div>
+            <div class="form-grid two">
+              <div class="field"><label>Registration</label><select class="select"><option>F-GABC</option><option>F-HXYZ</option></select></div>
+              <div class="field"><label>Type</label><input class="input" value="DA42"></div>
+              <div class="field"><label>PIC name</label><input class="input" value="J. Smith"></div>
+              <div class="field"><label>Flight role</label><select class="select"><option>PIC</option><option>Dual</option><option>Co-pilot</option></select></div>
+            </div>
+          </div>
+          <div class="card panel">
+            <div class="panel-title">Flight time</div><div class="panel-sub">Operational and pilot function time.</div>
+            <div class="form-grid">
+              <div class="field"><label>Total</label><input class="input mono" value="01:20"></div>
+              <div class="field"><label>SE</label><input class="input mono" value=""></div>
+              <div class="field"><label>ME</label><input class="input mono" value="01:20"></div>
+              <div class="field"><label>Night</label><input class="input mono"></div>
+              <div class="field"><label>IFR</label><input class="input mono" value="00:25"></div>
+              <div class="field"><label>PIC</label><input class="input mono" value="01:20"></div>
+              <div class="field"><label>Dual</label><input class="input mono"></div>
+              <div class="field"><label>Instructor</label><input class="input mono"></div>
+            </div>
+          </div>
+          <div class="card panel">
+            <div class="panel-title">Landings & remarks</div><div class="panel-sub">Landings, simulator and notes.</div>
+            <div class="form-grid two">
+              <div class="field"><label>Day landings</label><input class="input" type="number" value="1"></div>
+              <div class="field"><label>Night landings</label><input class="input" type="number" value="0"></div>
+              <div class="field"><label>FSTD type</label><input class="input"></div>
+              <div class="field"><label>FSTD time</label><input class="input"></div>
+            </div>
+            <div class="field" style="margin-top:11px"><label>Remarks and endorsements</label><textarea class="textarea">IFR navigation training.</textarea></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LICENSING -->
+      <section class="page" id="page-licensing">
+        <div class="page-head"><div><h1 class="page-title">Licensing</h1><p class="page-sub">Licences, ratings and certificates — 2 items expiring within 90 days.</p></div><span class="spacer"></span><button class="btn primary" onclick="openModal('ratingModal')">＋ Add a rating</button></div>
+        <div class="group"><div class="section-label">Licences</div><div class="card rows">
+          <div class="setting-row"><div><div class="lbl">EASA PPL(A)</div><div class="sub">FR.FCL.PPL-2019-004417 · no expiry</div></div><span class="spacer"></span><span class="chip ok">Valid</span></div>
+          <div class="setting-row"><div><div class="lbl">Class 2 medical certificate</div><div class="sub">Expires 14/11/2026 · in 59 days</div></div><span class="spacer"></span><span class="chip warn">Expiring</span></div>
+        </div></div>
+        <div class="group"><div class="section-label">Ratings</div><div class="card rows">
+          <div class="setting-row"><div><div class="lbl">SEP (Land)</div><div class="sub">Expires 31/05/2027</div></div><span class="spacer"></span><span class="chip ok">Valid</span></div>
+          <div class="setting-row"><div><div class="lbl">MEP (Land)</div><div class="sub">Expires 30/10/2026 · in 44 days</div></div><span class="spacer"></span><span class="chip warn">Expiring</span></div>
+          <div class="setting-row"><div><div class="lbl">IR(A)</div><div class="sub">Expired 31/07/2026</div></div><span class="spacer"></span><span class="chip bad">Expired</span></div>
+          <div class="setting-row"><div><div class="lbl">English R/T — level 5</div><div class="sub">Expires 12/03/2028</div></div><span class="spacer"></span><span class="chip ok">Valid</span></div>
+        </div></div>
+      </section>
+
+      <!-- MAP -->
+      <section class="page" id="page-map">
+        <div class="page-head"><div><h1 class="page-title">Map</h1><p class="page-sub">Explore your flights, routes and airports.</p></div><span class="spacer"></span><button class="btn ghost">Download map</button><button class="btn primary">Map options</button></div>
+        <div class="split">
+          <div class="grid">
+            <div class="card panel">
+              <div class="panel-title">Filters</div><div class="panel-sub">Choose which flights are shown on the map.</div>
+              <div class="field"><label>Period</label><select class="select"><option>All time</option><option>This year</option><option>Last 90 days</option></select></div>
+              <div class="field" style="margin-top:10px"><label>Aircraft</label><select class="select"><option>All aircraft</option><option>DA42</option><option>DA40</option></select></div>
+              <div class="setting-row" style="padding:12px 0 0;border:0"><div class="lbl">Show airports</div><span class="spacer"></span><div class="switch on"></div></div>
+              <div class="setting-row" style="padding:9px 0 0;border:0"><div class="lbl">Show route lines</div><span class="spacer"></span><div class="switch on"></div></div>
+            </div>
+            <div class="card panel">
+              <div class="panel-title">Summary</div><div class="panel-sub">Summary for visible flights.</div>
+              <div class="grid two">
+                <div><div class="muted" style="font-size:11px">FLIGHTS</div><div style="font-size:24px;font-weight:700">127</div></div>
+                <div><div class="muted" style="font-size:11px">AIRPORTS</div><div style="font-size:24px;font-weight:700">34</div></div>
+                <div><div class="muted" style="font-size:11px">DISTANCE</div><div style="font-size:24px;font-weight:700">18,402 km</div></div>
+                <div><div class="muted" style="font-size:11px">HOURS</div><div style="font-size:24px;font-weight:700">182:40</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card fake-map"><div class="route-line"></div><div class="map-label a">LFPG · Paris CDG</div><div class="map-label b">EGLL · London Heathrow</div></div>
+        </div>
+      </section>
+
+      <!-- AIRCRAFTS -->
+      <section class="page" id="page-aircrafts">
+        <div class="page-head"><div><h1 class="page-title">Aircrafts</h1><p class="page-sub">Manage registrations, aircraft types and categories.</p></div><span class="spacer"></span><button class="btn primary">＋ Add aircraft</button></div>
+        <div class="grid two">
+          <div class="card panel">
+            <div class="panel-title">Aircrafts</div><div class="panel-sub">Registrations and aircraft types used by your logbook.</div>
+            <div class="toolbar"><div class="search"><span>⌕</span><input placeholder="Search aircraft…"></div></div>
+            <div class="table-wrap"><table><thead><tr><th>Registration</th><th>Type</th><th>Category</th><th>Hours</th></tr></thead><tbody>
+              <tr><td>F-GABC</td><td>DA42</td><td>MEP</td><td>218:05</td></tr>
+              <tr><td>F-HXYZ</td><td>DA40</td><td>SEP</td><td>402:15</td></tr>
+              <tr><td>F-BQRS</td><td>C172</td><td>SEP</td><td>131:40</td></tr>
+            </tbody></table></div>
+          </div>
+          <div class="card panel">
+            <div class="panel-title">Types & categories</div><div class="panel-sub">Configure categories and automatic time rules.</div>
+            <div class="card rows" style="border-radius:10px">
+              <div class="setting-row"><div><div class="lbl">SEP</div><div class="sub">Single-engine piston</div></div><span class="spacer"></span><span class="chip ok">3 types</span></div>
+              <div class="setting-row"><div><div class="lbl">MEP</div><div class="sub">Multi-engine piston</div></div><span class="spacer"></span><span class="chip ok">1 type</span></div>
+              <div class="setting-row"><div><div class="lbl">Complex</div><div class="sub">Custom category</div></div><span class="spacer"></span><button class="btn small">Edit</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AIRPORTS -->
+      <section class="page" id="page-airports">
+        <div class="page-head"><div><h1 class="page-title">Airports</h1><p class="page-sub">Standard airports, database source and your custom airports.</p></div></div>
+        <div class="card panel" style="margin-bottom:12px">
+          <div class="row space"><div><div class="panel-title">Standard airports</div><div class="panel-sub" style="margin:0">Browse the airport database used by the logbook.</div></div><div class="search"><span>⌕</span><input placeholder="ICAO, IATA, city…"></div></div>
+          <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>ICAO</th><th>IATA</th><th>Name</th><th>City</th><th>Country</th><th>Elevation</th></tr></thead><tbody>
+            <tr><td>LFPG</td><td>CDG</td><td>Charles de Gaulle</td><td>Paris</td><td>France</td><td>392 ft</td></tr>
+            <tr><td>EGLL</td><td>LHR</td><td>Heathrow</td><td>London</td><td>United Kingdom</td><td>83 ft</td></tr>
+            <tr><td>LFBO</td><td>TLS</td><td>Blagnac</td><td>Toulouse</td><td>France</td><td>499 ft</td></tr>
+          </tbody></table></div>
+        </div>
+        <div class="grid two">
+          <div class="card panel">
+            <div class="row space"><div><div class="panel-title">Airport DB source</div><div class="panel-sub" style="margin:0">Choose the source and refresh the airports database.</div></div><button class="btn primary small">Update DB</button></div>
+            <div class="field" style="margin-top:15px"><label>Source URL</label><input class="input" value="https://github.com/vsimakhin/Airports/raw/master/airports.json"></div>
+            <div class="setting-row" style="padding:12px 0 0;border:0"><div><div class="lbl">Filter airports without ICAO</div><div class="sub">Ignore entries that cannot be identified reliably.</div></div><span class="spacer"></span><div class="switch on"></div></div>
+          </div>
+          <div class="card panel">
+            <div class="row space"><div><div class="panel-title">Custom airports</div><div class="panel-sub" style="margin:0">Create and manage your own airports.</div></div><button class="btn primary small" onclick="openModal('airportModal')">＋ Add</button></div>
+            <div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>ICAO</th><th>Name</th><th>Lat</th><th>Lon</th></tr></thead><tbody>
+              <tr><td>ZZ01</td><td>Home strip</td><td>48.721</td><td>2.521</td></tr>
+              <tr><td>ZZ02</td><td>Training field</td><td>49.005</td><td>2.340</td></tr>
+            </tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PERSONS -->
+      <section class="page" id="page-persons">
+        <div class="page-head"><div><h1 class="page-title">Persons</h1><p class="page-sub">Manage pilots, crew and other people in your logbook.</p></div><span class="spacer"></span><button class="btn primary" onclick="openModal('personModal')">＋ Add person</button></div>
+        <div class="card panel">
+          <div class="toolbar"><div class="search"><span>⌕</span><input placeholder="Search name, role or email…"></div><div class="segmented"><button class="on">All</button><button>Pilots</button><button>Instructors</button></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Flights</th><th>Last flight</th></tr></thead><tbody>
+            <tr><td>John Smith</td><td><span class="chip ok">Pilot</span></td><td>john@example.com</td><td>88</td><td>12 Sep 2026</td></tr>
+            <tr><td>Alice Martin</td><td><span class="chip warn">Instructor</span></td><td>alice@example.com</td><td>32</td><td>08 Sep 2026</td></tr>
+            <tr><td>David Lee</td><td><span class="chip">Crew</span></td><td>david@example.com</td><td>14</td><td>22 Aug 2026</td></tr>
+          </tbody></table></div>
+        </div>
+      </section>
+
+      <!-- ATTACHMENTS -->
+      <section class="page" id="page-attachments">
+        <div class="page-head"><div><h1 class="page-title">Attachments</h1><p class="page-sub">Browse and manage documents attached to your logbook.</p></div><span class="spacer"></span><button class="btn ghost">Download all</button></div>
+        <div class="split">
+          <div class="card panel">
+            <div class="panel-title">Documents</div><div class="panel-sub">Select an attachment to preview it.</div>
+            <div class="card rows" style="border-radius:10px">
+              <div class="setting-row"><div><div class="lbl">medical-class2.pdf</div><div class="sub">Licensing · 420 KB</div></div><span class="spacer"></span><span class="chip ok">PDF</span></div>
+              <div class="setting-row"><div><div class="lbl">flight-2026-09-12.gpx</div><div class="sub">Flight record · 88 KB</div></div><span class="spacer"></span><span class="chip">GPX</span></div>
+              <div class="setting-row"><div><div class="lbl">endorsement.jpg</div><div class="sub">Flight record · 1.8 MB</div></div><span class="spacer"></span><span class="chip">IMG</span></div>
+            </div>
+          </div>
+          <div class="card panel"><div class="panel-title">Preview</div><div class="panel-sub">Preview the selected document.</div><div class="preview-sheet"><h2 style="margin-top:0">Class 2 Medical Certificate</h2><div class="line"></div><div class="line med"></div><div class="line"></div><div class="line short"></div><div style="height:120px"></div><div class="line med"></div><div class="line short"></div></div></div>
+        </div>
+      </section>
+
+      <!-- STATS -->
+      <section class="page" id="page-stats">
+        <div class="page-head"><div><h1 class="page-title">Stats</h1><p class="page-sub" id="statsSub">Dashboard — overview of your logbook.</p></div></div>
+        <div class="mini-tabs" id="statsTabs"><button class="on" data-mode="dashboard">Dashboard</button><button data-mode="year">By year</button><button data-mode="type">By type</button><button data-mode="category">By category</button></div>
+        <div id="statsDashboard">
+          <div class="tiles">
+            <div class="card tile"><div class="cap">Total time</div><div class="val">1,248:35</div></div>
+            <div class="card tile"><div class="cap">This year</div><div class="val">86:12</div></div>
+            <div class="card tile"><div class="cap">Landings</div><div class="val">642</div></div>
+            <div class="card tile"><div class="cap">Airports</div><div class="val">54</div></div>
+          </div>
+          <div class="grid two">
+            <div class="card panel"><div class="panel-title">Flight hours</div><div class="panel-sub">Last 12 months.</div><div class="stats-bars">
+              <div class="bar"><div class="bar-fill" style="height:40%"></div><div class="bar-cap">O</div></div><div class="bar"><div class="bar-fill" style="height:54%"></div><div class="bar-cap">N</div></div><div class="bar"><div class="bar-fill" style="height:35%"></div><div class="bar-cap">D</div></div><div class="bar"><div class="bar-fill" style="height:62%"></div><div class="bar-cap">J</div></div><div class="bar"><div class="bar-fill" style="height:48%"></div><div class="bar-cap">F</div></div><div class="bar"><div class="bar-fill" style="height:72%"></div><div class="bar-cap">M</div></div><div class="bar"><div class="bar-fill" style="height:82%"></div><div class="bar-cap">A</div></div><div class="bar"><div class="bar-fill" style="height:66%"></div><div class="bar-cap">M</div></div><div class="bar"><div class="bar-fill" style="height:88%"></div><div class="bar-cap">J</div></div><div class="bar"><div class="bar-fill" style="height:100%"></div><div class="bar-cap">J</div></div><div class="bar"><div class="bar-fill" style="height:68%"></div><div class="bar-cap">A</div></div><div class="bar"><div class="bar-fill" style="height:58%"></div><div class="bar-cap">S</div></div>
+            </div></div>
+            <div class="card panel"><div class="panel-title">Filters</div><div class="panel-sub">Filter the dashboard without changing the logbook.</div><div class="form-grid two"><div class="field"><label>Period</label><select class="select"><option>All time</option><option>This year</option></select></div><div class="field"><label>Aircraft</label><select class="select"><option>All aircraft</option></select></div><div class="field"><label>Role</label><select class="select"><option>All roles</option></select></div><div class="field"><label>Airport</label><input class="input" placeholder="ICAO"></div></div></div>
+          </div>
+        </div>
+        <div id="statsTable" style="display:none"><div class="card panel"><div class="panel-title" id="statsTableTitle">By year</div><div class="panel-sub">Detailed totals.</div><table><thead><tr><th>Group</th><th>Total</th><th>PIC</th><th>IFR</th><th>Night</th><th>Landings</th></tr></thead><tbody><tr><td>2026</td><td>86:12</td><td>61:40</td><td>09:05</td><td>07:20</td><td>48</td></tr><tr><td>2025</td><td>124:35</td><td>96:10</td><td>18:30</td><td>11:10</td><td>71</td></tr><tr><td>2024</td><td>111:55</td><td>82:20</td><td>14:15</td><td>08:45</td><td>63</td></tr></tbody></table></div></div>
+      </section>
+
+      <!-- EXPORT -->
+      <section class="page" id="page-export">
+        <div class="page-head"><div><h1 class="page-title">Export</h1><p class="page-sub">Configure and preview your PDF logbook.</p></div><span class="spacer"></span><button class="btn ghost">Restore defaults</button><button class="btn primary">Export PDF</button></div>
+        <div class="mini-tabs" id="exportTabs"><button class="on" data-mode="a4">A4</button><button data-mode="a5">A5</button></div>
+        <div class="split">
+          <div class="grid">
+            <div class="card panel"><div class="panel-title">Page settings</div><div class="panel-sub">Choose the columns, labels and page layout used in the exported logbook.</div>
+              <div class="form-grid two"><div class="field"><label>Orientation</label><select class="select"><option>Landscape</option><option>Portrait</option></select></div><div class="field"><label>Rows per page</label><input class="input" value="18"></div><div class="field"><label>Paper</label><input class="input" id="paperSize" value="A4" readonly></div><div class="field"><label>Margins</label><select class="select"><option>Normal</option><option>Compact</option></select></div></div>
+            </div>
+            <div class="card panel"><div class="panel-title">Other settings</div><div class="panel-sub">Fine-tune information included in the PDF.</div>
+              <div class="setting-row" style="padding:8px 0"><div class="lbl">Include signature</div><span class="spacer"></span><div class="switch on"></div></div>
+              <div class="setting-row" style="padding:8px 0"><div class="lbl">Show totals per page</div><span class="spacer"></span><div class="switch on"></div></div>
+              <div class="setting-row" style="padding:8px 0;border:0"><div class="lbl">Custom title page</div><span class="spacer"></span><div class="switch"></div></div>
+            </div>
+          </div>
+          <div class="card panel"><div class="panel-title">Preview</div><div class="panel-sub">Preview of the exported logbook.</div><div class="preview-sheet"><div style="text-align:center;margin-top:28px"><div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.08em">Pilot logbook</div><h1 style="font-size:34px;margin:8px 0">Mathieu</h1><div class="muted">EASA flight records</div></div><div style="height:90px"></div><div class="line"></div><div class="line"></div><div class="line med"></div><div style="height:85px"></div><div class="line short"></div></div></div>
+        </div>
+      </section>
+
+      <!-- IMPORT -->
+      <section class="page" id="page-import">
+        <div class="page-head"><div><h1 class="page-title">Import</h1><p class="page-sub">Import flight records from a CSV file.</p></div></div>
+        <div class="card panel">
+          <div class="panel-title">CSV import</div><div class="panel-sub">Open a CSV file, review the rows and run the import when everything looks correct.</div>
+          <div class="upload"><strong>Drop a CSV file here</strong><span>or click to choose a file from your computer</span><div style="margin-top:14px"><button class="btn primary">Open CSV</button></div></div>
+          <div class="toolbar" style="margin-top:14px"><button class="btn ghost">Map fields</button><button class="btn ghost">Load profile</button><button class="btn ghost">Save profile</button><span class="spacer"></span><button class="btn danger">Clear table</button><button class="btn primary">Run import</button></div>
+          <div class="card table-wrap" style="border-radius:10px"><table><thead><tr><th>Date</th><th>Departure</th><th>Arrival</th><th>Aircraft</th><th>Total</th><th>PIC</th><th>Status</th></tr></thead><tbody><tr><td>12/09/2026</td><td>LFPG 08:15</td><td>EGLL 09:35</td><td>DA42 / F-GABC</td><td>1:20</td><td>J. Smith</td><td><span class="chip ok">Ready</span></td></tr><tr><td>10/09/2026</td><td>EGLL 14:05</td><td>LFPG 15:20</td><td>DA42 / F-GABC</td><td>1:15</td><td>J. Smith</td><td><span class="chip ok">Ready</span></td></tr></tbody></table></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="page" id="page-settings">
+        <div class="page-head"><div><h1 class="page-title">Settings</h1><p class="page-sub">Configure your logbook, fields, signature and previous experience.</p></div></div>
+        <div class="settings-tabs" id="settingsTabs">
+          <button class="on" data-settings="general">General</button>
+          <button data-settings="previous">Previous flight experience</button>
+          <button data-settings="signature">Logbook signature</button>
+          <button data-settings="standard">Standard fields</button>
+          <button data-settings="custom">Custom fields</button>
+        </div>
+
+        <div class="settings-pane active" data-pane="general">
+          <div class="grid two">
+            <div class="card panel">
+              <div class="panel-title">General settings</div><div class="panel-sub">Owner information, application options and authentication.</div>
+              <div class="section-label">Owner information</div>
+              <div class="form-grid two"><div class="field"><label>Name</label><input class="input" value="Mathieu"></div><div class="field"><label>Licence number</label><input class="input" value="FR.FCL.000000"></div></div>
+              <div class="section-label" style="margin-top:15px">Application</div>
+              <div class="card rows" style="border-radius:10px"><div class="setting-row"><div><div class="lbl">24-hour time</div><div class="sub">Display times as HH:mm.</div></div><span class="spacer"></span><div class="switch on"></div></div><div class="setting-row"><div><div class="lbl">Expiry alerts</div><div class="sub">Warn before licence expiry.</div></div><span class="spacer"></span><div class="switch on"></div></div></div>
+            </div>
+            <div class="card panel">
+              <div class="panel-title">Security & database</div><div class="panel-sub">Authentication and database operations.</div>
+              <div class="card rows" style="border-radius:10px"><div class="setting-row"><div><div class="lbl">Authentication</div><div class="sub">Require sign-in to access the logbook.</div></div><span class="spacer"></span><div class="switch on"></div></div><div class="setting-row"><div class="lbl">Download database</div><span class="spacer"></span><button class="btn small">Download</button></div><div class="setting-row"><div class="lbl">Upload database</div><span class="spacer"></span><button class="btn small">Upload</button></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-pane" data-pane="previous">
+          <div class="card panel"><div class="row space"><div><div class="panel-title">Previous flight experience</div><div class="panel-sub" style="margin:0">Enter totals accumulated before the first flight stored in this logbook.</div></div><button class="btn primary small">Save</button></div>
+            <div class="form-grid" style="margin-top:15px">
+              <div class="field"><label>Total time</label><input class="input mono" value="945:30"></div><div class="field"><label>SP SE</label><input class="input mono" value="612:15"></div><div class="field"><label>SP ME</label><input class="input mono" value="104:50"></div><div class="field"><label>Multi-pilot</label><input class="input mono" value="228:25"></div>
+              <div class="field"><label>Night</label><input class="input mono" value="88:10"></div><div class="field"><label>IFR</label><input class="input mono" value="132:45"></div><div class="field"><label>PIC</label><input class="input mono" value="720:20"></div><div class="field"><label>Co-pilot</label><input class="input mono" value="84:25"></div>
+              <div class="field"><label>Dual</label><input class="input mono" value="92:10"></div><div class="field"><label>Instructor</label><input class="input mono" value="48:20"></div><div class="field"><label>FSTD / Sim</label><input class="input mono" value="32:10"></div><div class="field"><label>Cross country</label><input class="input mono" value="501:35"></div>
+              <div class="field"><label>Day landings</label><input class="input" value="502"></div><div class="field"><label>Night landings</label><input class="input" value="68"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-pane" data-pane="signature">
+          <div class="card panel"><div class="row space"><div><div class="panel-title">Logbook signature</div><div class="panel-sub" style="margin:0">Draw or upload the signature used on signed records.</div></div><div class="row"><button class="btn small">Upload</button><button class="btn small">Color</button><button class="btn danger small">Clear</button><button class="btn primary small">Save</button></div></div><div class="signature" style="margin-top:15px">Mathieu</div></div>
+        </div>
+
+        <div class="settings-pane" data-pane="standard">
+          <div class="card panel"><div class="row space"><div><div class="panel-title">Standard fields</div><div class="panel-sub" style="margin:0">Choose the names used for the standard logbook columns.</div></div><div class="row"><button class="btn small">Restore defaults</button><button class="btn primary small">Save</button></div></div>
+            <div class="setting-row" style="padding:14px 0"><div><div class="lbl">Enable custom names for standard fields</div><div class="sub">Override the default EASA labels.</div></div><span class="spacer"></span><div class="switch on"></div></div>
+            <div class="form-grid"><div class="field"><label>Date</label><input class="input" value="Date"></div><div class="field"><label>Departure Header</label><input class="input" value="Departure"></div><div class="field"><label>Place</label><input class="input" value="Place"></div><div class="field"><label>Time</label><input class="input" value="Time"></div><div class="field"><label>Arrival Header</label><input class="input" value="Arrival"></div><div class="field"><label>Aircraft Header</label><input class="input" value="Aircraft"></div><div class="field"><label>Total Time</label><input class="input" value="Total Time"></div><div class="field"><label>PIC Name</label><input class="input" value="PIC Name"></div><div class="field"><label>Remarks</label><input class="input" value="Remarks"></div><div class="field"><label>Tags</label><input class="input" value="Tags"></div></div>
+          </div>
+        </div>
+
+        <div class="settings-pane" data-pane="custom">
+          <div class="card panel"><div class="row space"><div><div class="panel-title">Custom fields</div><div class="panel-sub" style="margin:0">Add your own fields and decide how they appear in statistics.</div></div><button class="btn primary small" onclick="openModal('customFieldModal')">＋ New custom field</button></div>
+            <div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>Order</th><th>Name</th><th>Description</th><th>Category</th><th>Type</th><th>Stats function</th></tr></thead><tbody><tr><td>1</td><td>Approaches</td><td>Instrument approaches flown</td><td>Operations</td><td>Number</td><td>Sum</td></tr><tr><td>2</td><td>Company</td><td>Operator / organisation</td><td>General</td><td>Text</td><td>Group</td></tr></tbody></table></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- MODALS -->
+<div class="modal-backdrop" id="ratingModal"><div class="modal"><div class="modal-head">Add a rating</div><div class="modal-body"><div class="form-grid two"><div class="field"><label>Category</label><select class="select"><option>Rating</option><option>Licence</option><option>Medical</option></select></div><div class="field"><label>Name</label><input class="input" value="MEP (Land)"></div><div class="field"><label>Valid from</label><input class="input" type="date"></div><div class="field"><label>Valid until</label><input class="input" type="date"></div><div class="field"><label>Reference</label><input class="input" placeholder="Certificate / licence no."></div><div class="field"><label>Attachment</label><input class="input" value="No file selected" readonly></div></div><div class="field" style="margin-top:11px"><label>Notes</label><textarea class="textarea"></textarea></div></div><div class="modal-actions"><button class="btn" onclick="closeModal('ratingModal')">Cancel</button><button class="btn primary" onclick="closeModal('ratingModal')">Save rating</button></div></div></div>
+
+<div class="modal-backdrop" id="airportModal"><div class="modal"><div class="modal-head">Add custom airport</div><div class="modal-body"><div class="form-grid two"><div class="field"><label>ICAO</label><input class="input" value="ZZ03"></div><div class="field"><label>IATA</label><input class="input"></div><div class="field"><label>Name</label><input class="input" value="Private airfield"></div><div class="field"><label>City</label><input class="input"></div><div class="field"><label>Latitude</label><input class="input"></div><div class="field"><label>Longitude</label><input class="input"></div></div></div><div class="modal-actions"><button class="btn" onclick="closeModal('airportModal')">Cancel</button><button class="btn primary" onclick="closeModal('airportModal')">Save airport</button></div></div></div>
+
+<div class="modal-backdrop" id="personModal"><div class="modal"><div class="modal-head">Add person</div><div class="modal-body"><div class="form-grid two"><div class="field"><label>Name</label><input class="input"></div><div class="field"><label>Role</label><select class="select"><option>Pilot</option><option>Instructor</option><option>Crew</option></select></div><div class="field"><label>Email</label><input class="input"></div><div class="field"><label>Phone</label><input class="input"></div></div></div><div class="modal-actions"><button class="btn" onclick="closeModal('personModal')">Cancel</button><button class="btn primary" onclick="closeModal('personModal')">Save person</button></div></div></div>
+
+<div class="modal-backdrop" id="customFieldModal"><div class="modal"><div class="modal-head">New custom field</div><div class="modal-body"><div class="form-grid two"><div class="field"><label>Name</label><input class="input" value="Approaches"></div><div class="field"><label>Category</label><input class="input" value="Operations"></div><div class="field"><label>Type</label><select class="select"><option>Number</option><option>Text</option><option>Boolean</option></select></div><div class="field"><label>Stats function</label><select class="select"><option>Sum</option><option>Group</option><option>None</option></select></div></div><div class="field" style="margin-top:11px"><label>Description</label><textarea class="textarea"></textarea></div></div><div class="modal-actions"><button class="btn" onclick="closeModal('customFieldModal')">Cancel</button><button class="btn primary" onclick="closeModal('customFieldModal')">Save field</button></div></div></div>
+
+<div class="modal-backdrop" id="totalsModal"><div class="modal"><div class="modal-head">Customize logbook totals</div><div class="modal-body"><div class="form-grid two"><div class="field"><label>Card 1</label><select class="select"><option>Total time</option><option>PIC</option><option>IFR</option></select></div><div class="field"><label>Card 2</label><select class="select"><option>PIC</option><option>Total time</option></select></div><div class="field"><label>Card 3</label><select class="select"><option>Multi-engine</option><option>Night</option></select></div><div class="field"><label>Card 4</label><select class="select"><option>IFR</option><option>Dual</option></select></div></div></div><div class="modal-actions"><button class="btn" onclick="closeModal('totalsModal')">Cancel</button><button class="btn primary" onclick="closeModal('totalsModal')">Apply</button></div></div></div>
+
+<script>
+const titles={logbook:'Logbook',newflight:'New flight',licensing:'Licensing',map:'Map',aircrafts:'Aircrafts',airports:'Airports',persons:'Persons',attachments:'Attachments',stats:'Stats',export:'Export',import:'Import',settings:'Settings'};
+function go(page,mode){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const el=document.getElementById('page-'+page); if(el) el.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('selected',n.dataset.page===page));
+  document.getElementById('topTitle').textContent=titles[page]||page;
+  document.querySelector('.content').scrollTop=0;
+  if(page==='stats'&&mode)setStats(mode);
+  if(page==='export'&&mode)setExport(mode);
+  if(window.innerWidth<980)document.getElementById('sidebar').classList.remove('open');
+}
+document.querySelectorAll('.nav-item').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const p=b.dataset.page;
+    if(b.classList.contains('nav-parent')) b.classList.toggle('open');
+    go(p);
+  });
+});
+document.querySelectorAll('.nav-sub button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page,b.dataset.mode)));
+document.querySelectorAll('.segmented').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}));
+document.querySelectorAll('.switch').forEach(sw=>sw.addEventListener('click',()=>sw.classList.toggle('on')));
+document.getElementById('themeBtn').onclick=()=>{document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'};
+document.getElementById('menuBtn').onclick=()=>document.getElementById('sidebar').classList.toggle('open');
+function openModal(id){document.getElementById(id).classList.add('show')}
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));
+
+function setStats(mode){
+  document.querySelectorAll('#statsTabs button').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));
+  const dash=document.getElementById('statsDashboard'),tbl=document.getElementById('statsTable'),ttl=document.getElementById('statsTableTitle'),sub=document.getElementById('statsSub');
+  if(mode==='dashboard'){dash.style.display='block';tbl.style.display='none';sub.textContent='Dashboard — overview of your logbook.'}
+  else{dash.style.display='none';tbl.style.display='block';const names={year:'By year',type:'By type',category:'By category'};ttl.textContent=names[mode];sub.textContent=names[mode]+' — detailed flight-time totals.'}
+}
+document.querySelectorAll('#statsTabs button').forEach(b=>b.onclick=()=>setStats(b.dataset.mode));
+
+function setExport(mode){
+  document.querySelectorAll('#exportTabs button').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));
+  document.getElementById('paperSize').value=mode.toUpperCase();
+}
+document.querySelectorAll('#exportTabs button').forEach(b=>b.onclick=()=>setExport(b.dataset.mode));
+
+document.querySelectorAll('#settingsTabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#settingsTabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  document.querySelectorAll('.settings-pane').forEach(p=>p.classList.toggle('active',p.dataset.pane===b.dataset.settings));
+});
+</script>
+</body>
+</html>
