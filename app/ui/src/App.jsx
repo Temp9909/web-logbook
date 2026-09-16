@@ -4,17 +4,16 @@ import { useNavigate, Outlet } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NotificationsProvider } from './hooks/useNotifications/useNotifications';
-// MUI UI elements
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-// Custom components and libraries
 import { queryClient } from './util/http/http';
 import getMPTheme from './theme/getMPTheme';
 import { setNavigate } from './util/navigation';
 import { ColorModeContext } from './context/ColorModeContext';
 import { DialogsProvider } from './hooks/useDialogs/useDialogs';
+import './apple-exact.css';
 
 dayjs.extend(updateLocale);
 dayjs.updateLocale("en", { weekStart: 1 });
@@ -26,9 +25,7 @@ function NavigationSetter() {
 }
 
 function App() {
-  const [mode, setMode] = useState(() => {
-    return localStorage.getItem('themeMode') || 'light';
-  });
+  const [mode, setMode] = useState(() => localStorage.getItem('themeMode') || 'light');
 
   const colorMode = useMemo(() => ({
     mode,
@@ -41,18 +38,22 @@ function App() {
     },
   }), [mode]);
 
-  const theme = useMemo(() => createTheme(getMPTheme(mode)), [mode]);
+  useEffect(() => {
+    document.documentElement.dataset.theme = mode;
+  }, [mode]);
 
   useEffect(() => {
-    const handleShortcut = (event) => {
+    const onKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'j') {
         event.preventDefault();
         colorMode.toggleColorMode();
       }
     };
-    window.addEventListener('keydown', handleShortcut);
-    return () => window.removeEventListener('keydown', handleShortcut);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, [colorMode]);
+
+  const theme = useMemo(() => createTheme(getMPTheme(mode)), [mode]);
 
   return (
     <ColorModeContext.Provider value={colorMode}>

@@ -28,7 +28,6 @@ export const inputsCustomizations = {
         minHeight: 34,
         boxShadow: 'none',
         '&:hover': { boxShadow: 'none' },
-        '&.MuiButton-containedPrimary': { boxShadow: '0 4px 12px rgba(0,122,255,.22)' },
         [theme.breakpoints.down('sm')]: { padding: '6px 14px' },
       }),
       sizeSmall: { minHeight: 28, padding: '4px 14px', fontSize: '0.8125rem' },
@@ -110,9 +109,7 @@ export const inputsCustomizations = {
         const c = apple(theme.palette.mode);
         return {
           borderRadius: 9,
-          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(44,44,46,.72)' : 'rgba(255,255,255,.84)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
+          backgroundColor: theme.palette.mode === 'dark' ? c.fill : '#FFFFFF',
           transition: 'box-shadow 150ms ease, border-color 150ms ease',
           '& .MuiOutlinedInput-notchedOutline': {
             borderColor: c.separator,

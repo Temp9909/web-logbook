@@ -1,302 +1,62 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useState } from 'react';
-import { useTheme, styled } from '@mui/material/styles';
-// MUI
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import Divider from '@mui/material/Divider';
-import Collapse from '@mui/material/Collapse';
-import Popover from '@mui/material/Popover';
-import Paper from '@mui/material/Paper';
-// MUI Icons
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
-import ContactPageOutlinedIcon from '@mui/icons-material/ContactPageOutlined';
-import MapOutlinedIcon from '@mui/icons-material/MapOutlined';
-import QueryStatsOutlinedIcon from '@mui/icons-material/QueryStatsOutlined';
-import SaveAltOutlinedIcon from '@mui/icons-material/SaveAltOutlined';
-import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
-import SettingsIcon from '@mui/icons-material/Settings';
-import FlightOutlinedIcon from '@mui/icons-material/FlightOutlined';
-import FlightTakeoffOutlinedIcon from '@mui/icons-material/FlightTakeoffOutlined';
-import GridViewOutlinedIcon from '@mui/icons-material/GridViewOutlined';
-import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
-import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
-import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
-import SecurityUpdateGoodOutlinedIcon from '@mui/icons-material/SecurityUpdateGoodOutlined';
-import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
-import AttachFileOutlinedIcon from '@mui/icons-material/AttachFileOutlined';
-import LicensingNavTitle from '../../Licensing/LicensingNavTitle';
-// Custom
-import { DRAWER_WIDTH, MINI_DRAWER_WIDTH } from '../../../constants/constants';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import useSettings from '../../../hooks/useSettings';
+import { fetchLicenses } from '../../../util/http/licensing';
+import { calculateExpiry } from '../../Licensing/helpers';
 
-const NAV_ITEMS = [
-  { segment: 'logbook', title: 'Logbook', icon: <AutoStoriesOutlinedIcon /> },
-  { segment: 'licensing', title: (<>Licensing <LicensingNavTitle /></>), miniTitle: 'Licensing', icon: <ContactPageOutlinedIcon /> },
-  { segment: 'map', title: 'Map', icon: <MapOutlinedIcon /> },
-  { segment: 'aircrafts', title: 'Aircrafts', icon: <FlightOutlinedIcon /> },
-  { segment: 'airports', title: 'Airports', icon: <FlightTakeoffOutlinedIcon /> },
-  { segment: 'persons', title: 'Persons', icon: <PersonOutlinedIcon /> },
-  { segment: 'attachments', title: 'Attachments', icon: <AttachFileOutlinedIcon /> },
-  { kind: 'divider' },
-  {
-    segment: 'stats', title: 'Stats', icon: <QueryStatsOutlinedIcon />, children: [
-      { segment: 'dashboard', title: 'Dashboard', icon: <GridViewOutlinedIcon /> },
-      { segment: 'by-year', title: 'Year', icon: <CalendarMonthOutlinedIcon /> },
-      { segment: 'by-type', title: 'Type', icon: <FlightOutlinedIcon /> },
-      { segment: 'by-category', title: 'Category', icon: <CategoryOutlinedIcon /> },
-    ],
-  },
-  { segment: 'currency', title: 'Currency', icon: <SecurityUpdateGoodOutlinedIcon /> },
-  { kind: 'divider' },
-  {
-    segment: 'export', title: 'Export', icon: <SaveAltOutlinedIcon />, children: [
-      { segment: 'a4', title: 'PDF A4', icon: <PictureAsPdfOutlinedIcon /> },
-      { segment: 'a5', title: 'PDF A5', icon: <PictureAsPdfOutlinedIcon /> },
-    ]
-  },
-  { segment: 'import', title: 'Import', icon: <FileUploadOutlinedIcon /> },
-  { kind: 'divider' },
-  { segment: 'settings', title: 'Settings', icon: <SettingsIcon /> },
+const BookIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>;
+const LicenseIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2"/><path d="M15 10h4M15 14h4"/></svg>;
+const MapIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M9 20l-6-2V4l6 2 6-2 6 2v14l-6-2-6 2z"/><path d="M9 6v14M15 4v14"/></svg>;
+const AircraftIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M2 16l20-6-3 8-4-2-3 4-2-6-8 2z"/></svg>;
+const AirportIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M6 21V8l6-5 6 5v13"/><path d="M10 21v-6h4v6"/></svg>;
+const PersonIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>;
+const AttachmentIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11l-8.5 8.5a4 4 0 0 1-5.7-5.7L15 5.5a2.5 2.5 0 0 1 3.5 3.5L10 17.5"/></svg>;
+const StatsIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>;
+const CurrencyIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>;
+const ExportIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>;
+const ImportIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>;
+const SettingsIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.4 1z"/></svg>;
+const Caret = () => <svg className="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:13,height:13}}><path d="M9 18l6-6-6-6"/></svg>;
+
+const items = [
+  ['logbook','Logbook',BookIcon], ['licensing','Licensing',LicenseIcon], ['map','Map',MapIcon], ['aircrafts','Aircrafts',AircraftIcon],
+  ['airports','Airports',AirportIcon], ['persons','Persons',PersonIcon], ['attachments','Attachments',AttachmentIcon],
+  ['sep'], ['stats','Stats',StatsIcon,true], ['currency','Currency',CurrencyIcon], ['sep'], ['export','Export',ExportIcon,true], ['import','Import',ImportIcon], ['sep'], ['settings','Settings',SettingsIcon]
 ];
 
-const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'expanded' })(({ theme, expanded }) => ({
-  width: expanded ? DRAWER_WIDTH : MINI_DRAWER_WIDTH,
-  flexShrink: 0,
-  whiteSpace: 'nowrap',
-  boxSizing: 'border-box',
-  '& .MuiDrawer-paper': {
-    width: expanded ? DRAWER_WIDTH : MINI_DRAWER_WIDTH,
-    overflowX: 'hidden',
-    boxShadow: 'inset -1px 0 rgba(255,255,255,.22)',
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: expanded
-        ? theme.transitions.duration.enteringScreen
-        : theme.transitions.duration.leavingScreen,
-    }),
-    boxSizing: 'border-box',
-  },
-}));
-
-// A flat list of children rendered inside a popover (always "expanded" visually)
-const PopoverNavItems = ({ items, onClose, basePath = '' }) => {
-  const location = useLocation();
-  const theme = useTheme();
-
-  return (
-    <Paper elevation={3}>
-      <List sx={{ minWidth: 160, py: 0.5 }}>
-        {items.map((child) => {
-          const fullPath = `${basePath}/${child.segment}`;
-          const isSelected = child.segment && location.pathname.startsWith(fullPath);
-          return (
-            <ListItem key={child.segment} disablePadding>
-              <ListItemButton
-                component={Link}
-                to={fullPath}
-                onClick={onClose}
-                sx={{ px: 2, backgroundColor: isSelected ? theme.palette.action.selected : 'transparent' }}
-              >
-                <ListItemIcon sx={{ minWidth: 32, '& .MuiSvgIcon-root': { color: isSelected ? 'primary.main' : 'inherit' } }}>
-                  {child.icon}
-                </ListItemIcon>
-                <ListItemText>
-                  {child.title}
-                </ListItemText>
-              </ListItemButton>
-            </ListItem>
-          );
-        })}
-      </List>
-    </Paper>
-  );
-};
-
-const NavItem = ({ item, depth = 0, expanded, onClose, basePath = '' }) => {
-  const [collapseOpen, setCollapseOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const location = useLocation();
-  const theme = useTheme();
-
-  if (item.kind === 'divider') {
-    return <Divider sx={{ my: 0.5 }} />;
-  }
-
-  const fullPath = item.segment ? `${basePath}/${item.segment}` : basePath;
-  const hasChildren = item.children?.length > 0;
-  const isSelected = item.segment && location.pathname.startsWith(fullPath);
-
-  const handleClick = (e) => {
-    if (hasChildren) {
-      if (expanded) {
-        setCollapseOpen(o => !o);
-      } else {
-        // Mini mode: open popover to the right
-        setAnchorEl(e.currentTarget);
-      }
-    } else if (onClose) {
-      onClose();
-    }
-  };
-
-  const handlePopoverClose = () => setAnchorEl(null);
-  const popoverOpen = Boolean(anchorEl);
-
-  return (
-    <>
-      <ListItem disablePadding sx={{ display: 'block', mt: 0 }}>
-        <ListItemButton
-          component={hasChildren ? 'div' : Link}
-          to={hasChildren ? undefined : fullPath}
-          onClick={handleClick}
-          sx={{
-            minHeight: expanded ? 38 : 54,
-            flexDirection: expanded ? 'row' : 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            px: expanded ? 1.375 : 0.5,
-            pl: expanded ? 1.375 + depth * 2 : 0.5,
-            py: expanded ? 0.75 : 0.5,
-            backgroundColor: isSelected ? theme.palette.action.selected : 'transparent',
-            boxShadow: isSelected ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
-            mx: expanded ? 1 : 0.5,
-            my: 0.125,
-            borderRadius: 1.125,
-          }}
-        >
-          {/* Icon — with tooltip only when expanded (label is visible when collapsed) */}
-          <ListItemIcon
-            sx={{
-              minWidth: 0,
-              mr: expanded ? 1 : 0,
-              justifyContent: 'center',
-              color: isSelected ? 'primary.main' : 'inherit',
-              '& .MuiSvgIcon-root': { color: isSelected ? 'primary.main' : 'inherit', fontSize: expanded ? 18 : 19 },
-            }}
-          >
-            {item.icon}
-          </ListItemIcon>
-
-          {/* Label text */}
-          {expanded ? (
-            <>
-              <ListItemText
-                sx={{ color: isSelected ? 'primary.main' : 'inherit', m: 0 }}
-                slotProps={{
-                  primary: {
-                    sx: {
-                      fontSize: '0.84375rem',
-                      fontWeight: isSelected ? 600 : 500,
-                      letterSpacing: '-0.006em',
-                    },
-                  },
-                }}
-              >
-                {item.title}
-              </ListItemText>
-              {hasChildren && (collapseOpen ? <ExpandLess /> : <ExpandMore />)}
-            </>
-          ) : (
-            <Typography
-              component="span"
-              sx={{
-                fontSize: '0.7rem',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                lineHeight: 1.2,
-                textAlign: 'center',
-                fontWeight: isSelected ? 600 : 400,
-                color: isSelected ? 'primary.main' : 'text.secondary',
-                wordBreak: 'break-word',
-                maxWidth: '100%',
-              }}
-            >
-              {/* Simplified title for mini mode if it's a JSX element */}
-              {typeof item.title === 'string' ? item.title : item.miniTitle || ''}
-            </Typography>
-          )}
-        </ListItemButton>
-      </ListItem>
-
-      {/* Expanded inline submenu */}
-      {hasChildren && expanded && (
-        <Collapse in={collapseOpen} timeout="auto" unmountOnExit>
-          <List disablePadding>
-            {item.children.map((child) => (
-              <NavItem key={child.segment} item={child} depth={depth + 1} expanded={expanded} onClose={onClose} basePath={fullPath} />
-            ))}
-          </List>
-        </Collapse>
-      )}
-
-      {/* Mini mode: popover submenu anchored to the icon */}
-      {hasChildren && !expanded && (
-        <Popover
-          open={popoverOpen}
-          anchorEl={anchorEl}
-          onClose={handlePopoverClose}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-          slotProps={{ paper: { sx: { ml: 0.5 } } }}
-        >
-          <PopoverNavItems items={item.children} onClose={handlePopoverClose} basePath={fullPath} />
-        </Popover>
-      )}
-    </>
-  );
-};
-
-const DrawerContent = ({ expanded, onClose }) => (
-  <Box sx={{ overflowX: 'hidden', overflowY: 'auto', flexGrow: 1, px: 0, pb: 1.5 }}>
-    <List dense disablePadding>
-      {NAV_ITEMS.map((item, index) => (
-        <NavItem
-          key={item.segment || `divider-${index}`}
-          item={item}
-          expanded={expanded}
-          onClose={onClose}
-        />
-      ))}
-    </List>
-  </Box>
-);
-
-export const DashboardNavbar = ({ expanded, mobileOpen, handleMobileClose, isMobile }) => {
-  return (
-    <>
-      {/* Mobile: temporary drawer (hides completely) */}
-      {isMobile && (
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleMobileClose}
-          ModalProps={{ keepMounted: true }}
-          sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' } }}
-        >
-          <Toolbar sx={{ minHeight: '58px !important' }} />
-          <DrawerContent expanded={true} onClose={handleMobileClose} />
-        </Drawer>
-      )}
-
-      {/* Desktop: mini permanent drawer */}
-      {!isMobile && (
-        <StyledDrawer variant="permanent" expanded={expanded}>
-          <Toolbar sx={{ minHeight: '58px !important' }} />
-          <DrawerContent expanded={expanded} onClose={null} />
-        </StyledDrawer>
-      )}
-    </>
-  );
+function LicensingCount() {
+  const { settings } = useSettings();
+  const { data: licenses = [] } = useQuery({ queryKey:['licensing'], queryFn:({signal})=>fetchLicenses({signal}), staleTime:3600000, gcTime:3600000 });
+  const count = useMemo(() => {
+    const cfg = settings?.licenses_expiration;
+    if (!cfg) return 0;
+    const warningPeriod = cfg.warning_period || 90;
+    return licenses.reduce((n, license) => {
+      const exp = calculateExpiry(license.valid_until || '');
+      return n + (exp && exp.diffDays < warningPeriod ? 1 : 0);
+    }, 0);
+  }, [licenses, settings]);
+  return count > 0 ? <span className="chip warn licensing-count">{count}</span> : null;
 }
 
-export default DashboardNavbar;
+export default function DashboardNavbar({ open, onNavigate }) {
+  const location = useLocation();
+  return (
+    <aside className={`sidebar${open ? ' open' : ''}`}>
+      {items.map((item, i) => {
+        if (item[0] === 'sep') return <div className="nav-sep" key={`s${i}`} />;
+        const [segment,label,Icon,caret] = item;
+        const selected = location.pathname === '/' ? segment === 'logbook' : location.pathname.startsWith(`/${segment}`);
+        return (
+          <Link key={segment} to={`/${segment}`} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}>
+            <Icon />
+            {label}
+            {segment === 'licensing' && <LicensingCount />}
+            {caret && <Caret />}
+          </Link>
+        );
+      })}
+    </aside>
+  );
+}

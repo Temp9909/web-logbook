@@ -26,14 +26,9 @@ const ToolbarTitle = ({ icon, title, hideTitle }) => (
     {icon && <Icon color="action" sx={{ mr: 1, visibility: 'visible' }}>{icon}</Icon>}
     {title && (
       <Typography
-        component="span"
+        variant="overline"
         sx={{
           mr: 1,
-          fontSize: '0.72rem',
-          fontWeight: 600,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          color: 'text.secondary',
           opacity: hideTitle ? 0 : 1,
           width: hideTitle ? 0 : 'auto',
           overflow: 'hidden',

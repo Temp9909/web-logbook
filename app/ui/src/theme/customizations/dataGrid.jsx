@@ -1,6 +1,11 @@
 import { alpha } from '@mui/material/styles';
 import { apple } from '../themePrimitives';
 
+/**
+ * MUI X DataGrid restyled as a macOS/Numbers-like table:
+ * no outer border, no vertical rules, hairline row separators,
+ * tinted selection and a quiet header.
+ */
 export const dataGridCustomizations = {
   MuiDataGrid: {
     styleOverrides: {
@@ -9,25 +14,17 @@ export const dataGridCustomizations = {
         return {
           border: 0,
           borderRadius: 14,
-          backgroundColor: 'transparent',
-          color: theme.palette.text.primary,
-          fontSize: '0.8125rem',
-          letterSpacing: '-0.005em',
+          backgroundColor: theme.palette.background.paper,
           '--DataGrid-rowBorderColor': c.separator,
-          '& .MuiDataGrid-main': { borderRadius: 14 },
-          '& .MuiDataGrid-columnHeaders': {
-            borderBottom: `1px solid ${c.separator}`,
-            backgroundColor: 'transparent',
-          },
+          '& .MuiDataGrid-columnHeaders': { borderBottom: `1px solid ${c.separator}` },
           '& .MuiDataGrid-columnHeader': {
             backgroundColor: 'transparent',
             borderRight: 0,
-            paddingInline: 8,
           },
           '& .MuiDataGrid-columnHeaderTitle': {
-            fontSize: '0.6875rem',
+            fontSize: '0.75rem',
             fontWeight: 600,
-            letterSpacing: '0.045em',
+            letterSpacing: '0.03em',
             textTransform: 'uppercase',
             color: theme.palette.text.secondary,
           },
@@ -35,30 +32,18 @@ export const dataGridCustomizations = {
           '& .MuiDataGrid-cell': {
             borderRight: 0,
             borderBottom: `1px solid ${c.separator}`,
-            paddingInline: 8,
           },
           '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within': {
             outline: 'none',
           },
-          '& .MuiDataGrid-row:hover, & .MuiDataGrid-row:hover .MuiDataGrid-cell': {
-            backgroundColor: `${c.fill} !important`,
+          '& .MuiDataGrid-row:hover': { backgroundColor: c.fill },
+          '& .MuiDataGrid-row.Mui-selected': {
+            backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.24 : 0.1),
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.3 : 0.14),
+            },
           },
-          '& .MuiDataGrid-row.Mui-selected, & .MuiDataGrid-row.Mui-selected .MuiDataGrid-cell': {
-            backgroundColor: `${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.24 : 0.10)} !important`,
-          },
-          '& .MuiDataGrid-row.Mui-selected:hover, & .MuiDataGrid-row.Mui-selected:hover .MuiDataGrid-cell': {
-            backgroundColor: `${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.30 : 0.14)} !important`,
-          },
-          '& .MuiDataGrid-footerContainer': {
-            borderTop: `1px solid ${c.separator}`,
-            minHeight: 46,
-          },
-          '& .MuiDataGrid-toolbarContainer': {
-            minHeight: 52,
-            padding: '8px 10px',
-            gap: 4,
-            borderBottom: `1px solid ${c.separator}`,
-          },
+          '& .MuiDataGrid-footerContainer': { borderTop: `1px solid ${c.separator}` },
           '& .MuiDataGrid-overlay': { backgroundColor: 'transparent' },
         };
       },

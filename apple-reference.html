@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Web Logbook — Apple design</title>
+<style>
+  :root {
+    --blue: #007AFF;
+    --green: #34C759;
+    --orange: #FF9500;
+    --red: #FF3B30;
+    --label: #1D1D1F;
+    --secondary: rgba(60,60,67,0.60);
+    --separator: rgba(60,60,67,0.18);
+    --fill: rgba(116,116,128,0.08);
+    --bg: #F2F2F7;
+    --paper: #FFFFFF;
+    --sidebar: rgba(246,246,248,0.78);
+    --bar: rgba(255,255,255,0.72);
+    --tint: rgba(0,122,255,0.12);
+    --tint-soft: rgba(0,122,255,0.10);
+  }
+  [data-theme="dark"] {
+    --blue: #0A84FF;
+    --green: #30D158;
+    --orange: #FF9F0A;
+    --red: #FF453A;
+    --label: #F5F5F7;
+    --secondary: rgba(235,235,245,0.60);
+    --separator: rgba(84,84,88,0.60);
+    --fill: rgba(120,120,128,0.20);
+    --bg: #161618;
+    --paper: #1F1F22;
+    --sidebar: rgba(28,28,31,0.86);
+    --bar: rgba(31,31,34,0.80);
+    --tint: rgba(10,132,255,0.26);
+    --tint-soft: rgba(10,132,255,0.22);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--label);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.005em;
+    font-size: 15px;
+  }
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    width: 232px; flex-shrink: 0;
+    background: var(--sidebar);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-right: 1px solid var(--separator);
+    padding: 60px 8px 12px;
+    overflow-y: auto;
+  }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 8px; margin: 1px 0;
+    font-size: 13.5px; font-weight: 500;
+    color: var(--label); cursor: pointer;
+    transition: background-color .14s ease, color .14s ease;
+    user-select: none;
+  }
+  .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; opacity: .85; }
+  .nav-item:hover { background: var(--fill); }
+  .nav-item.selected { background: var(--tint); color: var(--blue); font-weight: 600; }
+  .nav-item.selected svg { opacity: 1; }
+  .nav-sep { height: 1px; background: var(--separator); margin: 7px 10px; }
+  .nav-caret { margin-left: auto; opacity: .45; }
+
+  /* ---------- Main ---------- */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 52px; flex-shrink: 0;
+    background: var(--bar);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--separator);
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 18px;
+  }
+  .topbar .title { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+  .spacer { flex: 1; }
+  .icon-btn {
+    width: 32px; height: 32px; border: 0; border-radius: 8px; cursor: pointer;
+    background: transparent; color: var(--secondary);
+    display: grid; place-items: center;
+  }
+  .icon-btn:hover { background: var(--fill); color: var(--label); }
+  .icon-btn svg { width: 17px; height: 17px; }
+
+  .content { padding: 22px 24px 40px; overflow-y: auto; flex: 1; }
+  .page-title { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 2px; }
+  .page-sub { color: var(--secondary); font-size: 13.5px; margin: 0 0 20px; }
+
+  /* ---------- Cards ---------- */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--separator);
+    border-radius: 14px;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .tile { padding: 14px 16px; }
+  .tile .cap { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--secondary); }
+  .tile .val { font-size: 28px; font-weight: 700; letter-spacing: -0.022em; margin-top: 2px; }
+  .tile .delta { font-size: 12px; color: var(--green); font-weight: 500; margin-top: 2px; }
+
+  /* ---------- Toolbar row ---------- */
+  .row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .search {
+    flex: 1; min-width: 180px; max-width: 300px;
+    display: flex; align-items: center; gap: 7px;
+    background: var(--paper); border: 1px solid var(--separator);
+    border-radius: 9px; padding: 7px 11px;
+  }
+  .search svg { width: 15px; height: 15px; color: var(--secondary); }
+  .search input {
+    border: 0; outline: 0; background: transparent; font: inherit; font-size: 13.5px;
+    color: var(--label); width: 100%;
+  }
+  .search:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3.5px rgba(0,122,255,.25); }
+  .btn {
+    border: 0; border-radius: 980px; padding: 7px 16px; cursor: pointer;
+    font: inherit; font-size: 13.5px; font-weight: 600;
+    transition: transform .12s ease, background-color .15s ease;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn.primary { background: var(--blue); color: #fff; }
+  .btn.ghost { background: transparent; color: var(--blue); border: 1px solid rgba(0,122,255,.38); }
+  .segmented {
+    display: inline-flex; background: var(--fill); border-radius: 9px; padding: 2px; gap: 2px;
+  }
+  .segmented button {
+    border: 0; background: transparent; font: inherit; font-size: 13px; font-weight: 500;
+    color: var(--label); padding: 4px 12px; border-radius: 7px; cursor: pointer;
+  }
+  .segmented button.on { background: var(--paper); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  /* ---------- Table ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left; padding: 9px 14px; font-size: 11px; font-weight: 600;
+    letter-spacing: .05em; text-transform: uppercase; color: var(--secondary);
+    border-bottom: 1px solid var(--separator); white-space: nowrap;
+  }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--separator); white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: var(--fill); }
+  tbody tr.sel td { background: var(--tint-soft); }
+  .mono { font-variant-numeric: tabular-nums; }
+  .muted { color: var(--secondary); }
+  .table-wrap { overflow-x: auto; border-radius: 14px; }
+
+  .chip {
+    display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 980px;
+    font-size: 11.5px; font-weight: 600;
+  }
+  .chip.ok { background: rgba(52,199,89,.16); color: #248A3D; }
+  .chip.warn { background: rgba(255,149,0,.18); color: #A35B00; }
+  .chip.bad { background: rgba(255,59,48,.16); color: #C7000B; }
+  [data-theme="dark"] .chip.ok { color: #30D158; }
+  [data-theme="dark"] .chip.warn { color: #FF9F0A; }
+  [data-theme="dark"] .chip.bad { color: #FF453A; }
+
+  /* ---------- Grouped list (settings / licensing) ---------- */
+  .group { margin-bottom: 18px; }
+  .group-title {
+    font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--secondary); padding: 0 4px 7px;
+  }
+  .rows { overflow: hidden; }
+  .grow { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-bottom: 1px solid var(--separator); }
+  .grow:last-child { border-bottom: 0; }
+  .grow .lbl { flex: 1; font-size: 14px; }
+  .grow .sub { font-size: 12.5px; color: var(--secondary); margin-top: 1px; }
+  .switch { width: 51px; height: 31px; border-radius: 999px; background: #E9E9EA; position: relative; cursor: pointer; flex-shrink: 0; transition: background .25s ease; }
+  [data-theme="dark"] .switch { background: #39393D; }
+  .switch::after { content:""; position:absolute; width:27px; height:27px; border-radius:50%; background:#fff; top:2px; left:2px; box-shadow:0 3px 8px rgba(0,0,0,.15); transition: transform .25s ease; }
+  .switch.on { background: var(--green); }
+  .switch.on::after { transform: translateX(20px); }
+  .chev { color: var(--secondary); opacity:.6; }
+  .chev svg { width: 15px; height: 15px; }
+
+  /* ---------- Bars (stats) ---------- */
+  .bars { display: flex; align-items: flex-end; gap: 10px; height: 170px; padding: 18px 16px 0; }
+  .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+  .bar .fill { width: 100%; background: var(--blue); border-radius: 6px 6px 3px 3px; }
+  .bar .cap { font-size: 11px; color: var(--secondary); }
+
+  .pages > section { display: none; }
+  .pages > section.active { display: block; }
+  .legend { font-size: 12.5px; color: var(--secondary); margin-top: 12px; padding: 0 16px 14px; }
+
+  /* ---------- EASA logbook grid ---------- */
+  table.easa { font-size: 11.5px; }
+  table.easa th, table.easa td { padding: 6px 8px; text-align: center; }
+  table.easa td:nth-child(2), table.easa td:nth-child(4) { text-align: left; }
+  table.easa .muted { text-align: left; }
+  table.easa thead tr.grp th {
+    font-size: 9.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--secondary); line-height: 1.25; vertical-align: bottom;
+    border-bottom: 1px solid var(--separator);
+    border-left: 1px solid var(--separator);
+  }
+  table.easa thead tr.grp th:first-child { border-left: 0; }
+  table.easa thead tr.sub th {
+    font-size: 9.5px; font-weight: 600; color: var(--secondary);
+    border-left: 1px solid var(--separator);
+    padding-top: 4px;
+  }
+  table.easa thead tr.sub th:first-child { border-left: 0; }
+  table.easa td { border-left: 1px solid var(--separator); white-space: nowrap; }
+  table.easa td:first-child { border-left: 0; }
+  table.easa td.muted[colspan] { text-align: left; }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="nav-item selected" data-page="logbook">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Logbook
+    </div>
+    <div class="nav-item" data-page="licensing">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2"/><path d="M15 10h4M15 14h4"/></svg>
+      Licensing
+      <span class="chip warn" style="margin-left:auto">2</span>
+    </div>
+    <div class="nav-item" data-page="map">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-2V4l6 2 6-2 6 2v14l-6-2-6 2z"/><path d="M9 6v14M15 4v14"/></svg>
+      Map
+    </div>
+    <div class="nav-item" data-page="aircrafts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16l20-6-3 8-4-2-3 4-2-6-8 2z"/></svg>
+      Aircrafts
+    </div>
+    <div class="nav-item" data-page="airports">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l6-5 6 5v13"/><path d="M10 21v-6h4v6"/></svg>
+      Airports
+    </div>
+    <div class="nav-item" data-page="persons">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+      Persons
+    </div>
+    <div class="nav-item" data-page="attachments">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11l-8.5 8.5a4 4 0 0 1-5.7-5.7L15 5.5a2.5 2.5 0 0 1 3.5 3.5L10 17.5"/></svg>
+      Attachments
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <div class="nav-item" data-page="stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
+      Stats
+      <svg class="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+    <div class="nav-item" data-page="currency">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+      Currency
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <div class="nav-item" data-page="export">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+      Export
+      <svg class="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+    <div class="nav-item" data-page="import">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+      Import
+    </div>
+
+    <div class="nav-sep"></div>
+
+    <div class="nav-item" data-page="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.4 1z"/></svg>
+      Settings
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn" title="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <span class="title">Logbook</span>
+      <span class="spacer"></span>
+      <button class="icon-btn" id="themeBtn" title="Light / dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+      <button class="icon-btn" title="Account">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+      </button>
+    </header>
+
+    <div class="content pages">
+      <!-- ===== LOGBOOK ===== -->
+      <section class="active" id="p-logbook">
+        <h1 class="page-title">Flight records</h1>
+        <p class="page-sub">1,248 hours flown · 642 landings · last entry on 12 Sep 2026</p>
+
+        <div class="tiles">
+          <div class="card tile"><div class="cap">Total time</div><div class="val mono">1,248:35</div><div class="delta">+86:12 this year</div></div>
+          <div class="card tile"><div class="cap">PIC</div><div class="val mono">942:10</div><div class="delta">+61:40</div></div>
+          <div class="card tile"><div class="cap">Multi-engine</div><div class="val mono">218:05</div><div class="delta">+12:30</div></div>
+          <div class="card tile"><div class="cap">IFR</div><div class="val mono">176:20</div><div class="delta">+9:05</div></div>
+        </div>
+
+        <div class="row">
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input placeholder="Search a flight, aircraft, airport…" />
+          </div>
+          <div class="segmented">
+            <button class="on">All</button><button>PIC</button><button>IFR</button><button>Night</button>
+          </div>
+          <span class="spacer"></span>
+          <button class="btn ghost">Export</button>
+          <button class="btn primary">＋ New flight</button>
+        </div>
+
+        <div class="card table-wrap">
+          <table class="easa">
+            <thead>
+              <tr class="grp">
+                <th rowspan="2">Date</th>
+                <th colspan="2">Departure</th>
+                <th colspan="2">Arrival</th>
+                <th colspan="2">Aircraft</th>
+                <th colspan="2">Single Pilot Time</th>
+                <th rowspan="2">Multi<br>Pilot<br>Time</th>
+                <th rowspan="2">Total<br>Time of<br>Flight</th>
+                <th rowspan="2">PIC Name</th>
+                <th colspan="2">Landings</th>
+                <th colspan="2">Operational<br>Condition Time</th>
+                <th colspan="4">Pilot Function Time</th>
+                <th colspan="2">FSTD Session</th>
+                <th rowspan="2">Remarks and Endorsements</th>
+              </tr>
+              <tr class="sub">
+                <th>Place</th><th>Time</th>
+                <th>Place</th><th>Time</th>
+                <th>Type</th><th>Reg</th>
+                <th>SE</th><th>ME</th>
+                <th>Day</th><th>Night</th>
+                <th>Night</th><th>IFR</th>
+                <th>PIC</th><th>COP</th><th>Dual</th><th>Instr</th>
+                <th>Type</th><th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="sel">
+                <td class="mono">12/09</td><td>LFPG</td><td class="mono">08:15</td><td>EGLL</td><td class="mono">09:35</td>
+                <td>DA42</td><td>F-GABC</td>
+                <td class="mono muted">—</td><td class="mono">1:20</td>
+                <td class="mono muted">—</td><td class="mono">1:20</td><td>J. Smith</td>
+                <td class="mono">1</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono">0:25</td>
+                <td class="mono">1:20</td><td class="mono muted">—</td><td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="muted">IFR nav</td>
+              </tr>
+              <tr>
+                <td class="mono">10/09</td><td>EGLL</td><td class="mono">14:05</td><td>LFPG</td><td class="mono">15:20</td>
+                <td>DA42</td><td>F-GABC</td>
+                <td class="mono muted">—</td><td class="mono">1:15</td>
+                <td class="mono muted">—</td><td class="mono">1:15</td><td>J. Smith</td>
+                <td class="mono">1</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono">0:10</td>
+                <td class="mono">1:15</td><td class="mono muted">—</td><td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="muted">Return leg</td>
+              </tr>
+              <tr>
+                <td class="mono">08/09</td><td>LFPG</td><td class="mono">10:00</td><td>LFBO</td><td class="mono">11:05</td>
+                <td>DA40</td><td>F-HXYZ</td>
+                <td class="mono">1:05</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono">1:05</td><td>Self</td>
+                <td class="mono">2</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono muted">—</td><td class="mono">1:05</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="muted">Instruction given</td>
+              </tr>
+              <tr>
+                <td class="mono">05/09</td><td>LFBO</td><td class="mono">16:40</td><td>LFPG</td><td class="mono">17:50</td>
+                <td>DA40</td><td>F-HXYZ</td>
+                <td class="mono">1:10</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono">1:10</td><td>Self</td>
+                <td class="mono">1</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="mono">1:10</td><td class="mono muted">—</td><td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="muted">—</td>
+              </tr>
+              <tr>
+                <td class="mono">01/09</td><td>LFPN</td><td class="mono">19:30</td><td>LFPN</td><td class="mono">21:00</td>
+                <td>C172</td><td>F-BQRS</td>
+                <td class="mono">1:30</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono">1:30</td><td>Self</td>
+                <td class="mono muted">—</td><td class="mono">3</td>
+                <td class="mono">1:30</td><td class="mono muted">—</td>
+                <td class="mono">1:30</td><td class="mono muted">—</td><td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="mono muted">—</td><td class="mono muted">—</td>
+                <td class="muted">Night flight</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== LICENSING ===== -->
+      <section id="p-licensing">
+        <h1 class="page-title">Licensing</h1>
+        <p class="page-sub">Licences, ratings and certificates — 2 items expiring within 90 days</p>
+
+        <div class="group">
+          <div class="group-title">Licences</div>
+          <div class="card rows">
+            <div class="grow"><div><div class="lbl">EASA PPL(A)</div><div class="sub">FR.FCL.PPL-2019-004417 · no expiry</div></div><span class="spacer"></span><span class="chip ok">Valid</span></div>
+            <div class="grow"><div><div class="lbl">Class 2 medical certificate</div><div class="sub">Expires 14/11/2026 · in 59 days</div></div><span class="spacer"></span><span class="chip warn">Expiring</span></div>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Ratings</div>
+          <div class="card rows">
+            <div class="grow"><div><div class="lbl">SEP (Land)</div><div class="sub">Expire le 31/05/2027</div></div><span class="spacer"></span><span class="chip ok">Valid</span></div>
+            <div class="grow"><div><div class="lbl">MEP (Land)</div><div class="sub">Expires 30/10/2026 · in 44 days</div></div><span class="spacer"></span><span class="chip warn">Expiring</span></div>
+            <div class="grow"><div><div class="lbl">IR(A)</div><div class="sub">Expired 31/07/2026</div></div><span class="spacer"></span><span class="chip bad">Expired</span></div>
+            <div class="grow"><div><div class="lbl">English R/T — level 5</div><div class="sub">Expires 12/03/2028</div></div><span class="spacer"></span><span class="chip ok">Valid</span></div>
+          </div>
+        </div>
+
+        <button class="btn primary">＋ Add a rating</button>
+      </section>
+
+      <!-- ===== STATS ===== -->
+      <section id="p-stats">
+        <h1 class="page-title">Stats</h1>
+        <p class="page-sub">Flight hours by month — last 12 months</p>
+
+        <div class="tiles">
+          <div class="card tile"><div class="cap">This year</div><div class="val mono">86:12</div></div>
+          <div class="card tile"><div class="cap">Average / month</div><div class="val mono">7:11</div></div>
+          <div class="card tile"><div class="cap">Best month</div><div class="val mono">14:20</div><div class="delta">July</div></div>
+          <div class="card tile"><div class="cap">Aircraft types</div><div class="val mono">7</div></div>
+        </div>
+
+        <div class="card">
+          <div class="bars">
+            <div class="bar"><div class="fill" style="height:38%"></div><div class="cap">O</div></div>
+            <div class="bar"><div class="fill" style="height:52%"></div><div class="cap">N</div></div>
+            <div class="bar"><div class="fill" style="height:30%"></div><div class="cap">D</div></div>
+            <div class="bar"><div class="fill" style="height:44%"></div><div class="cap">J</div></div>
+            <div class="bar"><div class="fill" style="height:35%"></div><div class="cap">F</div></div>
+            <div class="bar"><div class="fill" style="height:58%"></div><div class="cap">M</div></div>
+            <div class="bar"><div class="fill" style="height:66%"></div><div class="cap">A</div></div>
+            <div class="bar"><div class="fill" style="height:72%"></div><div class="cap">M</div></div>
+            <div class="bar"><div class="fill" style="height:84%"></div><div class="cap">J</div></div>
+            <div class="bar"><div class="fill" style="height:100%"></div><div class="cap">J</div></div>
+            <div class="bar"><div class="fill" style="height:62%"></div><div class="cap">A</div></div>
+            <div class="bar"><div class="fill" style="height:48%"></div><div class="cap">S</div></div>
+          </div>
+          <div class="legend">Total for the period: 86:12 — peak in July with 14:20 flown.</div>
+        </div>
+      </section>
+
+      <!-- ===== SETTINGS ===== -->
+      <section id="p-settings">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-sub">App preferences</p>
+
+        <div class="group">
+          <div class="group-title">Appearance</div>
+          <div class="card rows">
+            <div class="grow"><div class="lbl">Dark mode</div><div class="switch" data-toggle="theme"></div></div>
+            <div class="grow"><div class="lbl">Collapsed sidebar</div><div class="switch"></div></div>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Logbook</div>
+          <div class="card rows">
+            <div class="grow"><div><div class="lbl">Time format</div><div class="sub">Decimal or hours:minutes</div></div><span class="spacer"></span><span class="muted" style="font-size:13.5px">hh:mm</span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span></div>
+            <div class="grow"><div><div class="lbl">Digital signature</div><div class="sub">Sign PDF exports</div></div><span class="spacer"></span><div class="switch on"></div></div>
+            <div class="grow"><div><div class="lbl">Expiry alerts</div><div class="sub">90 days before expiry</div></div><span class="spacer"></span><div class="switch on"></div></div>
+          </div>
+        </div>
+
+        <div class="group">
+          <div class="group-title">Data</div>
+          <div class="card rows">
+            <div class="grow"><div class="lbl">Export database</div><span class="spacer"></span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span></div>
+            <div class="grow"><div class="lbl" style="color:var(--red)">Reset logbook</div><span class="spacer"></span><span class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></span></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  const titles = {
+    logbook: 'Logbook', licensing: 'Licensing', map: 'Map', aircrafts: 'Aircrafts',
+    airports: 'Airports', persons: 'Persons', attachments: 'Attachments',
+    stats: 'Stats', currency: 'Currency', export: 'Export', import: 'Import', settings: 'Settings'
+  };
+  const pages = ['logbook','licensing','stats','settings'];
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const page = item.dataset.page;
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('selected'));
+      item.classList.add('selected');
+      document.querySelector('.topbar .title').textContent = titles[page] || page;
+      const target = pages.includes(page) ? page : 'logbook';
+      document.querySelectorAll('.pages > section').forEach(s => s.classList.remove('active'));
+      document.getElementById('p-' + target).classList.add('active');
+      document.querySelector('.content').scrollTop = 0;
+    });
+  });
+
+  function setTheme(dark) {
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const sw = document.querySelector('[data-toggle="theme"]');
+    if (sw) sw.classList.toggle('on', dark);
+  }
+  let dark = false;
+  document.getElementById('themeBtn').addEventListener('click', () => { dark = !dark; setTheme(dark); });
+  document.querySelectorAll('.switch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      if (sw.dataset.toggle === 'theme') { dark = !dark; setTheme(dark); }
+      else sw.classList.toggle('on');
+    });
+  });
+  document.querySelectorAll('.segmented').forEach(seg => {
+    seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      seg.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+    }));
+  });
+  setTheme(false);
+</script>
+</body>
+</html>
