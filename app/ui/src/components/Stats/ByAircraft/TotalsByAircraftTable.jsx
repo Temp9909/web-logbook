@@ -1,56 +1,29 @@
-import { useMemo } from 'react';
-import { useGridApiRef } from '@mui/x-data-grid';
-// MUI UI elements
-import LinearProgress from '@mui/material/LinearProgress';
-// MUI icons
-import FlightOutlinedIcon from '@mui/icons-material/FlightOutlined';
-import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
-// Custom
-import CSVExportButton from '../../UIElements/CSVExportButton';
 import useSettings from '../../../hooks/useSettings';
-import XDataGrid from '../../UIElements/XDataGrid/XDataGrid';
-import { createStatsColumns } from '../helpers';
+import { Loading, PageHead } from '../../AppleExact/Primitives';
+import StatsBookTable from '../StatsBookTable';
 
-export const TotalsByAircraftTable = ({ data, isLoading, type, customFields = [] }) => {
-  const apiRef = useGridApiRef();
+export const TotalsByAircraftTable = ({ data = [], isLoading, type, customFields = [] }) => {
   const { fieldName } = useSettings();
+  const isType = type === 'type';
+  const title = isType ? 'Stats by type' : 'Stats by category';
+  const subtitle = isType
+    ? 'Flight-time totals grouped by aircraft type in the Apple logbook format.'
+    : 'Flight-time totals grouped by aircraft category in the Apple logbook format.';
 
-  const columns = useMemo(() => {
-    return [
-      {
-        field: "model",
-        headerName: type === "type" ? "Type" : "Category",
-        headerAlign: 'center',
-        align: 'center',
-        width: 100,
-      },
-      ...createStatsColumns({ fieldName, customFields })
-    ]
-  }, [type, fieldName, customFields]);
-
-  const customActions = useMemo(() => (<CSVExportButton apiRef={apiRef} type="totals-by-aircraft" />), [apiRef]);
-
-  if (isLoading) return <LinearProgress />;
-
-  return (
-    <XDataGrid sx={{ '& .dg-zero': { color: 'text.disabled' } }}
-      apiRef={apiRef}
-      tableId={`totals-${type}`}
-      title={`Stats by ${type}`}
-      icon={type === "type" ? <FlightOutlinedIcon /> : <CategoryOutlinedIcon />}
-      rows={data}
-      columns={columns}
-      getRowId={(row) => `${row.model}`}
-      isLoading={isLoading}
-      showAggregationFooter={type === "type"}
-      footerFieldIdTotalLabel="model"
-      disableColumnMenu
-      disableColumnSorting
-      showPagination={false}
-      showPageTotal={false}
-      customActions={customActions}
+  return <section className="exact-react-page exact-stats-page">
+    <PageHead title={title} subtitle={subtitle} />
+    <Loading show={isLoading} />
+    <StatsBookTable
+      rows={Array.isArray(data) ? data : []}
+      groupLabel={isType ? 'Type' : 'Category'}
+      groupValue={(row) => row?.model || ''}
+      customFields={customFields}
+      fieldName={fieldName}
+      exportFilename={`stats-by-${isType ? 'type' : 'category'}.csv`}
+      showTotals={isType}
+      loading={isLoading}
     />
-  );
-}
+  </section>;
+};
 
 export default TotalsByAircraftTable;

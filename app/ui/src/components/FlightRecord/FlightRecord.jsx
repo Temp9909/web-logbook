@@ -3,16 +3,31 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { FLIGHT_INITIAL_STATE } from '../../constants/constants';
 import { createFlightRecord, deleteFlightRecord, fetchFlightData, updateFlightRecord } from '../../util/http/logbook';
+import { fetchAircraftModels, fetchAircrafts } from '../../util/http/aircraft';
+import { fetchPersons } from '../../util/http/person';
 import { queryClient } from '../../util/http/http';
 import useCustomFields from '../../hooks/useCustomFields';
 import FlightMap from '../FlightMap/FlightMap';
-import { Card, Field, Loading, PageHead, SelectField, TextArea, fromInputDate, setNested, toInputDate } from '../AppleExact/Primitives';
+import { Card, Field, Loading, PageHead, SelectField, TextArea, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
 
 const timeFields = [
   ['time.total_time','Total'],['time.se_time','SE'],['time.me_time','ME'],['time.mcc_time','Multi-pilot'],
   ['time.night_time','Night'],['time.ifr_time','IFR'],['time.pic_time','PIC'],['time.co_pilot_time','Co-pilot'],
   ['time.dual_time','Dual'],['time.instructor_time','Instructor'],['sim.time','FSTD / Sim'],
 ];
+
+const ROLE_FIELD = {
+  PIC: 'pic_time',
+  Dual: 'dual_time',
+  'Co-pilot': 'co_pilot_time',
+};
+
+const getFlightRole = (flight) => {
+  if (flight?.time?.dual_time) return 'Dual';
+  if (flight?.time?.co_pilot_time) return 'Co-pilot';
+  if (flight?.time?.pic_time) return 'PIC';
+  return '';
+};
 
 export const FlightRecord = () => {
   const { id } = useParams();
@@ -28,6 +43,54 @@ export const FlightRecord = () => {
     refetchOnWindowFocus: false,
   });
 
+  const { data: aircraftData = [] } = useQuery({
+    queryKey: ['aircrafts', 'list'],
+    queryFn: ({ signal }) => fetchAircrafts({ signal }),
+    staleTime: 3600000,
+    gcTime: 3600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: aircraftModelData = [] } = useQuery({
+    queryKey: ['aircrafts', 'models'],
+    queryFn: ({ signal }) => fetchAircraftModels({ signal }),
+    staleTime: 3600000,
+    gcTime: 3600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: personsData = [] } = useQuery({
+    queryKey: ['persons'],
+    queryFn: ({ signal }) => fetchPersons({ signal }),
+    staleTime: 300000,
+    gcTime: 3600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const aircrafts = useMemo(() => Array.isArray(aircraftData) ? aircraftData.filter(Boolean) : [], [aircraftData]);
+
+  const registrationOptions = useMemo(() => (
+    [...new Set(aircrafts.map((aircraft) => String(aircraft?.reg || '').trim().toUpperCase()).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b))
+  ), [aircrafts]);
+
+  const typeOptions = useMemo(() => {
+    const models = Array.isArray(aircraftModelData) ? aircraftModelData : [];
+    return [...new Set([
+      ...models.map((model) => String(model || '').trim().toUpperCase()),
+      ...aircrafts.map((aircraft) => String(aircraft?.model || '').trim().toUpperCase()),
+    ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  }, [aircraftModelData, aircrafts]);
+
+  const picNameOptions = useMemo(() => {
+    const persons = Array.isArray(personsData) ? personsData : [];
+    return [...new Set(persons
+      .filter(Boolean)
+      .map((person) => personName(person))
+      .filter((name) => name && name !== 'Person'))]
+      .sort((a, b) => a.localeCompare(b));
+  }, [personsData]);
+
   useEffect(() => {
     if (id === 'new') {
       setFlight({ ...FLIGHT_INITIAL_STATE, uuid: 'new', ...(location.state || {}) });
@@ -35,7 +98,49 @@ export const FlightRecord = () => {
   }, [data, id, location.state]);
 
   const change = useCallback((key, value) => setFlight((prev) => setNested(prev, key, value)), []);
+
+  const handleRegistrationChange = useCallback((value) => {
+    const registration = String(value || '').toUpperCase();
+    setFlight((prev) => {
+      let next = setNested(prev, 'aircraft.reg_name', registration);
+      const match = aircrafts.find((aircraft) => String(aircraft?.reg || '').toUpperCase() === registration);
+      if (match?.model) next = setNested(next, 'aircraft.model', String(match.model).toUpperCase());
+      return next;
+    });
+  }, [aircrafts]);
+
+  const handleRoleChange = useCallback((role) => {
+    setFlight((prev) => {
+      const total = prev?.time?.total_time || '';
+      const nextTime = {
+        ...(prev.time || {}),
+        pic_time: '',
+        dual_time: '',
+        co_pilot_time: '',
+      };
+      const targetField = ROLE_FIELD[role];
+      if (targetField) nextTime[targetField] = total;
+      return { ...prev, time: nextTime };
+    });
+  }, []);
+
+  const handleTimeChange = useCallback((key, value) => {
+    if (key !== 'time.total_time') {
+      change(key, value);
+      return;
+    }
+
+    setFlight((prev) => {
+      const role = getFlightRole(prev);
+      let next = setNested(prev, key, value);
+      const targetField = ROLE_FIELD[role];
+      if (targetField) next = setNested(next, `time.${targetField}`, value);
+      return next;
+    });
+  }, [change]);
+
   const mapData = useMemo(() => flight?.departure?.place && flight?.arrival?.place ? [flight] : [], [flight]);
+  const flightRole = useMemo(() => getFlightRole(flight), [flight]);
 
   const saveMutation = useMutation({
     mutationFn: async () => flight.uuid === 'new' ? createFlightRecord({ flight }) : updateFlightRecord({ flight }),
@@ -74,18 +179,55 @@ export const FlightRecord = () => {
           </div>
         </Card>
 
-        <Card title="Aircraft" subtitle="Registration, type and pilot in command.">
+        <Card title="Aircraft" subtitle="Registration, type, pilot in command and flight role.">
           <div className="form-grid two">
-            <Field label="Registration" value={flight.aircraft?.reg_name || ''} onChange={(v) => change('aircraft.reg_name', v.toUpperCase())} />
-            <Field label="Type" value={flight.aircraft?.model || ''} onChange={(v) => change('aircraft.model', v.toUpperCase())} />
-            <Field label="PIC name" value={flight.pic_name || ''} onChange={(v) => change('pic_name', v)} />
-            <SelectField label="Flight role" value={flight.time?.pic_time ? 'PIC' : flight.time?.dual_time ? 'Dual' : flight.time?.co_pilot_time ? 'Co-pilot' : 'PIC'} onChange={() => {}} options={['PIC','Dual','Co-pilot']} disabled />
+            <SelectField
+              label="Registration"
+              value={flight.aircraft?.reg_name || ''}
+              onChange={handleRegistrationChange}
+              options={[
+                { value:'', label:'Select registration' },
+                ...Array.from(new Set([flight.aircraft?.reg_name, ...registrationOptions].filter(Boolean))).map((value)=>({ value, label:value })),
+              ]}
+            />
+            <SelectField
+              label="Type"
+              value={flight.aircraft?.model || ''}
+              onChange={(v) => change('aircraft.model', String(v || '').toUpperCase())}
+              options={[
+                { value:'', label:'Select aircraft type' },
+                ...Array.from(new Set([flight.aircraft?.model, ...typeOptions].filter(Boolean))).map((value)=>({ value, label:value })),
+              ]}
+            />
+            <SelectField
+              label="PIC name"
+              value={flight.pic_name || ''}
+              onChange={(v) => change('pic_name', v)}
+              options={[
+                { value:'', label:'Select PIC name' },
+                ...Array.from(new Set([flight.pic_name, ...picNameOptions].filter(Boolean))).map((value)=>({ value, label:value })),
+              ]}
+            />
+            <SelectField
+              label="Flight role"
+              value={flightRole}
+              onChange={handleRoleChange}
+              options={[
+                { value: '', label: 'Select role' },
+                'PIC',
+                'Dual',
+                'Co-pilot',
+              ]}
+            />
+          </div>
+          <div className="note" style={{ marginTop: 10 }}>
+            Selecting a saved registration automatically fills its aircraft type. Selecting a flight role assigns the total flight time to PIC, Dual or Co-pilot.
           </div>
         </Card>
 
         <Card title="Flight time" subtitle="Operational and pilot function time.">
           <div className="form-grid">
-            {timeFields.map(([key,label]) => <Field key={key} label={label} value={key.split('.').reduce((o,k)=>o?.[k], flight) || ''} onChange={(v)=>change(key,v)} placeholder="00:00" />)}
+            {timeFields.map(([key,label]) => <Field key={key} label={label} value={key.split('.').reduce((o,k)=>o?.[k], flight) || ''} onChange={(v)=>handleTimeChange(key,v)} placeholder="00:00" />)}
           </div>
         </Card>
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import LinearProgress from '@mui/material/LinearProgress';
 import { fetchLogbookData } from '../../util/http/logbook';
 import { useErrorNotification } from '../../hooks/useAppNotifications';
+import { SelectField } from '../AppleExact/Primitives';
 
 const toMinutes = (value) => {
   if (!value || typeof value !== 'string') return 0;
@@ -67,6 +68,23 @@ function loadSelectedMetrics() {
     if (Array.isArray(parsed) && parsed.length === 4 && parsed.every(k => METRIC_MAP.has(k))) return parsed;
   } catch { /* ignore invalid local state */ }
   return DEFAULT_METRICS;
+}
+
+function loadPageSize() {
+  const value = Number(localStorage.getItem('logbook-page-size') || 25);
+  return [10,25,50,100].includes(value) ? value : 25;
+}
+
+function paginationItems(current, total) {
+  if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1);
+  const items = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  if (start > 2) items.push('left-gap');
+  for (let page = start; page <= end; page += 1) items.push(page);
+  if (end < total - 1) items.push('right-gap');
+  items.push(total);
+  return items;
 }
 
 function SummaryTile({ title, value, delta }) {
@@ -142,6 +160,8 @@ export default function Logbook() {
   const [segment, setSegment] = useState('all');
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [selectedMetrics, setSelectedMetrics] = useState(loadSelectedMetrics);
+  const [pageSize, setPageSize] = useState(loadPageSize);
+  const [page, setPage] = useState(1);
   const { data = [], isLoading, isError, error } = useQuery({
     queryKey:['logbook'], queryFn:({signal})=>fetchLogbookData({signal}), staleTime:3600000, gcTime:3600000
   });
@@ -150,6 +170,14 @@ export default function Logbook() {
   useEffect(() => {
     localStorage.setItem('logbook-summary-metrics', JSON.stringify(selectedMetrics));
   }, [selectedMetrics]);
+
+  useEffect(() => {
+    localStorage.setItem('logbook-page-size', String(pageSize));
+  }, [pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, segment, pageSize]);
 
   const rows = useMemo(() => (Array.isArray(data) ? data.filter(r => r?.uuid !== 'previous-experience-artificial-uuid') : []), [data]);
   const currentYear = String(new Date().getFullYear());
@@ -179,6 +207,17 @@ export default function Logbook() {
     return haystack.includes(q);
   }), [rows, search, segment]);
 
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, pageCount);
+  const pageStartIndex = filtered.length ? (safePage - 1) * pageSize : 0;
+  const pageEndIndex = Math.min(pageStartIndex + pageSize, filtered.length);
+  const pagedRows = filtered.slice(pageStartIndex, pageEndIndex);
+  const pageItems = paginationItems(safePage, pageCount);
+
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
+
   const setMetricSlot = (index, key) => {
     setSelectedMetrics(prev => prev.map((value, i) => i === index ? key : value));
   };
@@ -199,12 +238,14 @@ export default function Logbook() {
           <div className="apple-metrics-panel-title">Choose the four time totals shown above the logbook</div>
           <div className="apple-metric-selectors">
             {selectedMetrics.map((metricKey, index) => (
-              <label key={index} className="apple-metric-field">
-                <span>Card {index + 1}</span>
-                <select value={metricKey} onChange={(e)=>setMetricSlot(index,e.target.value)}>
-                  {METRICS.map(metric => <option key={metric.key} value={metric.key}>{metric.label}</option>)}
-                </select>
-              </label>
+              <SelectField
+                key={index}
+                className="apple-metric-field"
+                label={`Card ${index + 1}`}
+                value={metricKey}
+                onChange={(value)=>setMetricSlot(index,value)}
+                options={METRICS.map((metric)=>({ value:metric.key, label:metric.label }))}
+              />
             ))}
           </div>
         </div>
@@ -229,7 +270,26 @@ export default function Logbook() {
         <button className="btn ghost" onClick={()=>navigate('/export')}>Export</button>
         <button className="btn primary" onClick={()=>navigate('/logbook/new')}>＋ New flight</button>
       </div>
-      <EasaTable rows={filtered} onOpen={(uuid)=>navigate(`/logbook/${uuid}`)} />
+      <EasaTable rows={pagedRows} onOpen={(uuid)=>navigate(`/logbook/${uuid}`)} />
+      <div className="exact-logbook-pagination">
+        <div className="exact-pagination-count">
+          {filtered.length ? `${pageStartIndex + 1}–${pageEndIndex} of ${filtered.length} flights` : '0 flights'}
+        </div>
+        <SelectField
+          className="exact-pagination-select-field"
+          label="Rows per page"
+          value={String(pageSize)}
+          onChange={(value)=>setPageSize(Number(value))}
+          options={[10,25,50,100].map((value)=>({ value:String(value), label:String(value) }))}
+        />
+        <div className="exact-page-buttons" aria-label="Logbook pages">
+          <button type="button" className="exact-page-button" disabled={safePage <= 1} onClick={()=>setPage((value)=>Math.max(1,value-1))} aria-label="Previous page">‹</button>
+          {pageItems.map((item,index)=>typeof item === 'number' ? (
+            <button key={item} type="button" className={`exact-page-button${safePage===item?' on':''}`} onClick={()=>setPage(item)}>{item}</button>
+          ) : <span key={`${item}-${index}`} className="exact-page-gap">…</span>)}
+          <button type="button" className="exact-page-button" disabled={safePage >= pageCount} onClick={()=>setPage((value)=>Math.min(pageCount,value+1))} aria-label="Next page">›</button>
+        </div>
+      </div>
     </section>
   );
 }

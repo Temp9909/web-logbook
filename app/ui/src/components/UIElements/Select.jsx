@@ -36,11 +36,11 @@ export const Select = ({
   onDoubleClick,
   tooltip,
   disabled,
+  disableClearable = true,
   className = '',
   ...props
 }) => {
   const normalized = useMemo(() => Array.isArray(options) ? options : [], [options]);
-  const listId = `${id}-apple-options`;
   const externalDisplay = useMemo(() => {
     if (multiple) {
       if (Array.isArray(value)) return value.map(optionLabel).join(', ');
@@ -55,38 +55,63 @@ export const Select = ({
     setDraft(externalDisplay);
   }, [externalDisplay]);
 
+  const resolveSingle = useCallback((raw) => {
+    if (raw === '') return '';
+    const match = normalized.find((option) => optionLabel(option) === raw);
+    return match !== undefined ? match : raw;
+  }, [normalized]);
+
+  const handleSingleChange = useCallback((event) => {
+    const raw = event.target.value;
+    setDraft(raw);
+    const resolved = resolveSingle(raw);
+    handleChange?.(name, resolved);
+    onChange?.(event, resolved);
+    onInputChange?.(event, raw);
+  }, [handleChange, name, onChange, onInputChange, resolveSingle]);
+
   const handleInput = useCallback((event) => {
     const raw = event.target.value;
     setDraft(raw);
     onInputChange?.(event, raw);
+    const values = raw.split(',').map(v => v.trim()).filter(Boolean);
+    const resolved = values.join(', ');
+    handleChange?.(name, resolved);
+    onChange?.(event, values);
+  }, [handleChange, name, onChange, onInputChange]);
 
-    if (multiple) {
-      const values = raw.split(',').map(v => v.trim()).filter(Boolean);
-      const resolved = values.join(', ');
-      handleChange?.(name, resolved);
-      onChange?.(event, values);
-      return;
-    }
+  const singleOptions = useMemo(() => {
+    const result = [...normalized];
+    if (draft && !result.some((option) => optionLabel(option) === draft)) result.unshift(draft);
+    return result;
+  }, [draft, normalized]);
 
-    const match = normalized.find((option) => optionLabel(option) === raw);
-    if (match !== undefined) {
-      handleChange?.(name, match);
-      onChange?.(event, match);
-    } else if (freeSolo) {
-      handleChange?.(name, raw);
-      onChange?.(event, raw);
-    }
-  }, [freeSolo, handleChange, multiple, name, normalized, onChange, onInputChange]);
+  if (!multiple) {
+    return (
+      <label className={`apple-field apple-select-field ${sizeClass(gsize)} ${className}`.trim()} title={typeof tooltip === 'string' ? tooltip : undefined}>
+        {label ? <span className="apple-field-label">{label}</span> : null}
+        <select
+          id={id}
+          name={name}
+          className="select apple-field-control apple-native-select-control"
+          value={draft ?? ''}
+          onChange={handleSingleChange}
+          onBlur={onBlur}
+          onDoubleClick={onDoubleClick}
+          disabled={disabled}
+          aria-label={typeof label === 'string' ? label : id}
+        >
+          {!disableClearable ? <option value="">—</option> : null}
+          {singleOptions.map((option, index) => {
+            const text = optionLabel(option);
+            return <option key={`${text}-${index}`} value={text}>{text}</option>;
+          })}
+        </select>
+      </label>
+    );
+  }
 
-  const handleBlur = useCallback((event) => {
-    if (!multiple && !freeSolo) {
-      const match = normalized.find((option) => optionLabel(option) === event.target.value);
-      if (match !== undefined) handleChange?.(name, match);
-      else setDraft(externalDisplay);
-    }
-    onBlur?.(event);
-  }, [externalDisplay, freeSolo, handleChange, multiple, name, normalized, onBlur]);
-
+  const listId = `${id}-apple-options`;
   return (
     <label className={`apple-field apple-select-field ${sizeClass(gsize)} ${className}`.trim()} title={typeof tooltip === 'string' ? tooltip : undefined}>
       {label ? <span className="apple-field-label">{label}</span> : null}
@@ -94,11 +119,11 @@ export const Select = ({
         <input
           id={id}
           name={name}
-          className="apple-field-control apple-select-control"
+          className="input apple-field-control apple-select-control"
           list={listId}
           value={draft}
           onChange={handleInput}
-          onBlur={handleBlur}
+          onBlur={onBlur}
           onDoubleClick={onDoubleClick}
           disabled={disabled}
           autoComplete="off"
@@ -108,9 +133,7 @@ export const Select = ({
         <span className="apple-select-caret" aria-hidden="true">⌄</span>
       </span>
       <datalist id={listId}>
-        {normalized.map((option, index) => (
-          <option key={`${optionLabel(option)}-${index}`} value={optionLabel(option)} />
-        ))}
+        {normalized.map((option, index) => <option key={`${optionLabel(option)}-${index}`} value={optionLabel(option)} />)}
       </datalist>
     </label>
   );

@@ -269,24 +269,40 @@ func (m *DBModel) UpdateAircraft(aircraft Aircraft) (err error) {
 	ctx, cancel := m.ContextWithDefaultTimeout()
 	defer cancel()
 
-	// get existing aircraft
-	existingAircraft, err := m.GetAircraft(aircraft.Reg)
+	lookupReg := aircraft.OriginalReg
+	if lookupReg == "" {
+		lookupReg = aircraft.Reg
+	}
+
+	// Get the aircraft as it existed before this edit.
+	existingAircraft, err := m.GetAircraft(lookupReg)
 	if err != nil {
 		return err
 	}
 
-	// update aircraft record
-	query := `UPDATE aircrafts
-		SET custom_categories = ?, aircraft_model = ?
-		WHERE reg_name = ?`
-	_, err = m.DB.ExecContext(ctx, query, aircraft.CustomCategory, aircraft.Model, aircraft.Reg)
-
-	// if aircraft model was changed, update logbook records
-	if err == nil && existingAircraft.Model != aircraft.Model {
-		query = `UPDATE logbook
-			SET aircraft_model = ?
-			WHERE aircraft_model = ? AND reg_name = ?`
-		_, err = m.DB.ExecContext(ctx, query, aircraft.Model, existingAircraft.Model, aircraft.Reg)
+	tx, err := m.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
 	}
-	return err
+	defer tx.Rollback()
+
+	// Update the aircraft record, including its primary-key registration.
+	query := `UPDATE aircrafts
+		SET reg_name = ?, custom_categories = ?, aircraft_model = ?
+		WHERE reg_name = ?`
+	if _, err = tx.ExecContext(ctx, query, aircraft.Reg, aircraft.CustomCategory, aircraft.Model, lookupReg); err != nil {
+		return err
+	}
+
+	// Keep every flight using the edited registration in sync.
+	if existingAircraft.Reg != aircraft.Reg || existingAircraft.Model != aircraft.Model {
+		query = `UPDATE logbook
+			SET reg_name = ?, aircraft_model = ?
+			WHERE reg_name = ?`
+		if _, err = tx.ExecContext(ctx, query, aircraft.Reg, aircraft.Model, lookupReg); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }

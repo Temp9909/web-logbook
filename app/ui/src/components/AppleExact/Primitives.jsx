@@ -66,6 +66,18 @@ export const SelectField = ({ label, value = '', onChange, options = [], disable
   </label>
 );
 
+export const ComboField = ({ label, value = '', onChange, options = [], disabled = false, className = '', placeholder = '' }) => {
+  const normalized = Array.isArray(options) ? options : [];
+  const current = String(value ?? '');
+  const hasCurrent = normalized.some((option) => String(typeof option === 'object' ? option.value : option) === current);
+  const selectOptions = [
+    ...(placeholder ? [{ value:'', label:placeholder }] : []),
+    ...(!hasCurrent && current ? [{ value:current, label:current }] : []),
+    ...normalized,
+  ];
+  return <SelectField label={label} value={current} onChange={onChange} options={selectOptions} disabled={disabled} className={className} />;
+};
+
 export const SwitchRow = ({ label, sub, checked = false, onChange, disabled = false }) => (
   <div className={`setting-row${disabled ? ' disabled' : ''}`}>
     <div>

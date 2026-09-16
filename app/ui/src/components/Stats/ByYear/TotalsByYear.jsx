@@ -1,57 +1,35 @@
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { useGridApiRef } from "@mui/x-data-grid";
-// MUI UI elements
-import Box from '@mui/material/Box';
-import LinearProgress from '@mui/material/LinearProgress';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-// MUI icons
-import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
-// Custom
-import { useErrorNotification } from "../../../hooks/useAppNotifications";
-import { fetchLogbookData } from "../../../util/http/logbook";
-import { getTotalsByMonthAndYear } from "../../../util/helpers";
-import useCustomFields from "../../../hooks/useCustomFields";
+import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { useErrorNotification } from '../../../hooks/useAppNotifications';
+import { fetchLogbookData } from '../../../util/http/logbook';
+import { getTotalsByMonthAndYear } from '../../../util/helpers';
+import useCustomFields from '../../../hooks/useCustomFields';
 import useSettings from '../../../hooks/useSettings';
-import XDataGrid from '../../UIElements/XDataGrid/XDataGrid';
-import { createStatsColumns } from '../helpers';
-import CSVExportButton from "../../UIElements/CSVExportButton";
+import { Loading, PageHead } from '../../AppleExact/Primitives';
+import StatsBookTable from '../StatsBookTable';
 
 const EMPTY = {};
+const monthLabel = (value) => new Date(2000, Math.max(0, Number(value || 1) - 1), 1).toLocaleString(undefined, { month: 'long' });
 
 const useTotalsData = (data) => {
-  // Group data by year
   const dataByYear = useMemo(() => {
-    if (!data || data.length === 0) return EMPTY;
-
-    const grouped = {};
-    data.forEach(item => {
-      const year = item.year;
-      if (!grouped[year]) {
-        grouped[year] = [];
-      }
+    if (!Array.isArray(data) || data.length === 0) return EMPTY;
+    return data.reduce((grouped, item) => {
+      const year = String(item.year || '');
+      if (!grouped[year]) grouped[year] = [];
       grouped[year].push(item);
-    });
-
-    return grouped;
+      return grouped;
+    }, {});
   }, [data]);
-
-  // Sort years in descending order
-  const sortedYears = useMemo(() => {
-    return Object.keys(dataByYear).sort((a, b) => b - a);
-  }, [dataByYear]);
-
+  const sortedYears = useMemo(() => Object.keys(dataByYear).sort((a, b) => Number(b) - Number(a)), [dataByYear]);
   return { dataByYear, sortedYears };
 };
 
 export const TotalsByYear = () => {
-  const apiRef = useGridApiRef();
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeYear, setActiveYear] = useState('');
   const { fieldName } = useSettings();
-  const { customFields } = useCustomFields();
-
-  const { data, isLoading, isError, error } = useQuery({
+  const { customFields = [] } = useCustomFields();
+  const { data = [], isLoading, isError, error } = useQuery({
     queryKey: ['logbook'],
     queryFn: ({ signal }) => fetchLogbookData({ signal }),
     staleTime: 3600000,
@@ -59,59 +37,28 @@ export const TotalsByYear = () => {
   });
   useErrorNotification({ isError, error, fallbackMessage: 'Failed to load logbook' });
 
-  const totals = useMemo(() => getTotalsByMonthAndYear(data ?? [], customFields ?? []), [data, customFields]);
+  const totals = useMemo(() => getTotalsByMonthAndYear(Array.isArray(data) ? data : [], customFields || []), [data, customFields]);
   const { dataByYear, sortedYears } = useTotalsData(totals);
+  const selectedYear = sortedYears.includes(activeYear) ? activeYear : (sortedYears[0] || '');
+  const rows = dataByYear[selectedYear] || [];
 
-  const columns = useMemo(() => {
-    return [
-      {
-        field: "month",
-        headerName: "Month",
-        headerAlign: 'center',
-        align: 'center',
-        width: 70,
-        renderCell: ({ value }) => new Date(0, value - 1).toLocaleString('default', { month: 'short' })
-      },
-      ...createStatsColumns({ fieldName, customFields })
-    ]
-  }, [fieldName, customFields]);
-
-  const activeYear = sortedYears[activeTab];
-  const customActions = useMemo(() => (<CSVExportButton apiRef={apiRef} type="totals-by-year" />), [apiRef]);
-
-  if (isLoading) return <LinearProgress />;
-
-  return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} variant="scrollable">
-          {sortedYears.map((year) => (
-            <Tab key={year} label={year} />
-          ))}
-        </Tabs>
-      </Box>
-
-      <Box sx={{ p: (theme) => theme.spacing(1, 0) }}>
-        <XDataGrid sx={{ '& .dg-zero': { color: 'text.disabled' } }}
-          apiRef={apiRef}
-          key={activeYear}
-          tableId="totals-year"
-          title={`Stats by Year ${activeYear || ''}`}
-          icon={<CalendarMonthOutlinedIcon />}
-          rows={dataByYear[activeYear]}
-          columns={columns}
-          getRowId={(row) => `${row.year}-${row.month}`}
-          showAggregationFooter
-          footerFieldIdTotalLabel="month"
-          disableColumnMenu
-          disableColumnSorting
-          showPagination={false}
-          showPageTotal={false}
-          customActions={customActions}
-        />
-      </Box>
-    </Box>
-  );
-}
+  return <section className="exact-react-page exact-stats-page">
+    <PageHead title="Stats by year" subtitle="Monthly flight-time totals in the same Apple logbook format." />
+    <Loading show={isLoading} />
+    <div className="segmented exact-scroll-segmented exact-year-selector" role="tablist" aria-label="Year">
+      {sortedYears.map((year) => <button key={year} type="button" className={selectedYear === year ? 'on' : ''} onClick={() => setActiveYear(year)}>{year}</button>)}
+    </div>
+    <StatsBookTable
+      rows={rows}
+      groupLabel="Month"
+      groupValue={(row) => monthLabel(row?.month)}
+      customFields={customFields}
+      fieldName={fieldName}
+      exportFilename={`stats-by-year-${selectedYear || 'all'}.csv`}
+      showTotals
+      loading={isLoading}
+    />
+  </section>;
+};
 
 export default TotalsByYear;
