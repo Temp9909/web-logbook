@@ -2001,3 +2001,6 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
   .exact-pagination-select-field { width: 110px; flex-basis: 110px; }
   .exact-page-buttons { flex: 1; justify-content: flex-end; overflow-x: auto; }
 }
+
+/* V8.5 — Apple scrolling hour/minute pickers, using the same native select language as Filter → Period. */
+.exact-time-picker{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px;width:100%}.exact-time-part{min-width:0;text-align:center;font-variant-numeric:tabular-nums}.exact-time-colon{color:var(--secondary);font-size:15px;font-weight:650;line-height:1}.exact-time-field .select{cursor:pointer}

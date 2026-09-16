@@ -19,9 +19,15 @@ export const convertHoursToTime = (hours) => {
 
 // Convert HHHH:MM format back to minutes if needed
 export const convertTimeToMinutes = (time) => {
-  if (!time) return 0;
-  const [hours, mins] = time.split(':').map(Number);
-  return hours * 60 + mins;
+  if (time === undefined || time === null || time === '') return 0;
+  if (typeof time === 'number') return Number.isFinite(time) ? Math.round(time) : 0;
+  const text = String(time);
+  if (!text.includes(':')) {
+    const numeric = Number(text);
+    return Number.isFinite(numeric) ? Math.round(numeric) : 0;
+  }
+  const [hours = 0, mins = 0] = text.split(':').map(Number);
+  return (Number(hours) || 0) * 60 + (Number(mins) || 0);
 };
 
 export const getValue = (obj, path) => {

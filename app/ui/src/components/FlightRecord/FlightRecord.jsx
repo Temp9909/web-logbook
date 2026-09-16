@@ -8,7 +8,7 @@ import { fetchPersons } from '../../util/http/person';
 import { queryClient } from '../../util/http/http';
 import useCustomFields from '../../hooks/useCustomFields';
 import FlightMap from '../FlightMap/FlightMap';
-import { Card, Field, Loading, PageHead, SelectField, TextArea, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
+import { Card, Field, Loading, PageHead, SelectField, TextArea, TimeSelectField, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
 
 const timeFields = [
   ['time.total_time','Total'],['time.se_time','SE'],['time.me_time','ME'],['time.mcc_time','Multi-pilot'],
@@ -173,9 +173,9 @@ export const FlightRecord = () => {
             <Field label="Date" type="date" value={toInputDate(flight.date)} onChange={(v) => change('date', fromInputDate(v))} />
             <Field label="Tags" value={flight.tags || ''} onChange={(v) => change('tags', v)} placeholder="training, IFR" />
             <Field label="Departure place" value={flight.departure?.place || ''} onChange={(v) => change('departure.place', v.toUpperCase())} />
-            <Field label="Departure time" value={flight.departure?.time || ''} onChange={(v) => change('departure.time', v)} placeholder="0815" />
+            <TimeSelectField label="Departure time" mode="clock" value={flight.departure?.time || ''} onChange={(v) => change('departure.time', v)} />
             <Field label="Arrival place" value={flight.arrival?.place || ''} onChange={(v) => change('arrival.place', v.toUpperCase())} />
-            <Field label="Arrival time" value={flight.arrival?.time || ''} onChange={(v) => change('arrival.time', v)} placeholder="0935" />
+            <TimeSelectField label="Arrival time" mode="clock" value={flight.arrival?.time || ''} onChange={(v) => change('arrival.time', v)} />
           </div>
         </Card>
 
@@ -227,7 +227,7 @@ export const FlightRecord = () => {
 
         <Card title="Flight time" subtitle="Operational and pilot function time.">
           <div className="form-grid">
-            {timeFields.map(([key,label]) => <Field key={key} label={label} value={key.split('.').reduce((o,k)=>o?.[k], flight) || ''} onChange={(v)=>handleTimeChange(key,v)} placeholder="00:00" />)}
+            {timeFields.map(([key,label]) => <TimeSelectField key={key} label={label} value={key.split('.').reduce((o,k)=>o?.[k], flight) || ''} onChange={(v)=>handleTimeChange(key,v)} />)}
           </div>
         </Card>
 
@@ -236,7 +236,7 @@ export const FlightRecord = () => {
             <Field label="Day landings" type="number" min="0" value={flight.landings?.day ?? ''} onChange={(v)=>change('landings.day',v)} />
             <Field label="Night landings" type="number" min="0" value={flight.landings?.night ?? ''} onChange={(v)=>change('landings.night',v)} />
             <Field label="FSTD type" value={flight.sim?.type || ''} onChange={(v)=>change('sim.type',v)} />
-            <Field label="FSTD time" value={flight.sim?.time || ''} onChange={(v)=>change('sim.time',v)} placeholder="00:00" />
+            <TimeSelectField label="FSTD time" value={flight.sim?.time || ''} onChange={(v)=>change('sim.time',v)} />
           </div>
           <div style={{marginTop:11}}><TextArea label="Remarks and endorsements" value={flight.remarks || ''} onChange={(v)=>change('remarks',v)} /></div>
         </Card>

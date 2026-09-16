@@ -66,6 +66,71 @@ export const SelectField = ({ label, value = '', onChange, options = [], disable
   </label>
 );
 
+const minuteOptions = Array.from({ length: 60 }, (_, value) => String(value).padStart(2, '0'));
+
+const parseTimeParts = (value) => {
+  const raw = String(value ?? '').trim();
+  if (!raw) return { hour: '', minute: '' };
+  if (/^\d{4}$/.test(raw)) return { hour: raw.slice(0, 2), minute: raw.slice(2, 4) };
+  const match = raw.match(/^(\d{1,3}):(\d{1,2})$/);
+  if (match) return { hour: String(Number(match[1])).padStart(2, '0'), minute: match[2].padStart(2, '0') };
+  return { hour: '', minute: '' };
+};
+
+export const TimeSelectField = ({
+  label,
+  value = '',
+  onChange,
+  mode = 'duration',
+  maxHours = 24,
+  disabled = false,
+  className = '',
+}) => {
+  const parsed = parseTimeParts(value);
+  const hourLimit = mode === 'clock' ? 23 : Math.max(0, Number(maxHours) || 24);
+  const hourOptions = Array.from({ length: hourLimit + 1 }, (_, hour) => String(hour).padStart(2, '0'));
+
+  const emit = (nextHour, nextMinute, event) => {
+    if (!nextHour && !nextMinute) {
+      onChange?.('', event);
+      return;
+    }
+    const hour = nextHour || '00';
+    const minute = nextMinute || '00';
+    const nextValue = mode === 'clock' ? `${hour}${minute}` : `${Number(hour)}:${minute}`;
+    onChange?.(nextValue, event);
+  };
+
+  return (
+    <label className={`field exact-time-field ${className}`.trim()}>
+      {label ? <span>{label}</span> : null}
+      <span className="exact-time-picker">
+        <select
+          className="select exact-time-part"
+          value={parsed.hour}
+          onChange={(e) => emit(e.target.value, parsed.minute, e)}
+          disabled={disabled}
+          aria-label={`${label || 'Time'} hours`}
+        >
+          <option value="">--</option>
+          {hourOptions.map((hour) => <option key={hour} value={hour}>{hour}</option>)}
+        </select>
+        <span className="exact-time-colon" aria-hidden="true">:</span>
+        <select
+          className="select exact-time-part"
+          value={parsed.minute}
+          onChange={(e) => emit(parsed.hour, e.target.value, e)}
+          disabled={disabled}
+          aria-label={`${label || 'Time'} minutes`}
+        >
+          <option value="">--</option>
+          {minuteOptions.map((minute) => <option key={minute} value={minute}>{minute}</option>)}
+        </select>
+      </span>
+    </label>
+  );
+};
+
 export const ComboField = ({ label, value = '', onChange, options = [], disabled = false, className = '', placeholder = '' }) => {
   const normalized = Array.isArray(options) ? options : [];
   const current = String(value ?? '');

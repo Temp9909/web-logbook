@@ -2,7 +2,11 @@ import { useMemo, useState } from 'react';
 import { convertMinutesToTime, convertTimeToMinutes, getCustomFieldValue } from '../../util/helpers';
 import { Search } from '../AppleExact/Primitives';
 
-const dashTime = (value) => (!value || value === '00:00' ? '—' : value);
+const formatTime = (value) => {
+  if (value === undefined || value === null || value === '' || value === 0 || value === '00:00') return '—';
+  if (typeof value === 'number') return convertMinutesToTime(value);
+  return String(value);
+};
 const dashNumber = (value) => (Number(value || 0) === 0 ? '—' : Number(value).toLocaleString(undefined, { maximumFractionDigits: 0 }));
 const dashValue = (value) => {
   if (value === undefined || value === null || value === '' || value === 0 || value === '00:00') return '—';
@@ -11,7 +15,7 @@ const dashValue = (value) => {
 
 const addTime = (rows, path) => rows.reduce((sum, row) => {
   const value = path.split('.').reduce((current, key) => current?.[key], row);
-  return sum + convertTimeToMinutes(value || '');
+  return sum + convertTimeToMinutes(value);
 }, 0);
 
 const addNumber = (rows, path) => rows.reduce((sum, row) => {
@@ -88,14 +92,14 @@ export const StatsBookTable = ({
 
   const csvRows = useMemo(() => filtered.map((row) => [
     groupValue(row),
-    row?.time?.se_time || '00:00', row?.time?.me_time || '00:00', row?.time?.mcc_time || '00:00',
-    row?.time?.night_time || '00:00', row?.time?.ifr_time || '00:00',
-    row?.time?.pic_time || '00:00', row?.time?.co_pilot_time || '00:00', row?.time?.dual_time || '00:00', row?.time?.instructor_time || '00:00',
-    row?.time?.cc_time || '00:00', row?.sim?.time || '00:00',
+    formatTime(row?.time?.se_time) === '—' ? '00:00' : formatTime(row?.time?.se_time), formatTime(row?.time?.me_time) === '—' ? '00:00' : formatTime(row?.time?.me_time), formatTime(row?.time?.mcc_time) === '—' ? '00:00' : formatTime(row?.time?.mcc_time),
+    formatTime(row?.time?.night_time) === '—' ? '00:00' : formatTime(row?.time?.night_time), formatTime(row?.time?.ifr_time) === '—' ? '00:00' : formatTime(row?.time?.ifr_time),
+    formatTime(row?.time?.pic_time) === '—' ? '00:00' : formatTime(row?.time?.pic_time), formatTime(row?.time?.co_pilot_time) === '—' ? '00:00' : formatTime(row?.time?.co_pilot_time), formatTime(row?.time?.dual_time) === '—' ? '00:00' : formatTime(row?.time?.dual_time), formatTime(row?.time?.instructor_time) === '—' ? '00:00' : formatTime(row?.time?.instructor_time),
+    formatTime(row?.time?.cc_time) === '—' ? '00:00' : formatTime(row?.time?.cc_time), formatTime(row?.sim?.time) === '—' ? '00:00' : formatTime(row?.sim?.time),
     row?.landings?.day || 0, row?.landings?.night || 0,
     Number(row?.distance || 0).toFixed(0),
     ...statsFields.map((field) => customValue(row, field)),
-    row?.time?.total_time || '00:00',
+    formatTime(row?.time?.total_time) === '—' ? '00:00' : formatTime(row?.time?.total_time),
   ]), [filtered, groupValue, statsFields]);
 
   const totalRow = useMemo(() => showTotals ? {
@@ -150,34 +154,34 @@ export const StatsBookTable = ({
         <tbody>
           {!loading && filtered.map((row, index) => <tr key={`${groupValue(row)}-${index}`}>
             <td className="exact-stats-group-cell">{groupValue(row)}</td>
-            <td className="mono">{dashTime(row?.time?.se_time)}</td>
-            <td className="mono">{dashTime(row?.time?.me_time)}</td>
-            <td className="mono">{dashTime(row?.time?.mcc_time)}</td>
-            <td className="mono">{dashTime(row?.time?.night_time)}</td>
-            <td className="mono">{dashTime(row?.time?.ifr_time)}</td>
-            <td className="mono">{dashTime(row?.time?.pic_time)}</td>
-            <td className="mono">{dashTime(row?.time?.co_pilot_time)}</td>
-            <td className="mono">{dashTime(row?.time?.dual_time)}</td>
-            <td className="mono">{dashTime(row?.time?.instructor_time)}</td>
-            <td className="mono">{dashTime(row?.time?.cc_time)}</td>
-            <td className="mono">{dashTime(row?.sim?.time)}</td>
+            <td className="mono">{formatTime(row?.time?.se_time)}</td>
+            <td className="mono">{formatTime(row?.time?.me_time)}</td>
+            <td className="mono">{formatTime(row?.time?.mcc_time)}</td>
+            <td className="mono">{formatTime(row?.time?.night_time)}</td>
+            <td className="mono">{formatTime(row?.time?.ifr_time)}</td>
+            <td className="mono">{formatTime(row?.time?.pic_time)}</td>
+            <td className="mono">{formatTime(row?.time?.co_pilot_time)}</td>
+            <td className="mono">{formatTime(row?.time?.dual_time)}</td>
+            <td className="mono">{formatTime(row?.time?.instructor_time)}</td>
+            <td className="mono">{formatTime(row?.time?.cc_time)}</td>
+            <td className="mono">{formatTime(row?.sim?.time)}</td>
             <td className="mono">{dashNumber(row?.landings?.day)}</td>
             <td className="mono">{dashNumber(row?.landings?.night)}</td>
             <td className="mono">{dashNumber(row?.distance)}</td>
             {statsFields.map((field) => <td className="mono" key={field.uuid}>{dashValue(customValue(row, field))}</td>)}
-            <td className="mono exact-stats-total-cell">{dashTime(row?.time?.total_time)}</td>
+            <td className="mono exact-stats-total-cell">{formatTime(row?.time?.total_time)}</td>
           </tr>)}
           {!loading && filtered.length === 0 ? <tr><td colSpan={16 + statsFields.length} className="muted exact-stats-empty">No statistics found.</td></tr> : null}
         </tbody>
         {totalRow ? <tfoot><tr>
           <td>Total</td>
-          <td className="mono">{dashTime(totalRow.se)}</td><td className="mono">{dashTime(totalRow.me)}</td><td className="mono">{dashTime(totalRow.mcc)}</td>
-          <td className="mono">{dashTime(totalRow.night)}</td><td className="mono">{dashTime(totalRow.ifr)}</td>
-          <td className="mono">{dashTime(totalRow.pic)}</td><td className="mono">{dashTime(totalRow.cop)}</td><td className="mono">{dashTime(totalRow.dual)}</td><td className="mono">{dashTime(totalRow.instr)}</td>
-          <td className="mono">{dashTime(totalRow.cc)}</td><td className="mono">{dashTime(totalRow.sim)}</td>
+          <td className="mono">{formatTime(totalRow.se)}</td><td className="mono">{formatTime(totalRow.me)}</td><td className="mono">{formatTime(totalRow.mcc)}</td>
+          <td className="mono">{formatTime(totalRow.night)}</td><td className="mono">{formatTime(totalRow.ifr)}</td>
+          <td className="mono">{formatTime(totalRow.pic)}</td><td className="mono">{formatTime(totalRow.cop)}</td><td className="mono">{formatTime(totalRow.dual)}</td><td className="mono">{formatTime(totalRow.instr)}</td>
+          <td className="mono">{formatTime(totalRow.cc)}</td><td className="mono">{formatTime(totalRow.sim)}</td>
           <td className="mono">{dashNumber(totalRow.landDay)}</td><td className="mono">{dashNumber(totalRow.landNight)}</td><td className="mono">{dashNumber(totalRow.distance)}</td>
           {totalRow.custom.map((value, index) => <td className="mono" key={statsFields[index]?.uuid || index}>{dashValue(value)}</td>)}
-          <td className="mono exact-stats-total-cell">{dashTime(totalRow.total)}</td>
+          <td className="mono exact-stats-total-cell">{formatTime(totalRow.total)}</td>
         </tr></tfoot> : null}
       </table>
     </div>
