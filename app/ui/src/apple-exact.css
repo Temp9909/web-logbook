@@ -2004,3 +2004,11 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 
 /* V8.5 — Apple scrolling hour/minute pickers, using the same native select language as Filter → Period. */
 .exact-time-picker{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:6px;width:100%}.exact-time-part{min-width:0;text-align:center;font-variant-numeric:tabular-nums}.exact-time-colon{color:var(--secondary);font-size:15px;font-weight:650;line-height:1}.exact-time-field .select{cursor:pointer}
+
+/* V8.5.2 — By type scrolls as one table; no pinned aircraft-type cell. */
+.exact-stats-book-table.exact-stats-no-sticky .exact-stats-group-cell,
+.exact-stats-book-table.exact-stats-no-sticky tfoot td:first-child {
+  position: static;
+  left: auto;
+  z-index: auto;
+}

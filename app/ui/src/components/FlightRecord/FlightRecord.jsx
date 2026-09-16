@@ -22,6 +22,23 @@ const ROLE_FIELD = {
   'Co-pilot': 'co_pilot_time',
 };
 
+const isZeroFlightDuration = (value) => {
+  if (value === 0) return true;
+  const raw = String(value ?? '').trim();
+  if (!raw) return false;
+  const match = raw.match(/^(\d{1,3}):(\d{1,2})$/);
+  return Boolean(match) && Number(match[1]) === 0 && Number(match[2]) === 0;
+};
+
+const normalizeFlightTimeZeroes = (record) => {
+  let next = record;
+  timeFields.forEach(([key]) => {
+    const value = key.split('.').reduce((current, part) => current?.[part], next);
+    if (isZeroFlightDuration(value)) next = setNested(next, key, '');
+  });
+  return next;
+};
+
 const getFlightRole = (flight) => {
   if (flight?.time?.dual_time) return 'Dual';
   if (flight?.time?.co_pilot_time) return 'Co-pilot';
@@ -93,8 +110,8 @@ export const FlightRecord = () => {
 
   useEffect(() => {
     if (id === 'new') {
-      setFlight({ ...FLIGHT_INITIAL_STATE, uuid: 'new', ...(location.state || {}) });
-    } else if (data) setFlight(data);
+      setFlight(normalizeFlightTimeZeroes({ ...FLIGHT_INITIAL_STATE, uuid: 'new', ...(location.state || {}) }));
+    } else if (data) setFlight(normalizeFlightTimeZeroes(data));
   }, [data, id, location.state]);
 
   const change = useCallback((key, value) => setFlight((prev) => setNested(prev, key, value)), []);
@@ -143,7 +160,10 @@ export const FlightRecord = () => {
   const flightRole = useMemo(() => getFlightRole(flight), [flight]);
 
   const saveMutation = useMutation({
-    mutationFn: async () => flight.uuid === 'new' ? createFlightRecord({ flight }) : updateFlightRecord({ flight }),
+    mutationFn: async () => {
+      const normalizedFlight = normalizeFlightTimeZeroes(flight);
+      return normalizedFlight.uuid === 'new' ? createFlightRecord({ flight: normalizedFlight }) : updateFlightRecord({ flight: normalizedFlight });
+    },
     onSuccess: async (result) => {
       const newId = flight.uuid === 'new' ? result?.data : flight.uuid;
       await queryClient.invalidateQueries({ queryKey: ['logbook'] });
@@ -227,7 +247,7 @@ export const FlightRecord = () => {
 
         <Card title="Flight time" subtitle="Operational and pilot function time.">
           <div className="form-grid">
-            {timeFields.map(([key,label]) => <TimeSelectField key={key} label={label} value={key.split('.').reduce((o,k)=>o?.[k], flight) || ''} onChange={(v)=>handleTimeChange(key,v)} />)}
+            {timeFields.map(([key,label]) => <TimeSelectField key={key} label={label} zeroAsEmpty value={key.split('.').reduce((o,k)=>o?.[k], flight) || ''} onChange={(v)=>handleTimeChange(key,v)} />)}
           </div>
         </Card>
 

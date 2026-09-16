@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export const PageHead = ({ title, subtitle, actions }) => (
   <div className="page-head">
@@ -83,14 +83,31 @@ export const TimeSelectField = ({
   onChange,
   mode = 'duration',
   maxHours = 24,
+  zeroAsEmpty = false,
   disabled = false,
   className = '',
 }) => {
-  const parsed = parseTimeParts(value);
+  const isZeroDuration = (candidate) => {
+    if (mode === 'clock' || !zeroAsEmpty) return false;
+    if (candidate === 0) return true;
+    const raw = String(candidate ?? '').trim();
+    if (!raw) return false;
+    const match = raw.match(/^(\d{1,3}):(\d{1,2})$/);
+    return Boolean(match) && Number(match[1]) === 0 && Number(match[2]) === 0;
+  };
+
+  const externalParts = parseTimeParts(isZeroDuration(value) ? '' : value);
+  const [draft, setDraft] = useState(externalParts);
+  useEffect(() => {
+    setDraft(externalParts);
+  }, [value, mode, zeroAsEmpty]);
+
   const hourLimit = mode === 'clock' ? 23 : Math.max(0, Number(maxHours) || 24);
   const hourOptions = Array.from({ length: hourLimit + 1 }, (_, hour) => String(hour).padStart(2, '0'));
 
   const emit = (nextHour, nextMinute, event) => {
+    const nextDraft = { hour: nextHour, minute: nextMinute };
+    setDraft(nextDraft);
     if (!nextHour && !nextMinute) {
       onChange?.('', event);
       return;
@@ -98,6 +115,11 @@ export const TimeSelectField = ({
     const hour = nextHour || '00';
     const minute = nextMinute || '00';
     const nextValue = mode === 'clock' ? `${hour}${minute}` : `${Number(hour)}:${minute}`;
+    if (isZeroDuration(nextValue)) {
+      if (nextHour && nextMinute) setDraft({ hour: '', minute: '' });
+      onChange?.('', event);
+      return;
+    }
     onChange?.(nextValue, event);
   };
 
@@ -107,8 +129,8 @@ export const TimeSelectField = ({
       <span className="exact-time-picker">
         <select
           className="select exact-time-part"
-          value={parsed.hour}
-          onChange={(e) => emit(e.target.value, parsed.minute, e)}
+          value={draft.hour}
+          onChange={(e) => emit(e.target.value, draft.minute, e)}
           disabled={disabled}
           aria-label={`${label || 'Time'} hours`}
         >
@@ -118,8 +140,8 @@ export const TimeSelectField = ({
         <span className="exact-time-colon" aria-hidden="true">:</span>
         <select
           className="select exact-time-part"
-          value={parsed.minute}
-          onChange={(e) => emit(parsed.hour, e.target.value, e)}
+          value={draft.minute}
+          onChange={(e) => emit(draft.hour, e.target.value, e)}
           disabled={disabled}
           aria-label={`${label || 'Time'} minutes`}
         >

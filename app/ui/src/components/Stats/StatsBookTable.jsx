@@ -64,6 +64,7 @@ export const StatsBookTable = ({
   exportFilename = 'stats.csv',
   showTotals = false,
   loading = false,
+  stickyGroup = true,
 }) => {
   const [query, setQuery] = useState('');
   const statsFields = useMemo(
@@ -128,7 +129,7 @@ export const StatsBookTable = ({
       <button className="btn ghost" type="button" onClick={() => downloadCsv(exportFilename, headers, csvRows)}>Export CSV</button>
     </div>
     <div className="card table-wrap exact-stats-book-wrap">
-      <table className="easa apple-logbook-table exact-stats-book-table">
+      <table className={`easa apple-logbook-table exact-stats-book-table${stickyGroup ? '' : ' exact-stats-no-sticky'}`}>
         <thead>
           <tr className="grp">
             <th rowSpan="2">{groupLabel}</th>
