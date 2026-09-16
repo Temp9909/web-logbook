@@ -155,9 +155,9 @@ export const inputsCustomizations = {
   MuiSwitch: {
     styleOverrides: {
       root: {
-        // iOS-style toggle
-        width: 51,
-        height: 31,
+        // iOS-style toggle — 63×28pt
+        width: 63,
+        height: 28,
         padding: 0,
         overflow: 'visible',
       },
@@ -165,7 +165,7 @@ export const inputsCustomizations = {
         padding: 2,
         transitionDuration: '260ms',
         '&.Mui-checked': {
-          transform: 'translateX(20px)',
+          transform: 'translateX(35px)',
           color: '#FFFFFF',
           '& + .MuiSwitch-track': {
             backgroundColor: theme.palette.mode === 'dark' ? '#30D158' : '#34C759',
@@ -180,13 +180,13 @@ export const inputsCustomizations = {
       }),
       thumb: {
         boxSizing: 'border-box',
-        width: 27,
-        height: 27,
+        width: 24,
+        height: 24,
         backgroundColor: '#FFFFFF',
         boxShadow: '0 3px 8px rgba(0,0,0,0.15), 0 1px 1px rgba(0,0,0,0.16)',
       },
       track: ({ theme }) => ({
-        borderRadius: 31 / 2,
+        borderRadius: 28 / 2,
         backgroundColor: theme.palette.mode === 'dark' ? '#39393D' : '#E9E9EA',
         opacity: 1,
         transition: 'background-color 260ms ease',
