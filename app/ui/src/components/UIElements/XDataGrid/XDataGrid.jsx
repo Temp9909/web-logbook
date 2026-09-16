@@ -37,7 +37,7 @@ const StyledDataGrid = styled(DataGrid)(({ theme }) => {
   return {
     border: 0,
     borderRadius: 14,
-    backgroundColor: theme.palette.background.paper,
+    backgroundColor: 'transparent',
     color: theme.palette.text.primary,
     fontFamily: theme.typography.fontFamily,
     fontSize: '0.8125rem',
@@ -224,7 +224,20 @@ const XDataGridContent = ({ apiRef, tableId, rows, columns, ...props }) => {
   }, [columnsState, props.customColumnVisibilityModel]);
 
   return (
-    <Box sx={{ borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+    <Box
+      sx={{
+        borderRadius: '14px',
+        overflow: 'hidden',
+        border: '1px solid',
+        borderColor: 'divider',
+        backgroundColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(35,35,39,.76)' : 'rgba(255,255,255,.82)',
+        backdropFilter: 'saturate(165%) blur(18px)',
+        WebkitBackdropFilter: 'saturate(165%) blur(18px)',
+        boxShadow: (theme) => theme.palette.mode === 'dark'
+          ? '0 16px 40px rgba(0,0,0,.24), 0 1px 2px rgba(0,0,0,.32)'
+          : '0 10px 35px rgba(0,0,0,.065), 0 1px 2px rgba(0,0,0,.045)',
+      }}
+    >
       <StyledDataGrid
         sx={{
           '& .MuiDataGrid-cell': { px: 0.5 },
@@ -236,7 +249,7 @@ const XDataGridContent = ({ apiRef, tableId, rows, columns, ...props }) => {
         columns={columns}
         filterModel={quickFilterModel} // only for quick filter
         onFilterModelChange={setQuickFilterModel}
-        rowHeight={38}
+        rowHeight={42}
         density="compact"
         initialState={{ columns: mergedColumnsState, ...props.initialState }}
         // pagination

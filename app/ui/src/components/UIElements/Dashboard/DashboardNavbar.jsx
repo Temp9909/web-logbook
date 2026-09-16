@@ -76,7 +76,7 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'exp
   '& .MuiDrawer-paper': {
     width: expanded ? DRAWER_WIDTH : MINI_DRAWER_WIDTH,
     overflowX: 'hidden',
-    paddingTop: 54,
+    boxShadow: 'inset -1px 0 rgba(255,255,255,.22)',
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: expanded
@@ -159,15 +159,18 @@ const NavItem = ({ item, depth = 0, expanded, onClose, basePath = '' }) => {
           to={hasChildren ? undefined : fullPath}
           onClick={handleClick}
           sx={{
-            minHeight: expanded ? 44 : 56,
+            minHeight: expanded ? 38 : 54,
             flexDirection: expanded ? 'row' : 'column',
             justifyContent: 'center',
             alignItems: 'center',
             px: expanded ? 1.375 : 0.5,
             pl: expanded ? 1.375 + depth * 2 : 0.5,
-            py: expanded ? 1 : 0.5,
+            py: expanded ? 0.75 : 0.5,
             backgroundColor: isSelected ? theme.palette.action.selected : 'transparent',
             boxShadow: isSelected ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+            mx: expanded ? 1 : 0.5,
+            my: 0.125,
+            borderRadius: 1.125,
           }}
         >
           {/* Icon — with tooltip only when expanded (label is visible when collapsed) */}
@@ -177,7 +180,7 @@ const NavItem = ({ item, depth = 0, expanded, onClose, basePath = '' }) => {
               mr: expanded ? 1 : 0,
               justifyContent: 'center',
               color: isSelected ? 'primary.main' : 'inherit',
-              '& .MuiSvgIcon-root': { color: isSelected ? 'primary.main' : 'inherit' },
+              '& .MuiSvgIcon-root': { color: isSelected ? 'primary.main' : 'inherit', fontSize: expanded ? 18 : 19 },
             }}
           >
             {item.icon}
@@ -187,10 +190,15 @@ const NavItem = ({ item, depth = 0, expanded, onClose, basePath = '' }) => {
           {expanded ? (
             <>
               <ListItemText
-                sx={{
-                  fontWeight: isSelected ? 600 : 400,
-                  color: isSelected ? 'primary.main' : 'inherit',
-                  m: 0,
+                sx={{ color: isSelected ? 'primary.main' : 'inherit', m: 0 }}
+                slotProps={{
+                  primary: {
+                    sx: {
+                      fontSize: '0.84375rem',
+                      fontWeight: isSelected ? 600 : 500,
+                      letterSpacing: '-0.006em',
+                    },
+                  },
                 }}
               >
                 {item.title}
@@ -249,7 +257,7 @@ const NavItem = ({ item, depth = 0, expanded, onClose, basePath = '' }) => {
 };
 
 const DrawerContent = ({ expanded, onClose }) => (
-  <Box sx={{ overflowX: 'hidden', overflowY: 'auto', flexGrow: 1 }}>
+  <Box sx={{ overflowX: 'hidden', overflowY: 'auto', flexGrow: 1, px: 0, pb: 1.5 }}>
     <List dense disablePadding>
       {NAV_ITEMS.map((item, index) => (
         <NavItem
@@ -273,7 +281,7 @@ export const DashboardNavbar = ({ expanded, mobileOpen, handleMobileClose, isMob
           open={mobileOpen}
           onClose={handleMobileClose}
           ModalProps={{ keepMounted: true }}
-          sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', paddingTop: 0 } }}
+          sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' } }}
         >
           <Toolbar sx={{ minHeight: '58px !important' }} />
           <DrawerContent expanded={true} onClose={handleMobileClose} />

@@ -44,19 +44,15 @@ function App() {
   const theme = useMemo(() => createTheme(getMPTheme(mode)), [mode]);
 
   useEffect(() => {
-    const onKeyDown = (event) => {
+    const handleShortcut = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'j') {
         event.preventDefault();
-        setMode((prev) => {
-          const next = prev === 'light' ? 'dark' : 'light';
-          localStorage.setItem('themeMode', next);
-          return next;
-        });
+        colorMode.toggleColorMode();
       }
     };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, [colorMode]);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
