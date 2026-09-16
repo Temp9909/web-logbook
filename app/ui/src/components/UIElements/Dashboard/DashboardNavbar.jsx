@@ -32,8 +32,8 @@ function LicensingCount() {
     const cfg = settings?.licenses_expiration;
     if (!cfg) return 0;
     const warningPeriod = cfg.warning_period || 90;
-    return licenses.reduce((n, license) => {
-      const exp = calculateExpiry(license.valid_until || '');
+    return (Array.isArray(licenses) ? licenses : []).reduce((n, license) => {
+      const exp = calculateExpiry(license?.valid_until || '');
       return n + (exp && exp.diffDays < warningPeriod ? 1 : 0);
     }, 0);
   }, [licenses, settings]);
