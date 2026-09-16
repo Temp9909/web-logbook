@@ -11,7 +11,7 @@ import { useLocalStorageState, CODE_BOOLEAN } from '../hooks/useLocalStorageStat
 
 export const Root = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery('(max-width:800px)');
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expanded, setExpanded] = useLocalStorageState("dashboard-expanded", true, { codec: CODE_BOOLEAN });
 
@@ -26,7 +26,7 @@ export const Root = () => {
   const handleMobileClose = useCallback(() => setMobileOpen(false), []);
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
+    <Box sx={{ display: 'flex', height: '100vh', position: 'relative', overflow: 'hidden' }}>
       <DashboardToolbar
         handleMenuToggle={handleMenuToggle}
         expanded={expanded}

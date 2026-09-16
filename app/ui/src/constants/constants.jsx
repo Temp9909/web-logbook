@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 
-export const DRAWER_WIDTH = 180;
-export const MINI_DRAWER_WIDTH = 85;
+export const DRAWER_WIDTH = 248;
+export const MINI_DRAWER_WIDTH = 72;
 
 export const TOKEN_KEY = 'token';
 export const USERNAME_KEY = 'username';

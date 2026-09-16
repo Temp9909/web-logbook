@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import updateLocale from "dayjs/plugin/updateLocale";
 import { useNavigate, Outlet } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { NotificationsProvider } from './hooks/useNotifications/useNotifications';
 // MUI UI elements
@@ -42,6 +42,21 @@ function App() {
   }), [mode]);
 
   const theme = useMemo(() => createTheme(getMPTheme(mode)), [mode]);
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'j') {
+        event.preventDefault();
+        setMode((prev) => {
+          const next = prev === 'light' ? 'dark' : 'light';
+          localStorage.setItem('themeMode', next);
+          return next;
+        });
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   return (
     <ColorModeContext.Provider value={colorMode}>

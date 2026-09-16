@@ -15,8 +15,11 @@ export const surfacesCustomizations = {
       },
       body: {
         fontFamily,
-        backgroundColor: theme.palette.background.default,
+        background: `radial-gradient(900px 500px at 80% -10%, ${alpha(theme.palette.primary.main, 0.13)}, transparent 65%), radial-gradient(700px 500px at 15% 100%, ${alpha('#AF52DE', 0.09)}, transparent 65%), ${theme.palette.background.default}`,
+        backgroundAttachment: 'fixed',
       },
+      '#root': { height: '100%' },
+
       // Discreet, overlay-style scrollbars
       '*::-webkit-scrollbar': { width: 10, height: 10 },
       '*::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
@@ -41,13 +44,13 @@ export const surfacesCustomizations = {
       root: ({ theme }) => {
         const c = apple(theme.palette.mode);
         return {
-          backgroundColor: c.materialBar,
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(35,35,39,0.88)' : 'rgba(255,255,255,0.82)',
           backgroundImage: 'none',
           color: theme.palette.text.primary,
           backdropFilter: 'saturate(180%) blur(20px)',
           WebkitBackdropFilter: 'saturate(180%) blur(20px)',
           borderBottom: `1px solid ${c.separator}`,
-          boxShadow: 'none',
+          boxShadow: '0 1px 0 rgba(0,0,0,0.04)',
         };
       },
     },
@@ -64,12 +67,12 @@ export const surfacesCustomizations = {
       paper: ({ theme }) => {
         const c = apple(theme.palette.mode);
         return {
-          backgroundColor: c.materialSidebar,
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(35,35,39,0.70)' : 'rgba(255,255,255,0.68)',
           backgroundImage: 'none',
           backdropFilter: 'saturate(180%) blur(20px)',
           WebkitBackdropFilter: 'saturate(180%) blur(20px)',
           borderRight: `1px solid ${c.separator}`,
-          boxShadow: 'none',
+          boxShadow: 'inset -1px 0 rgba(255,255,255,0.28)',
         };
       },
     },
@@ -78,7 +81,12 @@ export const surfacesCustomizations = {
   MuiPaper: {
     defaultProps: { elevation: 0 },
     styleOverrides: {
-      root: { backgroundImage: 'none' },
+      root: ({ theme }) => ({
+        backgroundImage: 'none',
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(35,35,39,0.88)' : 'rgba(255,255,255,0.82)',
+        backdropFilter: 'saturate(180%) blur(22px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(22px)',
+      }),
       rounded: { borderRadius: 12 },
       outlined: ({ theme }) => ({
         border: `1px solid ${apple(theme.palette.mode).separator}`,
@@ -94,8 +102,26 @@ export const surfacesCustomizations = {
         border: `1px solid ${apple(theme.palette.mode).separator}`,
         backgroundColor: theme.palette.background.paper,
         backgroundImage: 'none',
-        boxShadow: 'none',
-        transition: 'box-shadow 200ms ease, transform 200ms ease',
+        boxShadow: theme.shadows[2],
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(35,35,39,0.88)' : 'rgba(255,255,255,0.82)',
+        backdropFilter: 'saturate(180%) blur(22px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(22px)',
+        transition: 'box-shadow 180ms ease, transform 180ms ease',
+        '&:hover': { boxShadow: theme.shadows[3] },
+      }),
+    },
+  },
+
+  MuiTableContainer: {
+    styleOverrides: {
+      root: ({ theme }) => ({
+        borderRadius: 14,
+        border: `1px solid ${apple(theme.palette.mode).separator}`,
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(35,35,39,0.88)' : 'rgba(255,255,255,0.82)',
+        backdropFilter: 'saturate(180%) blur(22px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(22px)',
+        boxShadow: theme.shadows[2],
+        overflow: 'auto',
       }),
     },
   },

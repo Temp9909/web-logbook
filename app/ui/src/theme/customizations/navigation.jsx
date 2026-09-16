@@ -9,9 +9,10 @@ export const navigationCustomizations = {
   MuiListItemButton: {
     styleOverrides: {
       root: ({ theme }) => ({
-        borderRadius: 8,
+        borderRadius: 9,
         marginInline: 6,
         transition: 'background-color 140ms ease',
+        padding: '8px 11px',
         '&:hover': { backgroundColor: apple(theme.palette.mode).fill },
         '&.Mui-selected': {
           backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.26 : 0.12),
@@ -70,7 +71,7 @@ export const navigationCustomizations = {
     defaultProps: { arrow: false },
     styleOverrides: {
       tooltip: ({ theme }) => ({
-        borderRadius: 8,
+        borderRadius: 9,
         padding: '6px 10px',
         fontSize: '0.75rem',
         fontWeight: 500,

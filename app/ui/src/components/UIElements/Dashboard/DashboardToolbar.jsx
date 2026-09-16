@@ -94,7 +94,7 @@ export const DashboardToolbar = ({ handleMenuToggle, expanded, isMobile }) => {
       elevation={0}
       sx={{ zIndex: 30000 }}
     >
-      <Toolbar>
+      <Toolbar sx={{ minHeight: '58px !important', px: 2.25 }}>
         <IconButton edge="start" aria-label="toggle drawer" onClick={handleMenuToggle} sx={{ mr: 1 }}>
           {(!isMobile && expanded) ? <MenuOpenIcon /> : <MenuIcon />}
         </IconButton>

@@ -76,6 +76,7 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'exp
   '& .MuiDrawer-paper': {
     width: expanded ? DRAWER_WIDTH : MINI_DRAWER_WIDTH,
     overflowX: 'hidden',
+    paddingTop: 54,
     transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: expanded
@@ -162,10 +163,11 @@ const NavItem = ({ item, depth = 0, expanded, onClose, basePath = '' }) => {
             flexDirection: expanded ? 'row' : 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            px: expanded ? 1.5 : 0.5,
-            pl: expanded ? 1.5 + depth * 2 : 0.5,
+            px: expanded ? 1.375 : 0.5,
+            pl: expanded ? 1.375 + depth * 2 : 0.5,
             py: expanded ? 1 : 0.5,
             backgroundColor: isSelected ? theme.palette.action.selected : 'transparent',
+            boxShadow: isSelected ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
           }}
         >
           {/* Icon — with tooltip only when expanded (label is visible when collapsed) */}
@@ -271,9 +273,9 @@ export const DashboardNavbar = ({ expanded, mobileOpen, handleMobileClose, isMob
           open={mobileOpen}
           onClose={handleMobileClose}
           ModalProps={{ keepMounted: true }}
-          sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' } }}
+          sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', paddingTop: 0 } }}
         >
-          <Toolbar />
+          <Toolbar sx={{ minHeight: '58px !important' }} />
           <DrawerContent expanded={true} onClose={handleMobileClose} />
         </Drawer>
       )}
@@ -281,7 +283,7 @@ export const DashboardNavbar = ({ expanded, mobileOpen, handleMobileClose, isMob
       {/* Desktop: mini permanent drawer */}
       {!isMobile && (
         <StyledDrawer variant="permanent" expanded={expanded}>
-          <Toolbar />
+          <Toolbar sx={{ minHeight: '58px !important' }} />
           <DrawerContent expanded={expanded} onClose={null} />
         </StyledDrawer>
       )}
