@@ -56,33 +56,31 @@
     overflow-y: auto;
   }
   .sidebar-brand {
-    display: flex; align-items: center; gap: 10px;
-    margin: -48px 4px 14px; padding: 7px 6px;
-    color: var(--label); text-decoration: none;
-    font-size: 15px; font-weight: 700; letter-spacing: -0.018em;
+    display: flex; align-items: center; gap: 9px;
+    padding: 4px 10px 14px; margin-bottom: 6px;
+    border-bottom: 1px solid var(--separator);
   }
-  .sidebar-brand-mark {
-    width: 30px; height: 30px; border-radius: 9px;
-    display: grid; place-items: center; flex: 0 0 auto;
-    color: #fff; background: var(--blue);
-    box-shadow: 0 5px 14px rgba(0,122,255,.22);
+  .sidebar-brand-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; flex-shrink: 0;
+    color: var(--blue);
   }
-  .sidebar-brand-mark img { width: 20px; height: 20px; filter: brightness(0) invert(1); }
+  .sidebar-brand-icon svg { width: 20px; height: 20px; }
+  .sidebar-brand-name {
+    font-size: 15px; font-weight: 700; letter-spacing: -0.015em;
+    color: var(--label);
+  }
   .nav-item {
     display: flex; align-items: center; gap: 10px;
-    padding: 7px 10px; border-radius: 8px; margin: 1px 0;
-    font-size: 13.5px; font-weight: 500;
+    padding: 7px 10px; border-radius: 8px; margin: 1px 0;    font-size: 13.5px; font-weight: 500;
     color: var(--label); cursor: pointer;
     transition: background-color .14s ease, color .14s ease;
     user-select: none;
   }
   .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; opacity: .85; }
-  .nav-item .nav-aircraft-icon { width: 17px; height: 17px; flex-shrink: 0; opacity: .85; }
-  [data-theme="dark"] .nav-item .nav-aircraft-icon { filter: invert(1); }
   .nav-item:hover { background: var(--fill); }
   .nav-item.selected { background: var(--tint); color: var(--blue); font-weight: 600; }
   .nav-item.selected svg { opacity: 1; }
-  .nav-item.selected .nav-aircraft-icon { opacity: 1; filter: invert(38%) sepia(99%) saturate(3216%) hue-rotate(202deg) brightness(103%) contrast(103%); }
   .nav-sep { height: 1px; background: var(--separator); margin: 7px 10px; }
   .nav-caret { margin-left: auto; opacity: .45; }
 
@@ -98,8 +96,6 @@
     padding: 0 18px;
   }
   .topbar .title { font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
-  .topbar-logo { width: 21px; height: 21px; opacity: .82; }
-  [data-theme="dark"] .topbar-logo { filter: invert(1); }
   .spacer { flex: 1; }
   .icon-btn {
     width: 32px; height: 32px; border: 0; border-radius: 8px; cursor: pointer;
@@ -1786,7 +1782,7 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
   transition:background-color .18s ease;
 }
 [data-theme="dark"] .apple-switch-control { background:#3A3A3E; }
-.apple-switch-control input { position:absolute; opacity:0; pointer-events:none; }
+.apple-switch-control input { position:absolute; inset:0; opacity:0; margin:0; padding:0; border:0; -webkit-appearance:none; appearance:none; pointer-events:none; }
 .apple-switch-knob {
   display:block;
   width:16px;

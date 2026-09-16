@@ -172,7 +172,7 @@ export const SwitchRow = ({ label, sub, checked = false, onChange, disabled = fa
       {sub ? <div className="sub">{sub}</div> : null}
     </div>
     <span className="spacer" />
-    <button type="button" role="switch" className={`switch${checked ? ' on' : ''}`} aria-checked={checked} aria-label={label} disabled={disabled} onClick={() => onChange?.(!checked)}><span className="sr-only">{label}</span></button>
+    <button type="button" className={`switch${checked ? ' on' : ''}`} aria-pressed={checked} disabled={disabled} onClick={() => onChange?.(!checked)}><span className="sr-only">{label}</span></button>
   </div>
 );
 
