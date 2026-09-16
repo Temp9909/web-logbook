@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 // MUI
-import Grid from '@mui/material/Grid';
 import LinearProgress from '@mui/material/LinearProgress';
 // Custom
 import { useErrorNotification } from '../../hooks/useAppNotifications';
 import { fetchAttachments } from '../../util/http/attachment';
 import AttachmentsTable from './AttachmentsTable';
 import AttachmentPreview from './AttachmentPreview';
+import AppleLegacyHeading from "../UIElements/AppleLegacyHeading";
+import ApplePanel from "../UIElements/ApplePanel";
 
 export const Attachments = () => {
   const [selectedAttachment, setSelectedAttachment] = useState({});
@@ -21,16 +22,18 @@ export const Attachments = () => {
   useErrorNotification({ isError, error, fallbackMessage: 'Failed to load attachments' });
 
   return (
-    <Grid container spacing={1} >
-      <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-        {isLoading && <LinearProgress />}
-        <AttachmentsTable attachments={attachments} setSelectedAttachment={setSelectedAttachment} />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-        <AttachmentPreview attachment={selectedAttachment} />
-      </Grid>
-    </Grid>
+    <section className="apple-legacy-screen apple-attachments-screen">
+      <AppleLegacyHeading title="Attachments" subtitle="Browse and manage documents attached to your logbook." />
+      <div className="apple-split-layout apple-attachments-layout">
+        <ApplePanel title="Files" subtitle="Select an attachment to preview it.">
+          {isLoading && <LinearProgress />}
+          <AttachmentsTable attachments={attachments} setSelectedAttachment={setSelectedAttachment} embedded />
+        </ApplePanel>
+        <div className="apple-sticky-column">
+          <AttachmentPreview attachment={selectedAttachment} />
+        </div>
+      </div>
+    </section>
   );
 }
 

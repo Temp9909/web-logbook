@@ -8,7 +8,7 @@ import XDataGrid from '../UIElements/XDataGrid/XDataGrid';
 import CopyAirportButton from './CopyAirportButton';
 import TableActionHeader from '../UIElements/TableActionHeader';
 
-export const StandardAirportsTable = ({ data, isLoading }) => {
+export const StandardAirportsTable = ({ data, isLoading, embedded = false }) => {
   const apiRef = useGridApiRef();
 
   const columns = useMemo(() => [
@@ -40,8 +40,8 @@ export const StandardAirportsTable = ({ data, isLoading }) => {
     <XDataGrid
       apiRef={apiRef}
       tableId='standard-airports'
-      title="Standard Airports"
-      icon={<FlightTakeoffOutlinedIcon />}
+      title={embedded ? "" : "Standard Airports"}
+      icon={embedded ? null : <FlightTakeoffOutlinedIcon />}
       loading={isLoading}
       rows={data}
       columns={columns}

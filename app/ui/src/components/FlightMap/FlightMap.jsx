@@ -10,11 +10,8 @@ import FullScreen from 'ol/control/FullScreen';
 import Overlay from 'ol/Overlay';
 import { transform } from 'ol/proj';
 // MUI UI elements
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Typography from '@mui/material/Typography';
 // Custom components and libraries
-import { CardHeader } from '../UIElements/CardHeader';
+import ApplePanel from '../UIElements/ApplePanel';
 import { queryClient } from '../../util/http/http';
 import { fetchAirport } from '../../util/http/airport';
 import { DownloadMapButton } from './DownloadMapButton';
@@ -210,39 +207,39 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap }) => {
 
   return (
     <>
-      <Card variant="outlined" sx={{ ...sx, height: "85vh", position: "relative" }}>
-        <CardContent sx={{ height: "100%" }}>
-          <CardHeader title={title}
-            action={
-              <>
-                <DownloadMapButton map={map} />
-                <MapOptionsButton />
-              </>
-            } />
-          <div ref={mapRef} style={{ width: "100%", height: "calc(100% - 50px)", borderRadius: "4px", overflow: "hidden" }} />
+      <ApplePanel
+        className="apple-map-panel"
+        title={title}
+        actions={(
+          <>
+            <DownloadMapButton map={map} />
+            <MapOptionsButton />
+          </>
+        )}
+      >
+        <div className="apple-map-canvas-wrap" style={sx}>
+          <div ref={mapRef} className="apple-map-canvas" />
           {distance > 0 && (
-            <Typography sx={{ mt: 1 }}>
-              {`Distance: ${distance.toLocaleString(undefined, { maximumFractionDigits: 2, })} nm / ${(distance * 1.852).toLocaleString(undefined, { maximumFractionDigits: 2, })} km`}
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card ref={containerRef} sx={{ display: selectedFeature ? "block" : "none" }}>
-        <CardContent sx={{ position: "relative", pt: 4 }}>
-          <a href="#" id="popup-closer" onClick={handleClosePopup}></a>
-          {selectedFeature && (
-            <div id="popup-content">
-              <Typography variant="subtitle2" sx={{ mb: 1 }}><strong>Airport:</strong> {selectedFeature.code}</Typography>
-              <Typography variant="body2"><strong>Name:</strong> {selectedFeature.name}</Typography>
-              <Typography variant="body2"><strong>Country:</strong> {selectedFeature.country}</Typography>
-              <Typography variant="body2"><strong>City:</strong> {selectedFeature.city}</Typography>
-              <Typography variant="body2"><strong>Elevation:</strong> {selectedFeature.elevation}</Typography>
-              <Typography variant="body2"><strong>Lat/Lon:</strong> {selectedFeature.coordinates}</Typography>
+            <div className="apple-map-distance">
+              {`Distance: ${distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} nm / ${(distance * 1.852).toLocaleString(undefined, { maximumFractionDigits: 2 })} km`}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </ApplePanel>
+
+      <div ref={containerRef} className={`apple-map-popup card${selectedFeature ? ' is-open' : ''}`}>
+        <a href="#" id="popup-closer" onClick={handleClosePopup} aria-label="Close airport details"></a>
+        {selectedFeature && (
+          <div id="popup-content" className="apple-map-popup-content">
+            <div className="apple-map-popup-title">{selectedFeature.code}</div>
+            <div><strong>Name:</strong> {selectedFeature.name}</div>
+            <div><strong>Country:</strong> {selectedFeature.country}</div>
+            <div><strong>City:</strong> {selectedFeature.city}</div>
+            <div><strong>Elevation:</strong> {selectedFeature.elevation}</div>
+            <div><strong>Lat/Lon:</strong> {selectedFeature.coordinates}</div>
+          </div>
+        )}
+      </div>
     </>
   );
 };

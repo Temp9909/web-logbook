@@ -1,0 +1,45 @@
+APPLE V6 REAL REBUILD
+
+This is the structural rebuild requested after V5 proved that CSS-only theming was not enough.
+
+Pages rebuilt with native Apple-style React/HTML shells (not just a MUI skin):
+- New flight / Flight record
+- Export
+- Import
+- Map
+- Add a rating / Rating details
+- Airports: Standard airports, Airport DB source, Custom airports
+- Aircrafts: Aircrafts, Types & Categories
+- Persons + Person detail
+- Attachments
+- Settings
+- Previous flight experience
+- Logbook signature
+- Standard fields
+- Custom fields
+
+Submenus/dialogs rebuilt with native Apple dialog structure:
+- Custom airport editor
+- Person editor
+- Add person to flight
+- Custom field editor
+- Import options
+- Import field mapping
+- Import progress
+- Map options
+- Show/Hide flight fields
+- Flight signature
+- Aircraft editor
+- Aircraft category editor
+
+Shared legacy data-grid toolbar was also rebuilt to match the Apple logbook toolbar language.
+
+Intentionally preserved:
+- Logbook main page design
+- Stats main design
+- Backend/API logic and existing actions
+
+Validation performed locally:
+- All 259 JS/JSX/TS/TSX source files parsed successfully with the TypeScript JSX parser.
+- Relative imports resolve for the rebuilt source files (excluding a pre-existing unused duplicate XDataGrid.jsx file).
+- A full Vite build could not be executed in this environment because npm dependencies cannot be downloaded here.

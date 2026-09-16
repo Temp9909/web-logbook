@@ -2,15 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 // MUI UI elements
-import Grid from "@mui/material/Grid";
 import LinearProgress from '@mui/material/LinearProgress';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 // Custom components and libraries
 import { useErrorNotification } from "../../hooks/useAppNotifications";
 import { fetchLicense } from "../../util/http/licensing";
 import { LICENSE_INITIAL_STATE } from "../../constants/constants";
-import CardHeader from "../UIElements/CardHeader";
 import LicenseRecordDetails from "./LicenseRecordDetails";
 import LicensePreview from "./LicensePreview";
 import SaveLicenseRecordButton from "./SaveLicenseRecordButton";
@@ -18,6 +14,8 @@ import DeleteLicenseRecordButton from "./DeleteLicenseRecordButton";
 import DeleteLicenseRecordButtonAttachment from "./DeleteLicenseRecordAttachmentButton";
 import DownloadLicenseAttachmentButton from "./DownloadLicenseRecordAttachmentButton";
 import HelpButton from "./HelpButton";
+import AppleLegacyHeading from "../UIElements/AppleLegacyHeading";
+import ApplePanel from "../UIElements/ApplePanel";
 
 export const LicenseRecord = () => {
   const { id } = useParams();
@@ -42,33 +40,33 @@ export const LicenseRecord = () => {
   }, []);
 
   return (
-    <>
+    <section className="apple-legacy-screen apple-license-record-screen">
+      <AppleLegacyHeading
+        title={id === "new" ? "Add a rating" : "Rating details"}
+        subtitle={id === "new" ? "Add a licence, rating or certification record." : "Review and update this licensing record."}
+      />
       {isLoading && <LinearProgress />}
-      <Grid container spacing={1} >
-        <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-          <Card variant="outlined" sx={{ mb: 1 }}>
-            <CardContent>
-              <CardHeader title="License & Certification Record"
-                action={
-                  <>
-                    <HelpButton />
-                    {license.document && <DownloadLicenseAttachmentButton license={license} />}
-                    <SaveLicenseRecordButton license={license} handleChange={handleChange} />
-                    <DeleteLicenseRecordButton license={license} />
-                    <DeleteLicenseRecordButtonAttachment license={license} />
-                  </>
-                }
-              />
-              <LicenseRecordDetails license={license} handleChange={handleChange} />
-            </CardContent>
-          </Card >
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
+      <div className="apple-split-layout apple-license-layout">
+        <ApplePanel
+          title="License & certification record"
+          subtitle="Enter the rating details and validity dates."
+          actions={(
+            <>
+              <HelpButton />
+              {license.document && <DownloadLicenseAttachmentButton license={license} />}
+              <SaveLicenseRecordButton license={license} handleChange={handleChange} />
+              <DeleteLicenseRecordButton license={license} />
+              <DeleteLicenseRecordButtonAttachment license={license} />
+            </>
+          )}
+        >
+          <LicenseRecordDetails license={license} handleChange={handleChange} />
+        </ApplePanel>
+        <div className="apple-sticky-column">
           <LicensePreview license={license} />
-        </Grid>
-      </Grid>
-    </>
+        </div>
+      </div>
+    </section>
   );
 }
 

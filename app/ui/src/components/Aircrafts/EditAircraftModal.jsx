@@ -2,8 +2,6 @@ import { useCallback, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 // MUI UI elements
 import Dialog from '@mui/material/Dialog';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
@@ -13,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 // Custom
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import TextField from "../UIElements/TextField";
 import AircraftCategories from '../UIElements/AircraftCategories';
 import { updateAircraft } from '../../util/http/aircraft';
@@ -64,16 +62,14 @@ export const EditAircraftModal = ({ open, onClose, payload }) => {
 
   return (
     <Dialog fullWidth open={open} onClose={() => onClose()}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title="Edit Aircraft"
-            action={
-              <>
-                <SaveButton aircraft={{ ...aircraft, model_change: (aircraft.model !== payload.model) }} onClose={onClose} />
-                <CloseDialogButton onClose={onClose} />
-              </>
-            }
-          />
+      <AppleDialogPanel
+        title="Edit aircraft"
+        subtitle="Registration, type and category information."
+        actions={<>
+          <SaveButton aircraft={{ ...aircraft, model_change: (aircraft.model !== payload.model) }} onClose={onClose} />
+          <CloseDialogButton onClose={onClose} />
+        </>}
+      >
           <Grid container spacing={1}>
             <TextField gsize={{ xs: 6, sm: 6, md: 6, lg: 6, xl: 6 }}
               id="reg"
@@ -117,8 +113,7 @@ export const EditAircraftModal = ({ open, onClose, payload }) => {
               </Typography>
             </>
           )}
-        </CardContent>
-      </Card >
+      </AppleDialogPanel>
     </Dialog>
   )
 }

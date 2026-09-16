@@ -1,14 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-// MUI
-import Grid from "@mui/material/Grid";
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-// Custom
 import StandardAirportsTable from "./StandardAirportsTable";
 import AirportsDB from "./AirportsDB";
 import CustomAirportsTable from "./CustomAirportsTable";
 import { useErrorNotification } from "../../hooks/useAppNotifications";
 import { fetchCustomAirports, fetchStandardAirports } from "../../util/http/airport";
+import AppleLegacyHeading from "../UIElements/AppleLegacyHeading";
+import ApplePanel from "../UIElements/ApplePanel";
+import UpdateAirportsDBButton from "./UpdateAirportsDBButton";
 
 export const Airports = () => {
   const { data: standardAirportsData, isLoading: isStandardAirportsLoading, isError: isStandardAirportsError, error: standardAirportsError } = useQuery({
@@ -28,23 +26,28 @@ export const Airports = () => {
   useErrorNotification({ isCustomAirportsError, customAirportsError, fallbackMessage: 'Failed to load airports' });
 
   return (
-    <>
-      <Grid container spacing={1} >
-        <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-          <StandardAirportsTable data={standardAirportsData} isLoading={isStandardAirportsLoading} />
-        </Grid>
+    <section className="apple-legacy-screen apple-airports-screen">
+      <AppleLegacyHeading title="Airports" subtitle="Standard airports, database source and your custom airports." />
+      <div className="apple-stack">
+        <ApplePanel title="Standard airports" subtitle="Browse the airport database used by the logbook.">
+          <StandardAirportsTable data={standardAirportsData} isLoading={isStandardAirportsLoading} embedded />
+        </ApplePanel>
 
-        <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-          <Card variant="outlined" sx={{ mb: 1 }}>
-            <CardContent>
-              <AirportsDB />
-            </CardContent>
-          </Card >
+        <div className="apple-split-layout apple-airports-lower">
+          <ApplePanel
+            title="Airport DB source"
+            subtitle="Choose the source and refresh the airports database."
+            actions={<UpdateAirportsDBButton />}
+          >
+            <AirportsDB embedded />
+          </ApplePanel>
 
-          <CustomAirportsTable data={customAirportsData} isLoading={isCustomAirportsLoading} />
-        </Grid>
-      </Grid>
-    </>
+          <ApplePanel title="Custom airports" subtitle="Create and manage your own airports.">
+            <CustomAirportsTable data={customAirportsData} isLoading={isCustomAirportsLoading} embedded />
+          </ApplePanel>
+        </div>
+      </div>
+    </section>
   );
 }
 

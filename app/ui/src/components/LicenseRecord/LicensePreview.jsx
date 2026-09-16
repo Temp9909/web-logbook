@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { fileTypeFromBuffer } from 'file-type';
 // MUI UI elements
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 // Custom components and libraries
-import CardHeader from '../UIElements/CardHeader';
+import ApplePanel from '../UIElements/ApplePanel';
 
 const decodeBase64 = async (base64String) => {
   const binaryString = atob(base64String);
@@ -78,12 +76,9 @@ export const LicensePreview = ({ license }) => {
   };
 
   return (
-    <Card variant="outlined">
-      <CardContent>
-        <CardHeader title="License Record Preview" />
-        {renderPreview()}
-      </CardContent>
-    </Card>
+    <ApplePanel title="Document preview" subtitle="Preview the document attached to this licensing record.">
+      <div className="apple-document-preview">{renderPreview()}</div>
+    </ApplePanel>
   );
 };
 

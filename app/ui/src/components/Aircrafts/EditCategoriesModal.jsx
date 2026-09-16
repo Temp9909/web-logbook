@@ -2,8 +2,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 // MUI UI elements
 import Dialog from '@mui/material/Dialog';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
@@ -16,7 +14,7 @@ import Box from '@mui/material/Box';
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 // Custom
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import TextField from "../UIElements/TextField";
 import AircraftCategories from '../UIElements/AircraftCategories';
 import { updateAircraftModelsCategories } from '../../util/http/aircraft';
@@ -86,16 +84,14 @@ export const EditCategoriesModal = ({ open, onClose, payload }) => {
 
   return (
     <Dialog fullWidth open={open} onClose={() => onClose()}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title="Edit Categories"
-            action={
-              <>
-                <SaveButton category={category} onClose={onClose} />
-                <CloseDialogButton onClose={onClose} />
-              </>
-            }
-          />
+      <AppleDialogPanel
+        title="Edit categories"
+        subtitle="Aircraft categories and automatic time-field rules."
+        actions={<>
+          <SaveButton category={category} onClose={onClose} />
+          <CloseDialogButton onClose={onClose} />
+        </>}
+      >
           <Grid container spacing={1}>
             <TextField gsize={{ xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }}
               id="model"
@@ -134,8 +130,7 @@ export const EditCategoriesModal = ({ open, onClose, payload }) => {
           <Typography variant="caption" color="textSecondary">
             * To create a new category, type the name in the input field and press Enter
           </Typography>
-        </CardContent>
-      </Card >
+      </AppleDialogPanel>
     </Dialog>
   )
 }

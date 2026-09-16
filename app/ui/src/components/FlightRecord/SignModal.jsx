@@ -3,8 +3,6 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import SignaturePad from 'signature_pad';
 // MUI UI elements
 import Dialog from '@mui/material/Dialog';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
@@ -15,7 +13,7 @@ import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import CleaningServicesOutlinedIcon from '@mui/icons-material/CleaningServicesOutlined';
 import ColorizeOutlinedIcon from "@mui/icons-material/ColorizeOutlined";
 // Custom
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import { fetchFlightRecordSignature, updateFlightRecordSignature } from '../../util/http/logbook';
 import { useErrorNotification } from '../../hooks/useAppNotifications';
 import { queryClient } from '../../util/http/http';
@@ -189,19 +187,16 @@ export const SignModal = ({ open, onClose, payload }) => {
 
   return (
     <Dialog fullWidth open={open} onClose={() => onClose()}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title={"Signature"}
-            action={<ActionButtons onClose={onClose} uuid={payload.uuid} signature={signature} setSignature={setSignature} setPenColor={setPenColor} />} />
-          {signatureLoading && <LinearProgress />}
-          <Grid container spacing={1}>
-            <canvas
-              ref={canvasRef}
-              style={{ border: '1px solid #ccc', width: '100%', height: '150px' }}
-            />
-          </Grid>
-        </CardContent>
-      </Card >
+      <AppleDialogPanel
+        title="Signature"
+        subtitle="Draw and save the signature for this flight record."
+        actions={<ActionButtons onClose={onClose} uuid={payload.uuid} signature={signature} setSignature={setSignature} setPenColor={setPenColor} />}
+      >
+        {signatureLoading && <LinearProgress />}
+        <div className="apple-signature-pad">
+          <canvas ref={canvasRef} className="apple-signature-canvas" />
+        </div>
+      </AppleDialogPanel>
     </Dialog>
   )
 }

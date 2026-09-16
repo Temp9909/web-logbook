@@ -3,8 +3,6 @@ import { useLocalStorageState, CODEC_JSON } from '../../hooks/useLocalStorageSta
 // MUI UI elements
 import MenuItem from '@mui/material/MenuItem';
 import Dialog from '@mui/material/Dialog';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
@@ -14,7 +12,7 @@ import Switch from "@mui/material/Switch";
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 // Custom
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import { FIELDS_VISIBILITY_KEY } from '../../constants/constants';
 import useSettings from '../../hooks/useSettings';
 import { useDialogs } from '../../hooks/useDialogs/useDialogs';
@@ -56,9 +54,11 @@ const ShowHideFieldsModal = ({ open, onClose }) => {
 
   return (
     <Dialog fullWidth open={open} onClose={() => onClose()}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title="Show/Hide Fields" action={<CloseDialogButton onClose={onClose} />} />
+      <AppleDialogPanel
+        title="Show / hide fields"
+        subtitle="Choose which fields are visible on the flight form."
+        actions={<CloseDialogButton onClose={onClose} />}
+      >
           <Grid container spacing={1}>
             {fields.map((field) => (
               <Grid key={field.id} size={{ xs: 6, sm: 4, md: 4, lg: 4, xl: 4 }}>
@@ -73,8 +73,7 @@ const ShowHideFieldsModal = ({ open, onClose }) => {
               </Grid>
             ))}
           </Grid>
-        </CardContent>
-      </Card >
+      </AppleDialogPanel>
     </Dialog>
   )
 }

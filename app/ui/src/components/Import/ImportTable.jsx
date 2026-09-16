@@ -8,7 +8,7 @@ import RunImportButton from './RunImportButton';
 import HelpButton from './HelpButton';
 import LogbookTable from '../Logbook/LogbookTable';
 
-export const ImportTable = () => {
+export const ImportTable = ({ embedded = false }) => {
   const [data, setData] = useState([]);
 
   const customActions = (
@@ -25,8 +25,8 @@ export const ImportTable = () => {
       <LogbookTable
         data={data}
         customActions={customActions}
-        title="Import"
-        icon={<FileUploadOutlinedIcon />}
+        title={embedded ? "" : "Import"}
+        icon={embedded ? null : <FileUploadOutlinedIcon />}
         disableColumnSorting
         disableColumnMenu
       />

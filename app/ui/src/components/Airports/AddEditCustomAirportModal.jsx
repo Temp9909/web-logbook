@@ -2,8 +2,6 @@ import { useCallback, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 // MUI UI elements
 import Dialog from '@mui/material/Dialog';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
@@ -11,7 +9,7 @@ import Grid from "@mui/material/Grid";
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 // Custom
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import TextField from "../UIElements/TextField";
 import { queryClient } from '../../util/http/http';
 import { useErrorNotification, useSuccessNotification } from '../../hooks/useAppNotifications';
@@ -67,16 +65,14 @@ export const AddEditCustomAirportModal = ({ open, onClose, payload }) => {
 
   return (
     <Dialog fullWidth open={open} onClose={() => onClose()}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title={`Custom Airport ${airport?.name || ''}`}
-            action={
-              <>
-                <SaveButton airport={airport} onClose={onClose} isNew={isNew} />
-                <CloseDialogButton onClose={onClose} />
-              </>
-            }
-          />
+      <AppleDialogPanel
+        title={isNew ? "New custom airport" : `Custom airport ${airport?.name || ''}`}
+        subtitle="Create or edit an airport used by your logbook."
+        actions={<>
+          <SaveButton airport={airport} onClose={onClose} isNew={isNew} />
+          <CloseDialogButton onClose={onClose} />
+        </>}
+      >
           <Grid container spacing={1}>
             <TextField gsize={{ xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }}
               id="name"
@@ -117,8 +113,7 @@ export const AddEditCustomAirportModal = ({ open, onClose, payload }) => {
               value={airport.lon}
             />
           </Grid>
-        </CardContent>
-      </Card >
+      </AppleDialogPanel>
     </Dialog>
   )
 }

@@ -1,15 +1,13 @@
 import { useMemo } from "react";
 // MUI
 import Grid from "@mui/material/Grid";
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardHeader from "../../UIElements/CardHeader";
 // Custom
 import SaveSettingsButton from '../SaveSettingsButton';
 import useSettings from "../../../hooks/useSettings";
 import { getValue } from "../../../util/helpers";
 import TextField from "../../UIElements/TextField";
 import HelpButton from './HelpButton';
+import ApplePanel from '../../UIElements/ApplePanel';
 
 const gsize = { xs: 8, sm: 3, md: 3, lg: 3, xl: 3 }
 
@@ -66,10 +64,12 @@ export const PreviousExperience = ({ settings, handleChange }) => {
   ), [fieldNameF]);
 
   return (
-    <Card variant="outlined" sx={{ mb: 1 }}>
-      <CardContent>
-        <CardHeader title="Previous Flight Experience" action={<ActionButtons settings={settings} />} />
-        <Grid container spacing={1} sx={{ mt: 1 }} columns={24}>
+    <ApplePanel
+      title="Previous flight experience"
+      subtitle="Enter totals accumulated before the first flight stored in this logbook."
+      actions={<ActionButtons settings={settings} />}
+    >
+        <Grid container spacing={1} columns={24}>
           {timeFields.map((field) => (
             <TextField
               gsize={gsize}
@@ -87,9 +87,7 @@ export const PreviousExperience = ({ settings, handleChange }) => {
               value={getValue(settings, field.id) || ""} />
           ))}
         </Grid>
-
-      </CardContent>
-    </Card>
+    </ApplePanel>
   )
 }
 

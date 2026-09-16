@@ -1,15 +1,13 @@
 import { useCallback, useState } from "react";
 // MUI UI elements
 import Dialog from "@mui/material/Dialog";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
 // MUI Icons
 import DisabledByDefaultOutlinedIcon from "@mui/icons-material/DisabledByDefaultOutlined";
 // Custom
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import TextField from "../UIElements/TextField";
 import { printPerson } from "../../util/helpers";
 import SavePersonButton from "./SavePersonButton";
@@ -34,17 +32,14 @@ export const AddEditPersonModal = ({ open, onClose, payload }) => {
 
   return (
     <Dialog fullWidth open={open} onClose={() => onClose()}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader
-            title={isNew ? 'New person' : `Person: ${printPerson(person)}`}
-            action={
-              <>
-                <SavePersonButton person={person} onClose={onClose} isNew={isNew} />
-                <CloseDialogButton onClose={() => onClose()} />
-              </>
-            }
-          />
+      <AppleDialogPanel
+        title={isNew ? 'New person' : `Person: ${printPerson(person)}`}
+        subtitle="Contact and crew information."
+        actions={<>
+          <SavePersonButton person={person} onClose={onClose} isNew={isNew} />
+          <CloseDialogButton onClose={() => onClose()} />
+        </>}
+      >
           <Grid container spacing={1}>
             <TextField
               gsize={{ xs: 12, sm: 4, md: 4, lg: 4, xl: 4 }}
@@ -89,8 +84,7 @@ export const AddEditPersonModal = ({ open, onClose, payload }) => {
               value={person.remarks}
             />
           </Grid>
-        </CardContent>
-      </Card>
+      </AppleDialogPanel>
     </Dialog>
   );
 };

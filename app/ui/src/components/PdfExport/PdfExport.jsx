@@ -1,12 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-// MUI
-import Grid from "@mui/material/Grid";
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import LinearProgress from "@mui/material/LinearProgress";
-// Custom
-import CardHeader from "../UIElements/CardHeader";
 import { useErrorNotification } from "../../hooks/useAppNotifications";
 import { fetchSettings } from "../../util/http/settings";
 import RestoreDefaultsButton from "./RestoreDefaultsButton";
@@ -17,6 +11,8 @@ import ExportButton from "./ExportButton";
 import CustomTitlePreview from "./CustomTitlePreview";
 import AddCustomTitleButton from "./AddCustomTitleButton";
 import DeleteCustomTitleButton from "./DeleteCustomTitleButton";
+import AppleLegacyHeading from "../UIElements/AppleLegacyHeading";
+import ApplePanel from "../UIElements/ApplePanel";
 
 export const PdfExport = ({ format }) => {
   const [pdfSettings, setPdfSettings] = useState({ columns: {}, headers: {} });
@@ -29,7 +25,6 @@ export const PdfExport = ({ format }) => {
 
   useEffect(() => {
     if (data) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       format === "A4" ? setPdfSettings(data.export_a4) : setPdfSettings(data.export_a5);
     }
   }, [data, format]);
@@ -39,51 +34,56 @@ export const PdfExport = ({ format }) => {
   const handleHeaderChange = (key, value) => { setPdfSettings((prev) => ({ ...prev, headers: { ...prev.headers, [key]: value } })) };
 
   return (
-    <>
+    <section className="apple-legacy-screen apple-export-screen">
+      <AppleLegacyHeading title="Export" subtitle={`Configure and export your ${format} logbook.`} />
       {isLoading && <LinearProgress />}
-      <Grid container spacing={1} >
-        <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-          <Card variant="outlined" sx={{ mb: 1 }}>
-            <CardContent>
-              <CardHeader title="Page Settings" action={
-                <>
-                  <ExportButton format={format} />
-                  <SaveSettingsButton settings={pdfSettings} format={format} />
-                  <RestoreDefaultsButton format={format} handleChange={handleChange} />
-                </>
-              } />
-              <PageSettings format={format} pdfSettings={pdfSettings}
-                handleChange={handleChange} handleColumnChange={handleColumnChange} handleHeaderChange={handleHeaderChange} />
-            </CardContent>
-          </Card >
+      <div className="apple-split-layout apple-export-layout">
+        <div className="apple-stack">
+          <ApplePanel
+            title="Page settings"
+            subtitle="Choose the columns, labels and page layout used in the exported logbook."
+            actions={(
+              <>
+                <ExportButton format={format} />
+                <SaveSettingsButton settings={pdfSettings} format={format} />
+                <RestoreDefaultsButton format={format} handleChange={handleChange} />
+              </>
+            )}
+          >
+            <PageSettings
+              format={format}
+              pdfSettings={pdfSettings}
+              handleChange={handleChange}
+              handleColumnChange={handleColumnChange}
+              handleHeaderChange={handleHeaderChange}
+            />
+          </ApplePanel>
 
-          <Card variant="outlined" sx={{ mb: 1 }}>
-            <CardContent>
-              <CardHeader title="Other Settings" action={
-                <>
-                  <SaveSettingsButton settings={pdfSettings} format={format} />
-                </>
-              } />
-              <OtherSettings pdfSettings={pdfSettings} handleChange={handleChange} />
-            </CardContent>
-          </Card >
-        </Grid>
+          <ApplePanel
+            title="Other settings"
+            subtitle="Fine-tune the information included in the PDF."
+            actions={<SaveSettingsButton settings={pdfSettings} format={format} />}
+          >
+            <OtherSettings pdfSettings={pdfSettings} handleChange={handleChange} />
+          </ApplePanel>
+        </div>
 
-        <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-          <Card variant="outlined" sx={{ mb: 1 }}>
-            <CardContent>
-              <CardHeader title="Custom title page" action={
-                <>
-                  <AddCustomTitleButton format={format} />
-                  <DeleteCustomTitleButton format={format} />
-                </>
-              } />
-              <CustomTitlePreview format={format} />
-            </CardContent>
-          </Card >
-        </Grid>
-      </Grid>
-    </>
+        <div className="apple-stack apple-sticky-column">
+          <ApplePanel
+            title="Custom title page"
+            subtitle="Preview the title page that will be included in the export."
+            actions={(
+              <>
+                <AddCustomTitleButton format={format} />
+                <DeleteCustomTitleButton format={format} />
+              </>
+            )}
+          >
+            <CustomTitlePreview format={format} />
+          </ApplePanel>
+        </div>
+      </div>
+    </section>
   );
 }
 

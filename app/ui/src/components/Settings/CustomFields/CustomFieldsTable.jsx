@@ -14,6 +14,7 @@ import useCustomFields from '../../../hooks/useCustomFields';
 import TableActionHeader from '../../UIElements/TableActionHeader';
 import XDataGrid from '../../UIElements/XDataGrid/XDataGrid';
 import HelpButton from './HelpButton';
+import ApplePanel from '../../UIElements/ApplePanel';
 
 export const CustomFieldsTable = () => {
   const apiRef = useGridApiRef();
@@ -52,10 +53,11 @@ export const CustomFieldsTable = () => {
   ), []);
 
   return (
+    <ApplePanel title="Custom fields" subtitle="Add your own fields and decide how they appear in statistics.">
     <XDataGrid
       apiRef={apiRef}
       tableId='custom-fields'
-      title='Custom Fields'
+      title=''
       icon={<TuneOutlinedIcon />}
       loading={isCustomFieldsLoading}
       rows={data}
@@ -65,6 +67,7 @@ export const CustomFieldsTable = () => {
       disableColumnMenu
       customActions={customActions}
     />
+    </ApplePanel>
   )
 }
 

@@ -2,8 +2,6 @@ import { useCallback, useRef } from 'react';
 import { useLocalStorageState, CODEC_JSON } from '../../hooks/useLocalStorageState';
 // MUI UI elements
 import Dialog from '@mui/material/Dialog';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
@@ -12,7 +10,7 @@ import Switch from "@mui/material/Switch";
 // MUI Icons
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 // Custom
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import Slider from '@mui/material/Slider';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
@@ -97,9 +95,11 @@ export const MapOptionsModal = ({ open, onClose }) => {
 
   return (
     <Dialog fullWidth open={open} onClose={() => onClose()}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title="Map Options" action={<CloseDialogButton onClose={onClose} />} />
+      <AppleDialogPanel
+        title="Map options"
+        subtitle="Routes, tracks, airport labels and map appearance."
+        actions={<CloseDialogButton onClose={onClose} />}
+      >
           <Grid container spacing={1} alignItems="center">
             <MapOptionItem
               label="Route Lines"
@@ -172,8 +172,7 @@ export const MapOptionsModal = ({ open, onClose }) => {
               />
             </Grid>
           </Grid>
-        </CardContent>
-      </Card >
+      </AppleDialogPanel>
     </Dialog>
   );
 }

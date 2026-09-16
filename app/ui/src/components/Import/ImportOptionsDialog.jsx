@@ -3,8 +3,6 @@ import { useCallback, useState } from "react";
 import Tooltip from "@mui/material/Tooltip";
 import Dialog from '@mui/material/Dialog';
 import Grid from '@mui/material/Grid';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -16,7 +14,7 @@ import Typography from "@mui/material/Typography";
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 // Custom components
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import { useCustomFields } from '../../hooks/useCustomFields';
 import OptionSwitch from "../UIElements/OptionSwitch";
 import useSettings from "../../hooks/useSettings";
@@ -116,9 +114,11 @@ const ImportOptionsDialog = ({ open, onClose }) => {
 
   return (
     <Dialog fullWidth open={open} onClose={() => onClose(null)}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title="Import Options" action={actionButtons} />
+      <AppleDialogPanel
+        title="Import options"
+        subtitle="Backup, night-time recalculation and person creation options."
+        actions={actionButtons}
+      >
           <Grid container spacing={1}>
             <OptionSwitch
               id="backup"
@@ -201,8 +201,7 @@ const ImportOptionsDialog = ({ open, onClose }) => {
               </Box>
             </Grid>
           </Grid>
-        </CardContent>
-      </Card>
+      </AppleDialogPanel>
     </Dialog>
   )
 }

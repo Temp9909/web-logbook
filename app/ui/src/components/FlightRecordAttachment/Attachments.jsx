@@ -1,10 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-// MUI UI elements
 import LinearProgress from '@mui/material/LinearProgress';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-// Custom
-import CardHeader from "../UIElements/CardHeader";
+import ApplePanel from "../UIElements/ApplePanel";
 import { useErrorNotification } from "../../hooks/useAppNotifications";
 import { fetchFlightRecordAttachments } from "../../util/http/attachment";
 import Attachment from "./Attachment";
@@ -22,26 +18,24 @@ export const Attachments = ({ id }) => {
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['attachments', id],
     queryFn: ({ signal }) => fetchFlightRecordAttachments({ signal, id }),
-    enabled: !(id === "new"),
+    enabled: id !== "new",
     staleTime: 3600000,
     gcTime: 3600000,
   });
   useErrorNotification({ isError, error, fallbackMessage: 'Failed to load attachments' });
 
+  if (id === "new") return null;
+
   return (
-    <>
+    <ApplePanel title="Attachments" subtitle="Documents and tracks attached to this flight." actions={<ActionButtons id={id} />}>
       {isLoading && <LinearProgress />}
-      {id !== "new" &&
-        <Card variant="outlined" sx={{ mb: 1 }}>
-          <CardContent>
-            <CardHeader title="Attachments" action={<ActionButtons id={id} />} />
-            {data && data.map((attachment) => (
-              <Attachment key={attachment.uuid} attachment={attachment} />
-            ))}
-          </CardContent>
-        </Card >
-      }
-    </>
+      <div className="apple-list-stack">
+        {(Array.isArray(data) ? data : []).map((attachment) => (
+          <Attachment key={attachment.uuid} attachment={attachment} />
+        ))}
+        {!isLoading && (!Array.isArray(data) || data.length === 0) ? <div className="apple-empty-state">No attachments</div> : null}
+      </div>
+    </ApplePanel>
   );
 }
 

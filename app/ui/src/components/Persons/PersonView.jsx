@@ -3,18 +3,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 // MUI
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import Grid from "@mui/material/Grid";
 import LinearProgress from "@mui/material/LinearProgress";
 // Custom
 import { useErrorNotification } from "../../hooks/useAppNotifications";
 import { fetchLogsForPerson, fetchPersonByUuid } from "../../util/http/person";
-import CardHeader from "../UIElements/CardHeader";
 import { printPerson } from "../../util/helpers";
 import PersonsViewFlightsTable from "./PersonViewFlightsTable";
 import { PersonDataCard } from "./PersonDataCard";
 import SavePersonButton from "./SavePersonButton";
+import AppleLegacyHeading from "../UIElements/AppleLegacyHeading";
+import ApplePanel from "../UIElements/ApplePanel";
 
 export const PersonView = () => {
   const { uuid } = useParams();
@@ -51,21 +49,22 @@ export const PersonView = () => {
   }, [personData]);
 
   return (
-    <Grid container spacing={1}>
-      <Grid size={{ xs: 12, sm: 12, md: 12, lg: 8, xl: 8 }}>
-        <PersonsViewFlightsTable title={flightsTitle} data={personFlightsData} isLoading={personFlightsIsLoading} />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 12, md: 12, lg: 4, xl: 4 }}>
-        <Card variant="outlined" sx={{ mb: 1 }}>
+    <section className="apple-legacy-screen apple-person-view-screen">
+      <AppleLegacyHeading title={printPerson(personData) || "Person"} subtitle="Person details and associated flights." />
+      <div className="apple-split-layout apple-person-view-layout">
+        <ApplePanel title={flightsTitle} subtitle="Flights associated with this person.">
+          <PersonsViewFlightsTable title="" data={personFlightsData} isLoading={personFlightsIsLoading} embedded />
+        </ApplePanel>
+        <ApplePanel
+          title="Person data"
+          subtitle="Contact and logbook information."
+          actions={<SavePersonButton person={person} isNew={false} onClose={() => null} />}
+        >
           {personIsLoading && <LinearProgress />}
-          <CardContent>
-            <CardHeader title={"Person data"} action={<SavePersonButton person={person} isNew={false} onClose={() => (null)} />} />
-            {personData && <PersonDataCard person={person} handleChange={handleChange} />}
-          </CardContent>
-        </Card>
-      </Grid>
-    </Grid>
+          {personData && <PersonDataCard person={person} handleChange={handleChange} />}
+        </ApplePanel>
+      </div>
+    </section>
   );
 };
 

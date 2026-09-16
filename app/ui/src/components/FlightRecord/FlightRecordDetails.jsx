@@ -4,11 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useLocalStorageState, CODEC_JSON } from '../../hooks/useLocalStorageState';
 // MUI UI elements
 import Grid from "@mui/material/Grid";
-import Divider from '@mui/material/Divider';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 // Custom
-import CardHeader from "../UIElements/CardHeader";
+import ApplePanel, { AppleSeparator } from "../UIElements/ApplePanel";
 import DatePicker from '../UIElements/DatePicker';
 import TextField from '../UIElements/TextField';
 import AircraftType from '../UIElements/AircraftType';
@@ -87,12 +84,11 @@ export const FlightRecordDetails = ({ flight, handleChange, setFlight }) => {
   }, [flight.aircraft.model, flight.uuid, flight.time.total_time, models, setFlight])
 
   return (
-    <>
-      <Card variant="outlined" sx={{ mb: 1 }}>
-        <CardContent>
-          <CardHeader title={title}
-            action={<FlightRecordMenuButtons flight={flight} handleChange={handleChange} />}
-          />
+    <ApplePanel
+      className="apple-flight-details-panel"
+      title={title}
+      actions={<FlightRecordMenuButtons flight={flight} handleChange={handleChange} />}
+    >
           <Grid container spacing={1} >
             <DatePicker gsize={{ xs: 12, sm: 4, md: 4, lg: 3, xl: 3 }}
               id="date"
@@ -124,7 +120,7 @@ export const FlightRecordDetails = ({ flight, handleChange, setFlight }) => {
             />
           </Grid>
 
-          <Divider sx={{ mt: 1 }} />
+          <AppleSeparator />
 
           <Grid container spacing={1} sx={{ mt: 1 }} columns={10}>
             {timeFields.map((field) => (
@@ -178,9 +174,7 @@ export const FlightRecordDetails = ({ flight, handleChange, setFlight }) => {
           }
 
           <CustomFields flight={flight} handleChange={handleChange} />
-        </CardContent>
-      </Card >
-    </>
+    </ApplePanel>
   );
 };
 

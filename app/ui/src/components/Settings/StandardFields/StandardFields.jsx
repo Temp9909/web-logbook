@@ -2,9 +2,6 @@ import { useTheme } from '@mui/material/styles';
 import { useCallback } from 'react';
 // MUI
 import Grid from "@mui/material/Grid";
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardHeader from "../../UIElements/CardHeader";
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 // Custom
@@ -12,6 +9,7 @@ import TextField from "../../UIElements/TextField";
 import SaveSettingsButton from '../SaveSettingsButton';
 import RestoreDefaultsButton from './RestoreDefaultsButton';
 import HelpButton from './HelpButton';
+import ApplePanel from '../../UIElements/ApplePanel';
 
 const HEADERS_CONFIG = [
   {
@@ -123,9 +121,11 @@ export const StandardFields = ({ settings = {}, handleChange }) => {
   }, [handleChange]);
 
   return (
-    <Card variant="outlined" sx={{ mb: 1 }}>
-      <CardContent>
-        <CardHeader title="Standard Fields" action={<ActionButtons settings={settings} handleChange={handleHeaderChange} />} />
+    <ApplePanel
+      title="Standard fields"
+      subtitle="Choose the names used for the standard logbook columns."
+      actions={<ActionButtons settings={settings} handleChange={handleHeaderChange} />}
+    >
         <Grid container spacing={1} sx={{ mb: 2 }}>
           <FormControlLabel
             control={
@@ -166,8 +166,7 @@ export const StandardFields = ({ settings = {}, handleChange }) => {
           ))
           }
         </Grid >
-      </CardContent>
-    </Card>
+    </ApplePanel>
   );
 }
 

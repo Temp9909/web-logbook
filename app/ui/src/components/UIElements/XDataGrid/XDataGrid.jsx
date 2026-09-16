@@ -224,7 +224,7 @@ const XDataGridContent = ({ apiRef, tableId, rows, columns, ...props }) => {
   }, [columnsState, props.customColumnVisibilityModel]);
 
   return (
-    <Box sx={{ borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+    <Box className="apple-xgrid-shell" sx={{ borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
       <StyledDataGrid
         sx={{
           '& .MuiDataGrid-cell': { px: 0.5 },

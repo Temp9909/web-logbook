@@ -13,6 +13,8 @@ import ViewPersonButton from "./ViewPersonButton";
 import XDataGrid from "../UIElements/XDataGrid/XDataGrid";
 import TableActionHeader from "../UIElements/TableActionHeader";
 import CSVExportButton from "../UIElements/CSVExportButton";
+import AppleLegacyHeading from "../UIElements/AppleLegacyHeading";
+import ApplePanel from "../UIElements/ApplePanel";
 
 export const Persons = () => {
   const apiRef = useGridApiRef();
@@ -57,10 +59,13 @@ export const Persons = () => {
   ), [apiRef]);
 
   return (
-    <XDataGrid
+    <section className="apple-legacy-screen apple-persons-screen">
+      <AppleLegacyHeading title="Persons" subtitle="Manage pilots, crew and other people in your logbook." />
+      <ApplePanel title="People" subtitle="Pilots, crew and contacts linked to your logbook.">
+      <XDataGrid
       apiRef={apiRef}
       tableId='persons'
-      title="Persons"
+      title=""
       icon={<PersonOutlinedIcon />}
       loading={isLoading}
       rows={data}
@@ -69,7 +74,9 @@ export const Persons = () => {
       showAggregationFooter={false}
       disableColumnMenu
       customActions={customActions}
-    />
+      />
+      </ApplePanel>
+    </section>
   )
 }
 

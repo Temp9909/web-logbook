@@ -1,8 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 // MUI UI elements
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Dialog from "@mui/material/Dialog";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
@@ -13,7 +11,7 @@ import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 // Custom
 import { queryClient } from "../../util/http/http";
 import { createPersonToLog, updatePersonToLog } from "../../util/http/person";
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import PersonRole from "../UIElements/PersonRole";
 import PersonSelect from "../UIElements/PersonSelect";
 import AddPersonButton from "./AddPersonButton";
@@ -90,9 +88,7 @@ export const AddEditFlightrecordPersonModal = ({ open, onClose, payload }) => {
 
   return (
     <Dialog fullWidth maxWidth="xs" open={open} onClose={() => onClose()}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title="Add person to flight" action={ActionButtons} />
+      <AppleDialogPanel title="Add person to flight" subtitle="Link a person and role to this flight." actions={ActionButtons}>
           <Grid container spacing={1}>
             {isNew && (
               <>
@@ -116,8 +112,7 @@ export const AddEditFlightrecordPersonModal = ({ open, onClose, payload }) => {
               value={frPerson.role}
             />
           </Grid>
-        </CardContent>
-      </Card>
+      </AppleDialogPanel>
     </Dialog>
   );
 };

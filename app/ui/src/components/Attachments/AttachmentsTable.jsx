@@ -15,7 +15,7 @@ import DeleteAttachmentButton from "./DeleteAttachmentButton";
 import DownloadAllAttachmentsButton from "./DownloadAllAttachmentsButton";
 
 
-export const AttachmentsTable = ({ attachments, setSelectedAttachment }) => {
+export const AttachmentsTable = ({ attachments, setSelectedAttachment, embedded = false }) => {
   const apiRef = useGridApiRef();
   const [filteredRows, setFilteredRows] = useState([]);
 
@@ -91,8 +91,8 @@ export const AttachmentsTable = ({ attachments, setSelectedAttachment }) => {
     <XDataGrid
       apiRef={apiRef}
       tableId='attachments'
-      title="Attachments"
-      icon={<AttachFileOutlinedIcon />}
+      title={embedded ? "" : "Attachments"}
+      icon={embedded ? null : <AttachFileOutlinedIcon />}
       rows={attachments}
       columns={columns}
       getRowId={(row) => row.uuid}

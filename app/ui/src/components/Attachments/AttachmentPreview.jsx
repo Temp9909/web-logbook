@@ -3,13 +3,10 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 // MUI
 import LinearProgress from '@mui/material/LinearProgress';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 // Custom
 import { fetchAttachment } from '../../util/http/attachment';
 import { useErrorNotification } from '../../hooks/useAppNotifications';
-import CardHeader from '../UIElements/CardHeader';
+import ApplePanel from '../UIElements/ApplePanel';
 
 export const AttachmentPreview = ({ attachment }) => {
   const [blobUrl, setBlobUrl] = useState(null);
@@ -56,7 +53,7 @@ export const AttachmentPreview = ({ attachment }) => {
 
   const renderPreview = () => {
     if (!attachment || !attachment.uuid) {
-      return (<Typography>No attachment selected</Typography>);
+      return (<div className="apple-empty-state">No attachment selected</div>);
     }
 
     if (mimeType.startsWith("image/")) {
@@ -74,20 +71,16 @@ export const AttachmentPreview = ({ attachment }) => {
         />
       );
     } else {
-      return (<Typography>No preview available for this file type</Typography>);
+      return (<div className="apple-empty-state">No preview available for this file type</div>);
     }
   };
 
   return (
-    <Card variant="outlined" sx={{ mb: 1 }}>
-      <CardContent>
-        <CardHeader title={"Attachment Preview"} />
-        {isLoading && <LinearProgress />}
-        {!isLoading && blobUrl && mimeType && (
-          renderPreview()
-        )}
-      </CardContent>
-    </Card>
+    <ApplePanel title="Attachment preview" subtitle="Preview the selected document.">
+      {isLoading && <LinearProgress />}
+      {!isLoading && (!blobUrl || !mimeType) ? renderPreview() : null}
+      {!isLoading && blobUrl && mimeType ? <div className="apple-document-preview">{renderPreview()}</div> : null}
+    </ApplePanel>
   );
 };
 

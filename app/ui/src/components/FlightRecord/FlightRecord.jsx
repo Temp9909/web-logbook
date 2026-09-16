@@ -2,7 +2,6 @@ import { useLocation, useParams } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 // MUI UI elements
-import Grid from "@mui/material/Grid";
 import LinearProgress from '@mui/material/LinearProgress';
 // Custom
 import FlightRecordDetails from "./FlightRecordDetails";
@@ -12,8 +11,7 @@ import { FLIGHT_INITIAL_STATE } from "../../constants/constants";
 import FlightMap from "../FlightMap/FlightMap";
 import Attachments from "../FlightRecordAttachment/Attachments";
 import FlightRecordPersons from "../Persons/FlightRecordPersons";
-
-const gridSize = { xs: 12, sm: 12, md: 6, lg: 6, xl: 6 };
+import AppleLegacyHeading from "../UIElements/AppleLegacyHeading";
 
 export const FlightRecord = () => {
   const { id } = useParams();
@@ -81,20 +79,23 @@ export const FlightRecord = () => {
     , [flight.track]);
 
   return (
-    <>
+    <section className="apple-legacy-screen apple-flight-record-screen">
+      <AppleLegacyHeading
+        title={id === "new" ? "New flight" : "Flight record"}
+        subtitle={id === "new" ? "Add a flight to your logbook." : "Review and edit the selected flight."}
+      />
       {isLoading && <LinearProgress />}
-      <Grid container spacing={1}>
-        <Grid size={gridSize}>
+      <div className="apple-split-layout apple-flight-layout">
+        <div className="apple-stack">
           <FlightRecordDetails flight={flight} handleChange={handleChange} setFlight={setFlight} />
           <Attachments id={id} />
           <FlightRecordPersons id={id} />
-        </Grid>
-
-        <Grid size={gridSize}>
+        </div>
+        <div className="apple-stack apple-sticky-column">
           <FlightMap data={mapData} options={options} />
-        </Grid>
-      </Grid>
-    </>
+        </div>
+      </div>
+    </section>
   );
 }
 

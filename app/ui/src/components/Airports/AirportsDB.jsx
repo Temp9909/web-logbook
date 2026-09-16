@@ -5,12 +5,10 @@ import Grid from "@mui/material/Grid";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 // Custom
-import CardHeader from "../UIElements/CardHeader";
 import Select from "../UIElements/Select";
 import { updateAirportsDBSettings } from "../../util/http/settings";
 import { useErrorNotification, useSuccessNotification } from "../../hooks/useAppNotifications";
 import { queryClient } from "../../util/http/http";
-import UpdateAirportsDBButton from "./UpdateAirportsDBButton";
 import useSettings from "../../hooks/useSettings";
 
 const airportsDBOptions = [
@@ -19,7 +17,7 @@ const airportsDBOptions = [
   "https://davidmegginson.github.io/ourairports-data/airports.csv",
 ];
 
-export const AirportsDB = () => {
+export const AirportsDB = ({ embedded = false }) => {
   const [settings, setSettings] = useState({ airports_db_source: "", no_icao_filter: false });
   const { data } = useSettings();
 
@@ -46,8 +44,7 @@ export const AirportsDB = () => {
   }, [saveSettings]);
 
   return (
-    <>
-      <CardHeader title="Airports DB Source" action={<UpdateAirportsDBButton />} />
+    <div className={embedded ? "apple-embedded-form" : ""}>
       <Grid container spacing={1} >
         <Select gsize={{ xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }}
           id="airports_db_source"
@@ -67,7 +64,7 @@ export const AirportsDB = () => {
           label="No ICAO Filter"
         />
       </Grid>
-    </>
+    </div>
   );
 }
 

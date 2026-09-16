@@ -10,7 +10,7 @@ import XDataGrid from '../UIElements/XDataGrid/XDataGrid';
 import AddCustomAirportButton from './AddCustomAirportButton';
 import TableActionHeader from '../UIElements/TableActionHeader';
 
-export const CustomAirportsTable = ({ data, isLoading }) => {
+export const CustomAirportsTable = ({ data, isLoading, embedded = false }) => {
   const apiRef = useGridApiRef();
 
   const columns = useMemo(() => [
@@ -46,8 +46,8 @@ export const CustomAirportsTable = ({ data, isLoading }) => {
     <XDataGrid
       apiRef={apiRef}
       tableId='custom-airports'
-      title="Custom Airports"
-      icon={<FlightTakeoffOutlinedIcon />}
+      title={embedded ? "" : "Custom Airports"}
+      icon={embedded ? null : <FlightTakeoffOutlinedIcon />}
       loading={isLoading}
       rows={data}
       columns={columns}

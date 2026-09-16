@@ -4,8 +4,6 @@ import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Dialog from '@mui/material/Dialog';
 import Grid from '@mui/material/Grid';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Box from '@mui/material/Box';
 import Divider from "@mui/material/Divider";
 // MUI Icons
@@ -15,7 +13,7 @@ import DoubleArrowOutlinedIcon from '@mui/icons-material/DoubleArrowOutlined';
 import PetsIcon from '@mui/icons-material/Pets';
 // Custom components
 import Select from '../UIElements/Select';
-import CardHeader from "../UIElements/CardHeader";
+import AppleDialogPanel from "../UIElements/AppleDialogPanel";
 import TextField from "../UIElements/TextField";
 import { useLocalStorageState, CODEC_JSON } from "../../hooks/useLocalStorageState";
 import SaveCustomProfileButton from "./SaveCustomProfileButton";
@@ -114,9 +112,11 @@ const MapFieldsDialog = ({ open, onClose, payload: headers }) => {
 
   return (
     <Dialog fullWidth maxWidth="md" open={open} onClose={() => onClose(null)}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title="Map Fields" action={actionButtons} />
+      <AppleDialogPanel
+        title="Map fields"
+        subtitle="Match the CSV columns to the logbook fields before importing."
+        actions={actionButtons}
+      >
           <Grid container spacing={1}>
             {fields.map((field) => (
               <Select gsize={gsize}
@@ -148,8 +148,7 @@ const MapFieldsDialog = ({ open, onClose, payload: headers }) => {
               />
             ))}
           </Grid>
-        </CardContent>
-      </Card>
+      </AppleDialogPanel>
     </Dialog>
   );
 }

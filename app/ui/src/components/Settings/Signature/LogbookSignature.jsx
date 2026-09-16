@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import SignaturePad from 'signature_pad';
 // MUI
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 // Custom
-import CardHeader from "../../UIElements/CardHeader";
+import ApplePanel from "../../UIElements/ApplePanel";
 import ClearSignatureButton from "./ClearSignatureButton";
 import PickColorButton from "./PickColorButton";
 import SaveSignatureButton from "./SaveSignatureButton";
@@ -75,17 +73,15 @@ export const LogbookSignature = ({ settings, handleChange }) => {
 
 
   return (
-    <Card variant="outlined" sx={{ mb: 1 }}>
-      <CardContent>
-        <CardHeader title="Logbook Signature"
-          action={<ActionButtons settings={settings} handleChange={handleChange} />}
-        />
-        <canvas
-          ref={canvasRef}
-          style={{ border: '1px solid #ccc', width: '100%', height: '150px' }}
-        />
-      </CardContent>
-    </Card >
+    <ApplePanel
+      title="Logbook signature"
+      subtitle="Draw or upload the signature used on signed records."
+      actions={<ActionButtons settings={settings} handleChange={handleChange} />}
+    >
+      <div className="apple-signature-pad">
+        <canvas ref={canvasRef} className="apple-signature-canvas" />
+      </div>
+    </ApplePanel>
   );
 };
 

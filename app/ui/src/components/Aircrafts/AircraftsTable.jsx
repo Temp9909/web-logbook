@@ -12,7 +12,7 @@ import XDataGrid from '../UIElements/XDataGrid/XDataGrid';
 import TableActionHeader from '../UIElements/TableActionHeader';
 import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 
-export const AircraftsTable = ({ data, isLoading }) => {
+export const AircraftsTable = ({ data, isLoading, embedded = false }) => {
   const apiRef = useGridApiRef();
   const dialogs = useDialogs();
 
@@ -60,8 +60,8 @@ export const AircraftsTable = ({ data, isLoading }) => {
     <XDataGrid
       apiRef={apiRef}
       tableId='aircrafts'
-      title="Aircrafts"
-      icon={<FlightOutlinedIcon />}
+      title={embedded ? "" : "Aircrafts"}
+      icon={embedded ? null : <FlightOutlinedIcon />}
       loading={isLoading}
       rows={data}
       columns={columns}

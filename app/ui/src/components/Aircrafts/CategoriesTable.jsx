@@ -12,7 +12,7 @@ import XDataGrid from '../UIElements/XDataGrid/XDataGrid';
 import TableActionHeader from '../UIElements/TableActionHeader';
 import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 
-export const CategoriesTable = ({ data, isLoading }) => {
+export const CategoriesTable = ({ data, isLoading, embedded = false }) => {
   const apiRef = useGridApiRef();
   const dialogs = useDialogs();
 
@@ -53,8 +53,8 @@ export const CategoriesTable = ({ data, isLoading }) => {
     <XDataGrid
       apiRef={apiRef}
       tableId='categories'
-      title="Types & Categories"
-      icon={<FlightOutlinedIcon />}
+      title={embedded ? "" : "Types & Categories"}
+      icon={embedded ? null : <FlightOutlinedIcon />}
       loading={isLoading}
       rows={data}
       columns={columns}

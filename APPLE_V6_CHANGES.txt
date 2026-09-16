@@ -1,0 +1,28 @@
+APPLE V6 - ACTUAL LEGACY SCREEN CONVERSION
+
+This version makes real source-code changes to the screens that were still using the old visual language.
+
+New Apple page shell added to:
+- New flight / flight record
+- Export
+- Import
+- Map
+- Add a rating / rating details
+- Airports
+- Persons
+- Attachments
+- Settings
+
+The new scoped Apple CSS applies only to legacy pages and their nested MUI components / portal dialogs:
+- San Francisco / Apple system font stack
+- exact Apple page headings
+- Apple cards and separators
+- compact Apple buttons
+- Apple fields and focus rings
+- smaller green/gray switches
+- segmented controls
+- DataGrid headers/toolbars/rows
+- dialogs, menus, autocomplete popovers
+- Settings cards, signature canvas and nested screens
+
+The approved Logbook and Stats routes are intentionally excluded from the V6 legacy-page styling.

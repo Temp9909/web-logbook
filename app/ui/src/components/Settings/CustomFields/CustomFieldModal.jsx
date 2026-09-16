@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 // MUI UI elements
 import Dialog from '@mui/material/Dialog';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
@@ -11,7 +9,7 @@ import Grid from "@mui/material/Grid";
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 // Custom
-import CardHeader from "../../UIElements/CardHeader";
+import AppleDialogPanel from "../../UIElements/AppleDialogPanel";
 import TextField from "../../UIElements/TextField";
 import Select from '../../UIElements/Select';
 import { createCustomField, updateCustomField } from '../../../util/http/fields';
@@ -109,16 +107,14 @@ export const CustomFieldModal = ({ open, onClose, payload }) => {
 
   return (
     <Dialog fullWidth open={open} onClose={handleClose}>
-      <Card variant="outlined" sx={{ m: 2 }}>
-        <CardContent>
-          <CardHeader title={title}
-            action={
-              <>
-                <SaveButton field={field} onClose={onClose} />
-                <CloseDialogButton onClose={onClose} />
-              </>
-            }
-          />
+      <AppleDialogPanel
+        title={title}
+        subtitle="Define the field, category and statistics behaviour."
+        actions={<>
+          <SaveButton field={field} onClose={onClose} />
+          <CloseDialogButton onClose={onClose} />
+        </>}
+      >
           <Grid container spacing={1}>
             <TextField gsize={{ xs: 12, sm: 6, md: 6, lg: 6, xl: 6 }}
               id="name"
@@ -193,8 +189,7 @@ export const CustomFieldModal = ({ open, onClose, payload }) => {
               value={field.display_order}
             />
           </Grid>
-        </CardContent>
-      </Card >
+      </AppleDialogPanel>
     </Dialog>
   )
 };

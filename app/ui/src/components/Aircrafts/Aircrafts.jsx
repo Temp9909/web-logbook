@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-// MUI
-import Grid from "@mui/material/Grid";
-// Custom
 import AircraftsTable from "./AircraftsTable";
 import CategoriesTable from "./CategoriesTable";
 import { useErrorNotification } from "../../hooks/useAppNotifications";
 import { fetchAircraftModelsCategories, fetchAircraftsBuildList } from "../../util/http/aircraft";
+import AppleLegacyHeading from "../UIElements/AppleLegacyHeading";
+import ApplePanel from "../UIElements/ApplePanel";
 
 export const Aircrafts = () => {
   const { data: aircrafts, isLoading: isLoadingAircrafts, isError: isErrorAircrafts, error: errorAircrafts, isSuccess: isSuccessAircrafts } = useQuery({
@@ -21,20 +20,22 @@ export const Aircrafts = () => {
     queryFn: ({ signal }) => fetchAircraftModelsCategories({ signal }),
     staleTime: 3600000,
     gcTime: 3600000,
-    enabled: isSuccessAircrafts, // serialize
+    enabled: isSuccessAircrafts,
   });
   useErrorNotification({ isError: isErrorCategories, error: errorCategories, fallbackMessage: 'Failed to load categories' });
 
   return (
-    <Grid container spacing={1} >
-      <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-        <AircraftsTable data={aircrafts} isLoading={isLoadingAircrafts} />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-        <CategoriesTable data={categories} isLoading={isLoadingCategories} />
-      </Grid>
-    </Grid>
+    <section className="apple-legacy-screen apple-aircrafts-screen">
+      <AppleLegacyHeading title="Aircrafts" subtitle="Manage registrations, aircraft types and categories." />
+      <div className="apple-split-layout">
+        <ApplePanel title="Aircrafts" subtitle="Registrations and aircraft types used by your logbook.">
+          <AircraftsTable data={aircrafts} isLoading={isLoadingAircrafts} embedded />
+        </ApplePanel>
+        <ApplePanel title="Types & categories" subtitle="Configure aircraft categories and automatic time rules.">
+          <CategoriesTable data={categories} isLoading={isLoadingCategories} embedded />
+        </ApplePanel>
+      </div>
+    </section>
   );
 }
 

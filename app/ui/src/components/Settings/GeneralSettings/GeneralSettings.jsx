@@ -1,9 +1,3 @@
-// MUI UI elements
-import Divider from "@mui/material/Divider";
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-// Custom
-import CardHeader from "../../UIElements/CardHeader";
 import SaveSettingsButton from "../SaveSettingsButton";
 import OwnerInfoFields from "./OwnerInfoFields";
 import OtherSettings from "./OtherSettings";
@@ -11,6 +5,7 @@ import AuthSettings from "./AuthSettings";
 import LicensesExpiration from "./LicensesExpiration";
 import DBActionsMenu from "./DBControl/DBActionsMenu";
 import HelpButton from "./HelpButton";
+import ApplePanel, { AppleSeparator, AppleSectionLabel } from "../../UIElements/ApplePanel";
 
 const ActionButtons = ({ settings }) => (
   <>
@@ -20,21 +15,22 @@ const ActionButtons = ({ settings }) => (
   </>
 );
 
-export const GeneralSettings = ({ settings, handleChange }) => {
-  return (
-    <Card variant="outlined" sx={{ mb: 1 }}>
-      <CardContent>
-        <CardHeader title="Settings" action={<ActionButtons settings={settings} />} />
-
-        <OwnerInfoFields settings={settings} handleChange={handleChange} />
-        <Divider sx={{ m: 1 }} />
-        <OtherSettings settings={settings} handleChange={handleChange} />
-        <LicensesExpiration settings={settings} handleChange={handleChange} />
-        <Divider sx={{ m: 1 }} />
-        <AuthSettings settings={settings} handleChange={handleChange} />
-      </CardContent>
-    </Card>
-  );
-};
+export const GeneralSettings = ({ settings, handleChange }) => (
+  <ApplePanel
+    title="General"
+    subtitle="Owner information, application options and authentication."
+    actions={<ActionButtons settings={settings} />}
+  >
+    <AppleSectionLabel>Owner</AppleSectionLabel>
+    <OwnerInfoFields settings={settings} handleChange={handleChange} />
+    <AppleSeparator />
+    <AppleSectionLabel>Logbook</AppleSectionLabel>
+    <OtherSettings settings={settings} handleChange={handleChange} />
+    <LicensesExpiration settings={settings} handleChange={handleChange} />
+    <AppleSeparator />
+    <AppleSectionLabel>Security</AppleSectionLabel>
+    <AuthSettings settings={settings} handleChange={handleChange} />
+  </ApplePanel>
+);
 
 export default GeneralSettings;

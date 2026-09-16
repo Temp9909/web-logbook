@@ -15,7 +15,7 @@ import XDataGrid from "../UIElements/XDataGrid/XDataGrid";
 import CSVExportButton from "../UIElements/CSVExportButton";
 import { sumTime } from "../Logbook/helpers";
 
-export const PersonsViewFlightsTable = ({ title, data, isLoading }) => {
+export const PersonsViewFlightsTable = ({ title, data, isLoading, embedded = false }) => {
   const apiRef = useGridApiRef();
 
   const columns = useMemo(() => [
@@ -99,8 +99,8 @@ export const PersonsViewFlightsTable = ({ title, data, isLoading }) => {
     <XDataGrid
       apiRef={apiRef}
       tableId='person-flights'
-      title={title}
-      icon={<AutoStoriesOutlinedIcon />}
+      title={embedded ? "" : title}
+      icon={embedded ? null : <AutoStoriesOutlinedIcon />}
       loading={isLoading}
       rows={data}
       columns={columns}

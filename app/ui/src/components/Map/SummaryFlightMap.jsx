@@ -1,18 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 // MUI
-import Grid from "@mui/material/Grid";
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import LinearProgress from "@mui/material/LinearProgress";
 // Custom
-import CardHeader from "../UIElements/CardHeader";
 import Filters from "../UIElements/Filters";
 import FlightMap from "../FlightMap/FlightMap";
 import { useErrorNotification } from "../../hooks/useAppNotifications";
 import { fetchLogbookMapData } from "../../util/http/logbook";
 import SummaryStats from "./SummaryStats";
 import { fetchAirports } from "../../util/http/airport";
+import AppleLegacyHeading from "../UIElements/AppleLegacyHeading";
+import ApplePanel from "../UIElements/ApplePanel";
 
 export const SummaryFlightMap = () => {
   const [mapData, setMapData] = useState([]);
@@ -50,29 +48,23 @@ export const SummaryFlightMap = () => {
   const callbackFunction = useCallback((filteredData) => { setMapData(filteredData) }, [setMapData]);
 
   return (
-    <>
+    <section className="apple-legacy-screen apple-map-screen">
+      <AppleLegacyHeading title="Map" subtitle="Explore your flights, routes and airports." />
       {isLoading && <LinearProgress />}
-      <Grid container spacing={1} >
-        <Grid size={{ xs: 12, sm: 12, md: 3, lg: 3, xl: 3 }}>
-          <Card variant="outlined" sx={{ mb: 1 }}>
-            <CardContent>
-              <CardHeader title="Filters" />
-              <Filters data={data} callbackFunction={callbackFunction} />
-            </CardContent>
-          </Card >
-          <Card variant="outlined" sx={{ mb: 1 }}>
-            <CardContent>
-              <CardHeader title="Stats" />
-              <SummaryStats data={mapData} airportsMap={airportsMap} />
-            </CardContent>
-          </Card >
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 12, md: 9, lg: 9, xl: 9 }}>
+      <div className="apple-map-layout">
+        <aside className="apple-stack apple-map-sidebar">
+          <ApplePanel title="Filters" subtitle="Choose which flights are shown on the map.">
+            <Filters data={data} callbackFunction={callbackFunction} />
+          </ApplePanel>
+          <ApplePanel title="Stats" subtitle="Summary for the currently visible flights.">
+            <SummaryStats data={mapData} airportsMap={airportsMap} />
+          </ApplePanel>
+        </aside>
+        <div className="apple-map-main">
           <FlightMap data={mapData} airportsMap={airportsMap} />
-        </Grid>
-      </Grid>
-    </>
+        </div>
+      </div>
+    </section>
   );
 }
 

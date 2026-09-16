@@ -2,9 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 // MUI UI elements
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import LinearProgress from '@mui/material/LinearProgress';
@@ -12,6 +9,7 @@ import Typography from '@mui/material/Typography';
 // Custom helpers
 import { API_URL } from '../../constants/constants';
 import { getAuthToken } from '../../util/auth';
+import AppleDialogPanel from '../UIElements/AppleDialogPanel';
 
 const ImportProgressDialog = ({ open, onClose, payload }) => {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
@@ -139,8 +137,20 @@ const ImportProgressDialog = ({ open, onClose, payload }) => {
 
   return (
     <Dialog fullWidth maxWidth="md" open={open} onClose={() => status !== 'running' && onClose(status === 'success')}>
-      <DialogTitle>Importing Flight Records</DialogTitle>
-      <DialogContent>
+      <AppleDialogPanel
+        title="Importing flight records"
+        subtitle="Progress and detailed import log."
+        actions={(
+          <Button
+            onClick={() => onClose(status === 'success')}
+            disabled={status === 'running'}
+            variant="contained"
+            color="primary"
+          >
+            {status === 'running' ? 'Importing…' : 'OK'}
+          </Button>
+        )}
+      >
         {status === 'running' && (
           <Box sx={{ width: '100%', mt: 1, mb: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
@@ -198,17 +208,7 @@ const ImportProgressDialog = ({ open, onClose, payload }) => {
           )}
           <div ref={logEndRef} />
         </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={() => onClose(status === 'success')}
-          disabled={status === 'running'}
-          variant="contained"
-          color="primary"
-        >
-          {status === 'running' ? 'Importing...' : 'Ok'}
-        </Button>
-      </DialogActions>
+      </AppleDialogPanel>
     </Dialog>
   );
 };
