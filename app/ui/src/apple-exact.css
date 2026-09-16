@@ -532,3 +532,334 @@ button, input { font-family: inherit; }
   .apple-customize-button { margin-top:-10px; }
   .apple-metric-selectors { grid-template-columns:1fr; }
 }
+
+/* ========================================================================== */
+/* V5 — Apple skin for all remaining legacy MUI screens                      */
+/* Keeps Logbook + Stats untouched; applies to New Flight and every other     */
+/* menu/sub-menu still using the old MUI layouts.                             */
+/* ========================================================================== */
+
+.apple-legacy-page,
+.apple-legacy-page .MuiTypography-root,
+.apple-legacy-page .MuiButton-root,
+.apple-legacy-page .MuiInputBase-root,
+.apple-legacy-page .MuiInputLabel-root,
+.apple-legacy-page .MuiFormLabel-root,
+.apple-legacy-page .MuiFormControlLabel-label,
+.apple-legacy-page .MuiMenuItem-root,
+.apple-legacy-page .MuiTableCell-root,
+.apple-legacy-page .MuiDataGrid-root,
+.apple-legacy-page .MuiTab-root,
+.apple-legacy-page .MuiChip-root,
+.apple-legacy-page .MuiTooltip-tooltip,
+.apple-legacy-page .MuiPickersLayout-root,
+.apple-legacy-page input,
+.apple-legacy-page textarea,
+.apple-legacy-page button,
+.apple-legacy-page select {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", Arial, sans-serif !important;
+  letter-spacing: -0.005em;
+}
+
+.apple-legacy-theme {
+  color: var(--label);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+}
+
+/* Main surfaces / cards */
+.apple-legacy-page .MuiCard-root,
+.apple-legacy-page .MuiPaper-root:not(.MuiMenu-paper):not(.MuiPopover-paper),
+.apple-legacy-page .MuiDataGrid-root {
+  background-color: var(--paper) !important;
+  background-image: none !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+  color: var(--label) !important;
+}
+.apple-legacy-page .MuiCardContent-root {
+  padding: 16px !important;
+}
+.apple-legacy-page .MuiCardHeader-root {
+  padding: 0 0 10px !important;
+  margin: 0 !important;
+}
+.apple-legacy-page .MuiCardHeader-title,
+.apple-legacy-page .MuiCardHeader-title.MuiTypography-root {
+  color: var(--secondary) !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  font-weight: 650 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+}
+.apple-legacy-page .MuiCardHeader-action {
+  margin: 0 !important;
+  align-self: center !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.apple-legacy-page .MuiDivider-root { border-color: var(--separator) !important; }
+
+/* Buttons */
+.apple-legacy-page .MuiButton-root {
+  min-height: 32px !important;
+  padding: 6px 14px !important;
+  border-radius: 999px !important;
+  text-transform: none !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+.apple-legacy-page .MuiButton-sizeSmall {
+  min-height: 28px !important;
+  padding: 4px 11px !important;
+  font-size: 12.5px !important;
+}
+.apple-legacy-page .MuiButton-containedPrimary {
+  background: var(--blue) !important;
+  color: #fff !important;
+}
+.apple-legacy-page .MuiButton-outlined {
+  border-color: color-mix(in srgb, var(--blue) 38%, transparent) !important;
+  color: var(--blue) !important;
+  background: transparent !important;
+}
+.apple-legacy-page .MuiButton-text { color: var(--blue) !important; }
+.apple-legacy-page .MuiIconButton-root {
+  width: 32px;
+  height: 32px;
+  padding: 7px !important;
+  border-radius: 8px !important;
+  color: var(--secondary) !important;
+}
+.apple-legacy-page .MuiIconButton-root:hover { background: var(--fill) !important; color: var(--label) !important; }
+
+/* Text fields, selects, autocompletes */
+.apple-legacy-page .MuiOutlinedInput-root,
+.apple-legacy-page .MuiInputBase-root.MuiOutlinedInput-root {
+  min-height: 36px;
+  border-radius: 9px !important;
+  background: var(--paper) !important;
+  color: var(--label) !important;
+  font-size: 13.5px !important;
+}
+.apple-legacy-page .MuiOutlinedInput-notchedOutline {
+  border-color: var(--separator) !important;
+  border-width: 1px !important;
+}
+.apple-legacy-page .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: color-mix(in srgb, var(--label) 28%, transparent) !important;
+}
+.apple-legacy-page .MuiOutlinedInput-root.Mui-focused {
+  box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--blue) 25%, transparent) !important;
+}
+.apple-legacy-page .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--blue) !important;
+  border-width: 1px !important;
+}
+.apple-legacy-page .MuiInputBase-input,
+.apple-legacy-page .MuiSelect-select {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  font-size: 13.5px !important;
+}
+.apple-legacy-page .MuiInputLabel-root {
+  color: var(--secondary) !important;
+  font-size: 13px !important;
+}
+.apple-legacy-page .MuiInputLabel-root.Mui-focused { color: var(--blue) !important; }
+.apple-legacy-page .MuiFormHelperText-root { color: var(--secondary) !important; font-size: 11.5px !important; }
+
+/* Compact Apple toggle — explicitly smaller than the previous V4 version */
+.apple-legacy-page .MuiSwitch-root {
+  width: 40px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+.apple-legacy-page .MuiSwitch-switchBase { padding: 2px !important; }
+.apple-legacy-page .MuiSwitch-thumb {
+  width: 20px !important;
+  height: 20px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,.18) !important;
+}
+.apple-legacy-page .MuiSwitch-track {
+  border-radius: 999px !important;
+  background: #E9E9EA !important;
+  opacity: 1 !important;
+}
+[data-theme="dark"] .apple-legacy-page .MuiSwitch-track { background: #39393D !important; }
+.apple-legacy-page .MuiSwitch-switchBase.Mui-checked { transform: translateX(16px) !important; color: #fff !important; }
+.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track { background: var(--green) !important; opacity: 1 !important; }
+.apple-legacy-page .MuiFormControlLabel-root { margin-left: 0 !important; margin-right: 10px !important; }
+.apple-legacy-page .MuiFormControlLabel-label { color: var(--label) !important; font-size: 13.5px !important; }
+
+/* Checkboxes / radio */
+.apple-legacy-page .MuiCheckbox-root,
+.apple-legacy-page .MuiRadio-root { padding: 6px !important; color: var(--secondary) !important; }
+.apple-legacy-page .MuiCheckbox-root.Mui-checked,
+.apple-legacy-page .MuiRadio-root.Mui-checked { color: var(--blue) !important; }
+
+/* Tabs / segmented navigation */
+.apple-legacy-page .MuiTabs-root {
+  min-height: 34px !important;
+  background: var(--fill);
+  border-radius: 9px;
+  padding: 2px;
+}
+.apple-legacy-page .MuiTab-root {
+  min-height: 30px !important;
+  min-width: 0 !important;
+  padding: 5px 12px !important;
+  border-radius: 7px !important;
+  color: var(--label) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+}
+.apple-legacy-page .MuiTab-root.Mui-selected {
+  color: var(--label) !important;
+  background: var(--paper) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08) !important;
+  font-weight: 600 !important;
+}
+.apple-legacy-page .MuiTabs-indicator { display: none !important; }
+
+/* Data grids / tables */
+.apple-legacy-page .MuiDataGrid-root {
+  font-size: 13px !important;
+  overflow: hidden;
+}
+.apple-legacy-page .MuiDataGrid-columnHeaders,
+.apple-legacy-page .MuiDataGrid-columnHeader {
+  background: var(--paper) !important;
+}
+.apple-legacy-page .MuiDataGrid-columnHeaderTitle {
+  color: var(--secondary) !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  letter-spacing: .05em !important;
+  text-transform: uppercase !important;
+}
+.apple-legacy-page .MuiDataGrid-cell,
+.apple-legacy-page .MuiDataGrid-columnHeaders,
+.apple-legacy-page .MuiDataGrid-footerContainer {
+  border-color: var(--separator) !important;
+}
+.apple-legacy-page .MuiDataGrid-row:hover .MuiDataGrid-cell { background: var(--fill) !important; }
+.apple-legacy-page .MuiTableCell-root {
+  color: var(--label) !important;
+  border-color: var(--separator) !important;
+  font-size: 13px !important;
+}
+.apple-legacy-page .MuiTableCell-head {
+  color: var(--secondary) !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  letter-spacing: .05em !important;
+  text-transform: uppercase !important;
+}
+
+/* Dialogs, sheets, dropdowns and popovers — these render in portals on body */
+.apple-legacy-page .MuiDialog-container .MuiPaper-root,
+.apple-legacy-page .MuiDialog-paper {
+  background: color-mix(in srgb, var(--paper) 92%, transparent) !important;
+  color: var(--label) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 22px 60px rgba(0,0,0,.18) !important;
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+}
+.apple-legacy-page .MuiDialogTitle-root {
+  padding: 18px 20px 10px !important;
+  color: var(--label) !important;
+  font-size: 17px !important;
+  line-height: 1.25 !important;
+  font-weight: 650 !important;
+  letter-spacing: -.015em !important;
+}
+.apple-legacy-page .MuiDialogContent-root { padding: 12px 20px 18px !important; }
+.apple-legacy-page .MuiDialogActions-root { padding: 10px 20px 18px !important; gap: 8px; }
+.apple-legacy-page .MuiBackdrop-root { background-color: rgba(0,0,0,.22) !important; backdrop-filter: blur(2px); }
+.apple-legacy-page .MuiMenu-paper,
+.apple-legacy-page .MuiPopover-paper,
+.apple-legacy-page .MuiAutocomplete-paper,
+.apple-legacy-page .MuiPickersPopper-root .MuiPaper-root {
+  background: color-mix(in srgb, var(--paper) 94%, transparent) !important;
+  color: var(--label) !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 38px rgba(0,0,0,.16) !important;
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+.apple-legacy-page .MuiMenuItem-root {
+  min-height: 34px !important;
+  margin: 2px 5px !important;
+  padding: 6px 10px !important;
+  border-radius: 7px !important;
+  color: var(--label) !important;
+  font-size: 13.5px !important;
+}
+.apple-legacy-page .MuiMenuItem-root:hover,
+.apple-legacy-page .MuiMenuItem-root.Mui-selected { background: var(--fill) !important; }
+.apple-legacy-page .MuiTooltip-tooltip {
+  background: color-mix(in srgb, var(--label) 88%, transparent) !important;
+  color: var(--paper) !important;
+  border-radius: 7px !important;
+  font-size: 11.5px !important;
+}
+
+/* Pickers */
+.apple-legacy-page .MuiPickersDay-root { border-radius: 50% !important; font-size: 13px !important; }
+.apple-legacy-page .MuiPickersDay-root.Mui-selected { background: var(--blue) !important; }
+.apple-legacy-page .MuiPickersCalendarHeader-label { font-weight: 650 !important; }
+
+/* Progress / alerts */
+.apple-legacy-page .MuiLinearProgress-root { height: 3px !important; border-radius: 999px !important; background: var(--fill) !important; }
+.apple-legacy-page .MuiLinearProgress-bar { background: var(--blue) !important; }
+.apple-legacy-page .MuiAlert-root { border-radius: 12px !important; border: 1px solid var(--separator) !important; }
+
+/* Signature pad */
+.apple-legacy-page[data-apple-page="settings"] canvas,
+body[data-apple-page="settings"].apple-legacy-page canvas {
+  border: 1px solid var(--separator) !important;
+  border-radius: 10px;
+  background: #fff;
+}
+
+/* OpenLayers controls in Map / New Flight */
+.apple-legacy-page .ol-control {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.apple-legacy-page .ol-control button {
+  width: 32px !important;
+  height: 32px !important;
+  margin: 0 0 4px !important;
+  border: 1px solid var(--separator) !important;
+  border-radius: 8px !important;
+  background: color-mix(in srgb, var(--paper) 88%, transparent) !important;
+  color: var(--label) !important;
+  font: 600 17px/1 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08) !important;
+  backdrop-filter: blur(16px);
+}
+.apple-legacy-page .ol-control button:hover { background: var(--paper) !important; }
+.apple-legacy-page .ol-attribution { border-radius: 8px !important; background: color-mix(in srgb, var(--paper) 82%, transparent) !important; }
+
+/* Settings sections stay compact and balanced */
+body[data-apple-page="settings"].apple-legacy-page .MuiCard-root { margin-bottom: 12px !important; }
+body[data-apple-page="settings"].apple-legacy-page .MuiGrid-root { row-gap: 2px; }
+
+/* Mobile */
+@media (max-width: 700px) {
+  .apple-legacy-page .MuiCardContent-root { padding: 13px !important; }
+  .apple-legacy-page .MuiDialog-paper { margin: 12px !important; width: calc(100% - 24px) !important; }
+  .apple-legacy-page .MuiButton-root { padding-left: 12px !important; padding-right: 12px !important; }
+}
