@@ -215,7 +215,7 @@ export const Settings=()=>{
 
     {tab==='airports'?<Airports embedded />:null}
 
-    <Modal open={!!field} title={field?.uuid==='new'?'New custom field':'Edit custom field'} onClose={()=>setField(null)} actions={<><button className="btn" onClick={()=>setField(null)}>Cancel</button><button className="btn primary" disabled={saveField.isPending} onClick={()=>saveField.mutate()}>Save field</button></>}>
+    <Modal open={!!field} title={field?.uuid==='new'?'New custom field':'Edit custom field'} onClose={()=>setField(null)} actions={<><button className="btn" onClick={()=>setField(null)}>Back</button><button className="btn primary" disabled={saveField.isPending} onClick={()=>saveField.mutate()}>Save field</button></>}>
       {field?<><div className="form-grid two"><Field label="Name" value={field.name||''} onChange={v=>setField(p=>({...p,name:v}))}/><Field label="Description" value={field.description||''} onChange={v=>setField(p=>({...p,description:v}))}/><Field label="Category" value={field.category||''} onChange={v=>setField(p=>({...p,category:v}))}/><SelectField label="Type" disabled={field.uuid!=='new'} value={field.type||'text'} onChange={v=>setField(p=>({...p,type:v,stats_function:statsByType[v]?.[0]||'none'}))} options={fieldTypes}/><SelectField label="Stats function" value={field.stats_function||'none'} onChange={v=>setField(p=>({...p,stats_function:v}))} options={statsByType[field.type]||['none']}/><Field label="Display order" type="number" value={field.display_order??0} onChange={v=>setField(p=>({...p,display_order:v}))}/></div></>:null}<Loading show={saveField.isPending}/>
     </Modal>
   </section>;

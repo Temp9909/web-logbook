@@ -99,7 +99,7 @@ export const Airports = ({ embedded = false }) => {
         <NativeTable rows={custom} columns={customCols} rowKey={(r,i)=>r?.name||i} loading={customLoading} searchable={false} empty="No custom airports" />
       </Card>
     </div>
-    <Modal open={!!airport} title={airport?.isNew ? 'Add custom airport' : 'Edit custom airport'} onClose={()=>setAirport(null)} actions={<><button className="btn" onClick={()=>setAirport(null)}>Cancel</button><button className="btn primary" disabled={saveAirport.isPending || !airport?.name} onClick={()=>saveAirport.mutate()}>Save airport</button></>}>
+    <Modal open={!!airport} title={airport?.isNew ? 'Add custom airport' : 'Edit custom airport'} onClose={()=>setAirport(null)} actions={<><button className="btn" onClick={()=>setAirport(null)}>Back</button><button className="btn primary" disabled={saveAirport.isPending || !airport?.name} onClick={()=>saveAirport.mutate()}>Save airport</button></>}>
       {airport ? <div className="form-grid two"><Field label="Name / code" value={airport.name||''} disabled={!airport.isNew} onChange={(v)=>setAirport(p=>({...p,name:v.toUpperCase()}))}/><Field label="City" value={airport.city||''} onChange={(v)=>setAirport(p=>({...p,city:v}))}/><Field label="Country" value={airport.country||''} onChange={(v)=>setAirport(p=>({...p,country:v}))}/><Field label="Elevation" type="number" value={airport.elevation??''} onChange={(v)=>setAirport(p=>({...p,elevation:v}))}/><Field label="Latitude" value={airport.lat??''} onChange={(v)=>setAirport(p=>({...p,lat:v}))}/><Field label="Longitude" value={airport.lon??''} onChange={(v)=>setAirport(p=>({...p,lon:v}))}/></div>:null}
       <Loading show={saveAirport.isPending}/>
     </Modal>

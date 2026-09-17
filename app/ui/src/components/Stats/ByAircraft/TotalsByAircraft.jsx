@@ -7,6 +7,7 @@ import { getTotalsByAircraft } from "../../../util/helpers";
 import TotalsByAircraftTable from "./TotalsByAircraftTable";
 import { fetchAircraftModelsCategories, fetchAircrafts } from "../../../util/http/aircraft";
 import useCustomFields from "../../../hooks/useCustomFields";
+import { DEFAULT_CATEGORIES, splitCategories } from "../../Aircrafts/aircraftCategories";
 
 export const TotalsByAircraft = ({ type }) => {
   const { data: flights = [], isLoading, isError, error } = useQuery({
@@ -33,9 +34,21 @@ export const TotalsByAircraft = ({ type }) => {
 
   const { customFields } = useCustomFields();
 
+  const allCategories = useMemo(() => {
+    if (type !== 'category') return [];
+    const values = [...DEFAULT_CATEGORIES];
+    models.forEach((row) => values.push(...splitCategories(row?.category)));
+    aircrafts.forEach((row) => {
+      values.push(...splitCategories(row?.category));
+      values.push(...splitCategories(row?.model_category));
+      values.push(...splitCategories(row?.custom_category));
+    });
+    return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
+  }, [type, models, aircrafts]);
+
   const totalsData = useMemo(() =>
-    getTotalsByAircraft(flights, type, models, aircrafts, customFields),
-    [flights, type, models, aircrafts, customFields]
+    getTotalsByAircraft(flights, type, models, aircrafts, customFields, allCategories),
+    [flights, type, models, aircrafts, customFields, allCategories]
   );
 
   return (

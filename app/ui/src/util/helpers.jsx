@@ -213,9 +213,9 @@ export const getTotalsByMonthAndYear = (flights, customFields = []) => {
   );
 };
 
-export const getTotalsByAircraft = (flights, type, models, aircrafts, customFields) => {
-  if (!flights || flights.length === 0) return [];
+export const getTotalsByAircraft = (flights, type, models, aircrafts, customFields, allCategories = []) => {
   if (!customFields) customFields = [];
+  if (!flights) flights = [];
 
   const modelCategories = type === "category" ?
     models.reduce((acc, { model, category }) => {
@@ -232,6 +232,33 @@ export const getTotalsByAircraft = (flights, type, models, aircrafts, customFiel
     return acc;
   }, {}) ?? {};
 
+  const createGroupTotals = (key) => {
+    const group = createInitialTotals({ model: key });
+    group.custom_fields = {};
+    customFields.forEach(field => {
+      if (field.stats_function !== 'none') {
+        group.custom_fields[field.uuid] = { sum: 0, count: 0 };
+      }
+    });
+    return group;
+  };
+
+  const initialTotals = {};
+  if (type === "category") {
+    const categoriesToShow = Array.from(new Set([
+      ...allCategories,
+      ...Object.values(modelCategories).flat(),
+      ...(aircrafts || []).flatMap((aircraft) =>
+        String(aircraft?.category || '').split(',').map(c => c.trim()).filter(Boolean)
+      ),
+    ].map((category) => String(category || '').trim())
+      .filter((category) => category && category !== 'Uncategorized')));
+
+    categoriesToShow.forEach((category) => {
+      initialTotals[category] = createGroupTotals(category);
+    });
+  }
+
   const totals = flights.reduce((acc, flight) => {
     const aircraftType = flight.aircraft.model;
     const aircraftReg = flight.aircraft.reg_name;
@@ -245,10 +272,10 @@ export const getTotalsByAircraft = (flights, type, models, aircrafts, customFiel
       if (type === "category") {
         if (ac) {
           const effectiveCategories = String(ac.category || '').split(',').map(c => c.trim()).filter(Boolean);
-          keys = effectiveCategories.length > 0 ? effectiveCategories : ["Uncategorized"];
+          keys = effectiveCategories;
         } else {
           const categoriesForType = modelCategories[aircraftType] || [];
-          keys = categoriesForType.length > 0 ? categoriesForType : ["Uncategorized"];
+          keys = categoriesForType;
         }
       } else {
         keys = [aircraftType];
@@ -274,25 +301,18 @@ export const getTotalsByAircraft = (flights, type, models, aircrafts, customFiel
 
     keys.forEach(key => {
       if (!acc[key]) {
-        acc[key] = createInitialTotals({ model: key });
-        // Initialize custom fields
-        acc[key].custom_fields = {};
-        customFields.forEach(field => {
-          if (field.stats_function !== 'none') {
-            acc[key].custom_fields[field.uuid] = { sum: 0, count: 0 };
-          }
-        });
+        acc[key] = createGroupTotals(key);
       }
       updateTotals(acc[key], flight);
       updateCustomFieldTotals(acc[key], flight, customFields);
     });
 
     return acc;
-  }, {});
+  }, initialTotals);
 
-  return Object.values(totals).sort((a, b) =>
-    a.model.localeCompare(b.model)
-  );
+  return Object.values(totals)
+    .filter((row) => row.model !== 'Uncategorized')
+    .sort((a, b) => a.model.localeCompare(b.model));
 };
 
 export const printPerson = person => {

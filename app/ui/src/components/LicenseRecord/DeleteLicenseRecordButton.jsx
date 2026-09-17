@@ -31,7 +31,7 @@ export const DeleteLicenseRecordButton = ({ license }) => {
     const confirmed = await dialogs.confirm('Are you sure you want to remove this license record?', {
       title: 'Delete license record',
       okText: 'Delete',
-      cancelText: 'Cancel',
+      cancelText: 'Back',
       severity: 'error',
     });
 

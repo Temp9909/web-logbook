@@ -131,9 +131,14 @@ export const Aircrafts = () => {
   const openCategory = (row) => setEditCategory({ ...row, time_fields_auto_fill: { ...(row?.time_fields_auto_fill || {}) } });
 
   const aircraftCols=useMemo(()=>[
-    {key:'reg',label:'Registration'},
-    {key:'model',label:'Type'},
-    {key:'category',label:'Category'},
+    {key:'reg',label:'Registration',width:'24%'},
+    {key:'model',label:'Type',width:'28%'},
+    {
+      key:'category',
+      label:'Category',
+      render:(row)=> <span className="exact-aircraft-category-value" title={row?.category || ''}>{row?.category || ''}</span>,
+      searchValue:(row)=>row?.category || '',
+    },
     {key:'chevron',label:'',width:34,render:()=> <span className="exact-row-chevron" aria-hidden="true">›</span>,searchValue:()=>''}
   ],[]);
   const categoryCols=useMemo(()=>[
@@ -153,6 +158,27 @@ export const Aircrafts = () => {
     typeCategoriesForEditedAircraft,
     editAircraft?.excluded_model_category || '',
   );
+
+  // Keep the aircraft row behind the editor in sync immediately with the local
+  // edit state. Autosave still persists the same values, but the UI no longer
+  // waits for a network round-trip before showing the accumulated categories.
+  const aircraftRows = useMemo(() => {
+    if (!editAircraft) return aircrafts;
+    const originalReg = editAircraft.original_reg || lastSavedReg.current || editAircraft.reg;
+    const liveCategory = joinCategories([
+      ...splitCategories(inheritedCategory),
+      ...splitCategories(editAircraft.custom_category || ''),
+    ]);
+    return (Array.isArray(aircrafts) ? aircrafts : []).map((row) => {
+      if (row?.reg !== originalReg && row?.reg !== editAircraft.reg) return row;
+      return {
+        ...row,
+        reg: editAircraft.reg || row.reg,
+        model: editAircraft.model || row.model,
+        category: liveCategory,
+      };
+    });
+  }, [aircrafts, editAircraft, inheritedCategory]);
 
   const changeEditedAircraftType = (model) => {
     if (!editAircraft) return;
@@ -230,7 +256,9 @@ export const Aircrafts = () => {
     />
     <div className="grid two">
       <Card title="Aircrafts" subtitle="Registrations and aircraft types used by your logbook.">
-        <NativeTable rows={aircrafts} columns={aircraftCols} rowKey={(r)=>r.reg} loading={loadingAircrafts} searchPlaceholder="Search aircraft…" onRowClick={openAircraft} />
+        <div className="exact-aircraft-list-table">
+          <NativeTable rows={aircraftRows} columns={aircraftCols} rowKey={(r)=>r.reg} loading={loadingAircrafts} searchPlaceholder="Search aircraft…" onRowClick={openAircraft} />
+        </div>
       </Card>
       <Card title="Types & categories" subtitle="Configure aircraft categories and automatic time rules.">
         <NativeTable rows={categories} columns={categoryCols} rowKey={(r)=>r.model} loading={loadingCategories} searchPlaceholder="Search type…" onRowClick={openCategory} />

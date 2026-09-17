@@ -39,7 +39,7 @@ export const DeleteAttachmentButton = ({ attachment, handleClose }) => {
     const confirmed = await dialogs.confirm(`Are you sure you want to remove ${attachment.document_name} attachment?`, {
       title: 'Delete attachment',
       okText: 'Delete',
-      cancelText: 'Cancel',
+      cancelText: 'Back',
       severity: 'error',
     });
 
@@ -49,7 +49,7 @@ export const DeleteAttachmentButton = ({ attachment, handleClose }) => {
         const reset = await dialogs.confirm("Looks like it's a track log (*.kml file). Do you want to reset the track and distance?", {
           title: 'Reset track log',
           okText: 'Reset',
-          cancelText: 'Cancel',
+          cancelText: 'Back',
           severity: 'warning',
         });
         if (reset) {

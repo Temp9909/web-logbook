@@ -28,7 +28,7 @@ export const ResetTrackButton = ({ uuid, handleChange, handleCloseMenu }) => {
     const reset = await dialogs.confirm("Do you want to reset the track and distance?", {
       title: 'Reset track log',
       okText: 'Reset',
-      cancelText: 'Cancel',
+      cancelText: 'Back',
       severity: 'warning',
     });
     if (reset) {

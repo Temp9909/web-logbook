@@ -27,7 +27,7 @@ export const DeleteLicenseRecordAttachmentButton = ({ license }) => {
     const confirmed = await dialogs.confirm('Are you sure you want to remove license record attachment?', {
       title: 'Delete license record attachment',
       okText: 'Delete',
-      cancelText: 'Cancel',
+      cancelText: 'Back',
       severity: 'error',
     });
 

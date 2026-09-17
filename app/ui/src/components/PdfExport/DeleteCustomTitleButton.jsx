@@ -28,7 +28,7 @@ export const DeleteCustomTitleButton = ({ format }) => {
     const confirmed = await dialogs.confirm('Are you sure you want to remove this custom title page?', {
       title: 'Delete custom title page',
       okText: 'Delete',
-      cancelText: 'Cancel',
+      cancelText: 'Back',
       severity: 'error',
     });
 

@@ -28,7 +28,7 @@ export const NewAircraftModal = ({ open, onClose, onCreated, modelOptions = [], 
       title="New aircraft"
       onClose={onClose}
       actions={<>
-        <button className="btn" type="button" onClick={onClose}>Cancel</button>
+        <button className="btn" type="button" onClick={onClose}>Back</button>
         <button
           className="btn primary"
           type="button"

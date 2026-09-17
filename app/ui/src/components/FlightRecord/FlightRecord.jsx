@@ -242,7 +242,7 @@ export const FlightRecord = () => {
   };
 
   const actions = <>
-    <button className="btn ghost" onClick={() => navigate('/logbook')}>{id === 'new' ? 'Back' : 'Cancel'}</button>
+    <button className="btn ghost" onClick={() => navigate('/logbook')}>Back</button>
     {id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button> : null}
     <button className="btn primary" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? 'Saving…' : (id === 'new' ? 'Done' : 'Save flight')}</button>
   </>;

@@ -31,7 +31,7 @@ export const DeleteFlightRecordButton = ({ uuid, handleCloseMenu }) => {
     const confirmed = await dialogs.confirm('Are you sure you want to remove this flight record?', {
       title: 'Delete flight record',
       okText: 'Delete',
-      cancelText: 'Cancel',
+      cancelText: 'Back',
       severity: 'error',
     });
     if (confirmed) {

@@ -27,7 +27,7 @@ export const DeletePersonButton = ({ params }) => {
     const status = await dialogs.confirm("Are you sure you want to delete this person and all references?", {
       title: "Delete Person",
       okText: "Delete",
-      cancelText: "Cancel",
+      cancelText: "Back",
       severity: "error",
     });
     if (status) {

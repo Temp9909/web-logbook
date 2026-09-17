@@ -109,7 +109,7 @@ export const LicenseRecord = () => {
   };
 
   return <section className="exact-react-page">
-    <PageHead title={id === 'new' ? 'Add a licensing record' : 'Licensing record'} subtitle={id === 'new' ? 'Add a licence, rating, medical or certification record.' : 'Review and update this licensing record.'} actions={<><button className="btn ghost" onClick={()=>navigate('/licensing')}>Cancel</button>{id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button>:null}<button className="btn primary" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save record'}</button></>} />
+    <PageHead title={id === 'new' ? 'Add a licensing record' : 'Licensing record'} subtitle={id === 'new' ? 'Add a licence, rating, medical or certification record.' : 'Review and update this licensing record.'} actions={<><button className="btn ghost" onClick={()=>navigate('/licensing')}>Back</button>{id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button>:null}<button className="btn primary" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save record'}</button></>} />
     <Loading show={isLoading || save.isPending || remove.isPending}/>
     {save.error ? <div className="note exact-inline-danger">{String(save.error.message || save.error)}</div> : null}
     <div className="split">

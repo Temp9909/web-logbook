@@ -27,7 +27,7 @@ export const DeletePersonToLogButton = ({ person, logUuid, handleClose }) => {
     const confirmed = await dialogs.confirm('Are you sure you want to remove this person from this flight?', {
       title: 'Delete person from flight',
       okText: 'Delete',
-      cancelText: 'Cancel',
+      cancelText: 'Back',
       severity: 'error',
     });
     if (confirmed) {

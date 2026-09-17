@@ -40,7 +40,7 @@ export const DeleteAttachmentButton = ({ attachment }) => {
     const confirmed = await dialogs.confirm(`Are you sure you want to remove ${attachment.document_name} attachment?`, {
       title: 'Delete attachment',
       okText: 'Delete',
-      cancelText: 'Cancel',
+      cancelText: 'Back',
       severity: 'error',
     });
 
