@@ -332,7 +332,7 @@ export const FlightRecord = () => {
         </Card>
 
         <Card title="Flight time" subtitle="Operational and pilot function time.">
-          <div className="form-grid">
+          <div className="form-grid two">
             <Field label="Total" value={flight.time?.total_time || ''} readOnly placeholder="--:--" />
             {timeFields.map(([key,label]) => <TimeSelectField key={key} label={label} zeroAsEmpty value={key.split('.').reduce((o,k)=>o?.[k], flight) || ''} onChange={(v)=>handleTimeChange(key,v)} quickFillValue={flight.time?.total_time || ''} quickFillLabel={quickFillLabel} />)}
           </div>

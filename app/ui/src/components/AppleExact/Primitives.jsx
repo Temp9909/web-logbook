@@ -183,6 +183,9 @@ export const TimeSelectField = ({
     if (disabled || readOnly) return;
     const input = pickerInputRef.current;
     if (!input) return;
+    // Native time pickers default an empty control to the current system time.
+    // Seed empty fields with midnight so the wheel/list always starts at 00:00.
+    input.value = nativeValue || '00:00';
     input.focus({ preventScroll: true });
     if (typeof input.showPicker === 'function') {
       try {

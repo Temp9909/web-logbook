@@ -40,6 +40,18 @@ describe('TimeSelectField', () => {
     expect(screen.queryByRole('button', { name: '+56' })).not.toBeInTheDocument();
   });
 
+  it('starts an empty native picker at 00:00 instead of the current system time', () => {
+    render(<TimeSelectField label="PIC" value="" onChange={() => {}} />);
+    const input = screen.getByLabelText('PIC manual time entry');
+    const row = input.closest('.exact-native-time-row');
+    const picker = row.querySelector('.exact-native-picker-input');
+    picker.showPicker = vi.fn();
+
+    fireEvent.click(row);
+    expect(picker.value).toBe('00:00');
+    expect(picker.showPicker).toHaveBeenCalledTimes(1);
+  });
+
   it('opens the native picker from the surrounding zone but preserves direct character editing clicks', () => {
     render(<TimeSelectField label="Arrival time (UTC)" mode="clock" value="1125" onChange={() => {}} />);
     const input = screen.getByLabelText('Arrival time (UTC) manual time entry');
