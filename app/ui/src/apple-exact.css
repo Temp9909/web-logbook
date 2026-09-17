@@ -3137,3 +3137,125 @@ select.select:focus:not(:disabled),
 .sidebar .nav-split-caret-button.selected,
 .sidebar .nav-item.selected .nav-caret,
 .sidebar .nav-item:hover .nav-caret { color:#007AFC !important; }
+
+
+/* Final interaction pass: exact sidebar chevron behavior everywhere requested. */
+
+/* Stats disclosure: compact hit target; the 16px chevron itself remains unchanged. */
+.sidebar .nav-split-caret-button {
+  width:24px !important;
+  height:24px !important;
+  right:28px !important;
+  min-width:24px !important;
+  min-height:24px !important;
+  padding:0 !important;
+  color:#566171 !important;
+  background:transparent !important;
+  transition:none !important;
+  animation:none !important;
+}
+.sidebar .nav-split-caret-button .nav-caret,
+.sidebar .nav-split-caret-button .nav-caret svg,
+.sidebar .nav-split-caret-button .nav-caret path {
+  color:#566171 !important;
+  stroke:#566171 !important;
+  transition:none !important;
+  animation:none !important;
+}
+.sidebar .nav-split-caret-button:hover,
+.sidebar .nav-split-caret-button:focus-visible,
+.sidebar .nav-split-caret-button.selected {
+  color:#007AFC !important;
+}
+.sidebar .nav-split-caret-button:hover .nav-caret,
+.sidebar .nav-split-caret-button:hover .nav-caret svg,
+.sidebar .nav-split-caret-button:hover .nav-caret path,
+.sidebar .nav-split-caret-button:focus-visible .nav-caret,
+.sidebar .nav-split-caret-button:focus-visible .nav-caret svg,
+.sidebar .nav-split-caret-button:focus-visible .nav-caret path,
+.sidebar .nav-split-caret-button.selected .nav-caret,
+.sidebar .nav-split-caret-button.selected .nav-caret svg,
+.sidebar .nav-split-caret-button.selected .nav-caret path {
+  color:#007AFC !important;
+  stroke:#007AFC !important;
+}
+
+/* Dashboard filter select boxes behave like New Flight > Flight role:
+   the whole field is the native click target, with no animated feedback. */
+.apple-legacy-page .apple-native-select-control,
+body.apple-legacy-page .apple-native-select-control {
+  cursor:pointer !important;
+  transition:none !important;
+  animation:none !important;
+}
+.apple-legacy-page .apple-native-select-control:hover:not(:disabled),
+.apple-legacy-page .apple-native-select-control:focus:not(:disabled),
+body.apple-legacy-page .apple-native-select-control:hover:not(:disabled),
+body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23007AFC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+}
+
+/* Dashboard Options: instant opening/closing and exact idle/hover chevron colors. */
+.exact-dashboard-options-accordion,
+.exact-dashboard-options-accordion .MuiAccordionSummary-root,
+.exact-dashboard-options-accordion .MuiAccordionSummary-content,
+.exact-dashboard-options-accordion .MuiAccordionSummary-expandIconWrapper,
+.exact-dashboard-options-accordion .MuiAccordionSummary-expandIconWrapper svg,
+.exact-dashboard-options-accordion .MuiCollapse-root,
+.exact-dashboard-options-accordion .MuiCollapse-wrapper,
+.exact-dashboard-options-accordion .MuiCollapse-wrapperInner {
+  transition:none !important;
+  animation:none !important;
+}
+.exact-dashboard-options-accordion .MuiAccordionSummary-expandIconWrapper,
+.exact-dashboard-options-accordion .exact-dashboard-chevron,
+.exact-dashboard-options-accordion .exact-dashboard-chevron path {
+  color:#566171 !important;
+  stroke:#566171 !important;
+}
+.exact-dashboard-options-accordion .MuiAccordionSummary-root:hover .MuiAccordionSummary-expandIconWrapper,
+.exact-dashboard-options-accordion .MuiAccordionSummary-root:hover .exact-dashboard-chevron,
+.exact-dashboard-options-accordion .MuiAccordionSummary-root:hover .exact-dashboard-chevron path,
+.exact-dashboard-options-accordion .MuiAccordionSummary-root:focus-visible .MuiAccordionSummary-expandIconWrapper,
+.exact-dashboard-options-accordion .MuiAccordionSummary-root:focus-visible .exact-dashboard-chevron,
+.exact-dashboard-options-accordion .MuiAccordionSummary-root:focus-visible .exact-dashboard-chevron path {
+  color:#007AFC !important;
+  stroke:#007AFC !important;
+}
+
+/* New Flight > Aircraft editable combos: reliable hover/focus without :has().
+   The transparent native select is immediately followed by the visible chevron. */
+.exact-combo-picker-button,
+.exact-combo-picker-button .exact-combo-chevron,
+.exact-combo-picker-button .exact-combo-chevron path {
+  color:#566171 !important;
+  stroke:#566171 !important;
+  transition:none !important;
+  animation:none !important;
+}
+.exact-combo-native-select:hover + .exact-combo-picker-button,
+.exact-combo-native-select:focus + .exact-combo-picker-button,
+.exact-combo-native-select:focus-visible + .exact-combo-picker-button,
+.exact-combo-native-select:hover + .exact-combo-picker-button .exact-combo-chevron,
+.exact-combo-native-select:focus + .exact-combo-picker-button .exact-combo-chevron,
+.exact-combo-native-select:focus-visible + .exact-combo-picker-button .exact-combo-chevron,
+.exact-combo-native-select:hover + .exact-combo-picker-button .exact-combo-chevron path,
+.exact-combo-native-select:focus + .exact-combo-picker-button .exact-combo-chevron path,
+.exact-combo-native-select:focus-visible + .exact-combo-picker-button .exact-combo-chevron path {
+  color:#007AFC !important;
+  stroke:#007AFC !important;
+}
+
+
+/* Flight records quick filters (ALL / PIC / IFR / NIGHT): exact interaction blue, no motion. */
+.exact-logbook-flight-filter button,
+.exact-logbook-flight-filter button:hover,
+.exact-logbook-flight-filter button:focus-visible,
+.exact-logbook-flight-filter button.on {
+  transition:none !important;
+  animation:none !important;
+}
+.exact-logbook-flight-filter button:hover,
+.exact-logbook-flight-filter button:focus-visible {
+  color:#007AFC !important;
+}

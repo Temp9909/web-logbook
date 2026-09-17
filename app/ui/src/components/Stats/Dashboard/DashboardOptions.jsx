@@ -38,7 +38,7 @@ export const DashboardOptions = ({ dashboardOptions, setDashboardOptions }) => {
   return (
     <Grid container spacing={1} sx={{ mb: 1 }}>
       <Grid size={{ xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }}>
-        <Accordion variant="outlined" sx={{ width: '100%' }}>
+        <Accordion className="exact-dashboard-options-accordion" variant="outlined" sx={{ width: '100%' }}>
           <AccordionSummary expandIcon={<DashboardChevron />}>
             <Typography variant="overline">Dashboard Options</Typography>
           </AccordionSummary>

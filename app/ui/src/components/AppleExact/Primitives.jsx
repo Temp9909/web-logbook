@@ -303,11 +303,6 @@ export const ComboField = ({ label, value = '', onChange, options = [], disabled
           autoComplete="off"
           aria-label={label || id || 'Selection'}
         />
-        <span className="exact-combo-picker-button" aria-hidden="true">
-          <svg className="exact-combo-chevron" width="16" height="16" viewBox="0 0 16 16">
-            <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
         <select
           id={selectId}
           className="exact-combo-native-select"
@@ -322,6 +317,11 @@ export const ComboField = ({ label, value = '', onChange, options = [], disabled
           <option value="" disabled hidden>Choose…</option>
           {normalized.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
+        <span className="exact-combo-picker-button" aria-hidden="true">
+          <svg className="exact-combo-chevron" width="16" height="16" viewBox="0 0 16 16">
+            <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
       </span>
     </label>
   );
