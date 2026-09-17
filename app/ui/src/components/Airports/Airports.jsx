@@ -4,6 +4,7 @@ import { createCustomAirport, deleteCustomAirport, fetchCustomAirports, fetchSta
 import { updateAirportsDBSettings } from '../../util/http/settings';
 import { queryClient } from '../../util/http/http';
 import useSettings from '../../hooks/useSettings';
+import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 import { Card, Field, Loading, Modal, NativeTable, PageHead, Search, SelectField, SwitchRow } from '../AppleExact/Primitives';
 
 const DB_OPTIONS = [
@@ -49,6 +50,7 @@ function StandardAirportsDirectory({ rows, loading }) {
 }
 
 export const Airports = ({ embedded = false }) => {
+  const dialogs = useDialogs();
   const { data: standardData, isLoading: standardLoading } = useQuery({queryKey:['airports'],queryFn:({signal})=>fetchStandardAirports({signal}),staleTime:3600000});
   const { data: customData, isLoading: customLoading } = useQuery({queryKey:['custom-airports'],queryFn:({signal})=>fetchCustomAirports({signal}),staleTime:3600000});
   const standard = Array.isArray(standardData) ? standardData : [];
@@ -68,10 +70,14 @@ export const Airports = ({ embedded = false }) => {
   },onSuccess:async()=>{await queryClient.invalidateQueries({queryKey:['custom-airports']});setAirport(null);}});
   const removeAirport=useMutation({mutationFn:(row)=>deleteCustomAirport({payload:row}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['custom-airports']})});
 
+  const confirmDeleteAirport=async(r)=>{
+    const confirmed=await dialogs.confirm(`Delete ${r?.name || 'this custom airport'}?`,{title:'Delete custom airport',severity:'error'});
+    if(confirmed)removeAirport.mutate(r);
+  };
   const customCols=useMemo(()=>[
     {key:'name',label:'Name / code'},{key:'city',label:'City'},{key:'country',label:'Country'},{key:'lat',label:'Lat'},{key:'lon',label:'Lon'},
-    {key:'actions',label:'',render:(r)=><div className="exact-actions-cell"><button className="btn small" onClick={(e)=>{e.stopPropagation();setAirport({...r,isNew:false});}}>Edit</button><button className="btn danger small" onClick={(e)=>{e.stopPropagation();if(confirm('Delete this custom airport?'))removeAirport.mutate(r);}}>Delete</button></div>,searchValue:()=>''}
-  ],[removeAirport]);
+    {key:'actions',label:'',render:(r)=><div className="exact-actions-cell"><button className="btn small" onClick={(e)=>{e.stopPropagation();setAirport({...r,isNew:false});}}>Edit</button><button className="btn danger small" onClick={(e)=>{e.stopPropagation();confirmDeleteAirport(r);}}>Delete</button></div>,searchValue:()=>''}
+  ],[removeAirport,dialogs]);
 
   const saveSource=(newSource,newFilter)=>{
     setDbSource(newSource);setNoIcao(newFilter);

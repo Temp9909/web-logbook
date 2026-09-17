@@ -3,21 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { createPerson, deletePerson, fetchPersons, updatePerson } from '../../util/http/person';
 import { queryClient } from '../../util/http/http';
+import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 import { Card, Field, Loading, Modal, NativeTable, PageHead, TextArea, personName } from '../AppleExact/Primitives';
 
 const blank={uuid:'',first_name:'',middle_name:'',last_name:'',phone:'',email:'',remarks:'',isNew:true};
 export const Persons=()=>{
   const navigate=useNavigate();
+  const dialogs=useDialogs();
   const {data,isLoading}=useQuery({queryKey:['persons'],queryFn:({signal})=>fetchPersons({signal}),staleTime:3600000});
   const persons=Array.isArray(data)?data.filter(Boolean):[];
   const [person,setPerson]=useState(null);
   const save=useMutation({mutationFn:()=>person.isNew?createPerson({payload:person}):updatePerson({payload:person}),onSuccess:async()=>{await queryClient.invalidateQueries({queryKey:['persons']});setPerson(null);}});
   const remove=useMutation({mutationFn:(uuid)=>deletePerson({uuid}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['persons']})});
+  const confirmDeletePerson=async(r)=>{
+    const confirmed=await dialogs.confirm(`Delete ${personName(r)}?`,{title:'Delete person',severity:'error'});
+    if(confirmed)remove.mutate(r.uuid);
+  };
   const cols=useMemo(()=>[
     {key:'name',label:'Name',render:r=>personName(r),searchValue:r=>personName(r)},
     {key:'phone',label:'Phone'},{key:'email',label:'Email'},{key:'remarks',label:'Remarks'},
-    {key:'actions',label:'',render:r=><div className="exact-actions-cell"><button className="btn small" onClick={e=>{e.stopPropagation();navigate(`/persons/${r.uuid}`)}}>View</button><button className="btn small" onClick={e=>{e.stopPropagation();setPerson({...r,isNew:false})}}>Edit</button><button className="btn danger small" onClick={e=>{e.stopPropagation();if(confirm('Delete this person?'))remove.mutate(r.uuid)}}>Delete</button></div>,searchValue:()=>''}
-  ],[navigate,remove]);
+    {key:'actions',label:'',render:r=><div className="exact-actions-cell"><button className="btn small" onClick={e=>{e.stopPropagation();navigate(`/persons/${r.uuid}`)}}>View</button><button className="btn small" onClick={e=>{e.stopPropagation();setPerson({...r,isNew:false})}}>Edit</button><button className="btn danger small" onClick={e=>{e.stopPropagation();confirmDeletePerson(r)}}>Delete</button></div>,searchValue:()=>''}
+  ],[navigate,remove,dialogs]);
   return <section className="exact-react-page">
     <PageHead title="Persons" subtitle="Manage pilots, crew and other people in your logbook." actions={<button className="btn primary" onClick={()=>setPerson({...blank})}>＋ Add person</button>} />
     <Card title="People" subtitle="Pilots, crew and contacts linked to your logbook."><NativeTable rows={persons} columns={cols} rowKey={r=>r.uuid} loading={isLoading} searchPlaceholder="Search name, email or phone…" onRowClick={r=>navigate(`/persons/${r.uuid}`)} /></Card>

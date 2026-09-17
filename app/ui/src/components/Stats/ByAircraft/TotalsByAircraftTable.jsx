@@ -22,7 +22,7 @@ export const TotalsByAircraftTable = ({ data = [], isLoading, type, customFields
       exportFilename={`stats-by-${isType ? 'type' : 'category'}.csv`}
       showTotals={isType}
       loading={isLoading}
-      stickyGroup={!isType}
+      stickyGroup={false}
     />
   </section>;
 };

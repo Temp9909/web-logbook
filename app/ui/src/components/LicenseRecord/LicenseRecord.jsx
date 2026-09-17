@@ -4,6 +4,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { LICENSE_INITIAL_STATE } from '../../constants/constants';
 import { createLicenseRecord, deleteLicenseRecord, fetchLicense, fetchLicenseCategory, updateLicenseRecord } from '../../util/http/licensing';
 import { queryClient } from '../../util/http/http';
+import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 import { Card, Field, Loading, PageHead, SelectField, TextArea, fromInputDate, toInputDate } from '../AppleExact/Primitives';
 import { EASA_LICENSE_CATEGORIES, namesForLicenseCategory } from './easaLicenseOptions';
 import { calculateRegulatoryValidUntil, normalizeValidity, validityRuleFor } from './easaValidityRules';
@@ -13,6 +14,7 @@ const CUSTOM_NAME_VALUE = '__custom_name__';
 export const LicenseRecord = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dialogs = useDialogs();
   const [license, setLicense] = useState({ ...LICENSE_INITIAL_STATE, uuid: id });
   const [customNameMode, setCustomNameMode] = useState(false);
 
@@ -101,8 +103,13 @@ export const LicenseRecord = () => {
     });
   };
 
+  const handleDelete=async()=>{
+    const confirmed=await dialogs.confirm('Delete this licensing record?',{title:'Delete licensing record',severity:'error'});
+    if(confirmed)remove.mutate();
+  };
+
   return <section className="exact-react-page">
-    <PageHead title={id === 'new' ? 'Add a licensing record' : 'Licensing record'} subtitle={id === 'new' ? 'Add a licence, rating, medical or certification record.' : 'Review and update this licensing record.'} actions={<><button className="btn ghost" onClick={()=>navigate('/licensing')}>Cancel</button>{id !== 'new' ? <button className="btn danger" onClick={()=>confirm('Delete this licensing record?') && remove.mutate()}>Delete</button>:null}<button className="btn primary" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save record'}</button></>} />
+    <PageHead title={id === 'new' ? 'Add a licensing record' : 'Licensing record'} subtitle={id === 'new' ? 'Add a licence, rating, medical or certification record.' : 'Review and update this licensing record.'} actions={<><button className="btn ghost" onClick={()=>navigate('/licensing')}>Cancel</button>{id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button>:null}<button className="btn primary" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save record'}</button></>} />
     <Loading show={isLoading || save.isPending || remove.isPending}/>
     {save.error ? <div className="note exact-inline-danger">{String(save.error.message || save.error)}</div> : null}
     <div className="split">

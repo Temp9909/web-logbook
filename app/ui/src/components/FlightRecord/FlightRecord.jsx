@@ -7,6 +7,7 @@ import { fetchAircraftModels, fetchAircraftModelsCategories, fetchAircrafts } fr
 import { fetchPersons } from '../../util/http/person';
 import { queryClient } from '../../util/http/http';
 import useCustomFields from '../../hooks/useCustomFields';
+import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 import FlightMap from '../FlightMap/FlightMap';
 import { Card, Field, Loading, PageHead, SelectField, TextArea, TimeSelectField, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
 import { DEFAULT_CATEGORIES, splitCategories } from '../Aircrafts/aircraftCategories';
@@ -55,6 +56,7 @@ export const FlightRecord = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const dialogs = useDialogs();
   const [flight, setFlight] = useState({ ...FLIGHT_INITIAL_STATE, uuid: id });
   const [newAircraftOpen, setNewAircraftOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
@@ -231,10 +233,18 @@ export const FlightRecord = () => {
     onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['logbook'] }); navigate('/logbook'); },
   });
 
+  const handleDelete = async () => {
+    const confirmed = await dialogs.confirm('Delete this flight record?', {
+      title: 'Delete flight',
+      severity: 'error',
+    });
+    if (confirmed) deleteMutation.mutate();
+  };
+
   const actions = <>
-    <button className="btn ghost" onClick={() => navigate('/logbook')}>Cancel</button>
-    {id !== 'new' ? <button className="btn danger" onClick={() => { if (confirm('Delete this flight record?')) deleteMutation.mutate(); }}>Delete</button> : null}
-    <button className="btn primary" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? 'Saving…' : 'Save flight'}</button>
+    <button className="btn ghost" onClick={() => navigate('/logbook')}>{id === 'new' ? 'Back' : 'Cancel'}</button>
+    {id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button> : null}
+    <button className="btn primary" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? 'Saving…' : (id === 'new' ? 'Done' : 'Save flight')}</button>
   </>;
 
   return (

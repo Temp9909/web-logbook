@@ -14,13 +14,22 @@ export const fetchSettings = async ({ signal }) => {
 
 export const updateSettings = async ({ settings }) => {
   const url = `${API_URL}/settings/general`;
-  settings.licenses_expiration.warning_period = parseInt(settings.licenses_expiration.warning_period) || 90;
-  settings.previous_experience.landings_day = parseInt(settings.previous_experience.landings_day) || 0;
-  settings.previous_experience.landings_night = parseInt(settings.previous_experience.landings_night) || 0;
+  const normalized = {
+    ...settings,
+    licenses_expiration: {
+      ...(settings.licenses_expiration || {}),
+      warning_period: parseInt(settings.licenses_expiration?.warning_period) || 90,
+    },
+    previous_experience: {
+      ...(settings.previous_experience || {}),
+      landings_day: parseInt(settings.previous_experience?.landings_day) || 0,
+      landings_night: parseInt(settings.previous_experience?.landings_night) || 0,
+    },
+  };
   const options = {
     method: 'PUT',
     headers: { 'Authorization': `Bearer ${getAuthToken()}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings),
+    body: JSON.stringify(normalized),
   };
   return await handleFetch(url, options, 'Cannot update settings');
 }

@@ -219,9 +219,13 @@ export const getTotalsByAircraft = (flights, type, models, aircrafts, customFiel
 
   const modelCategories = type === "category" ?
     models.reduce((acc, { model, category }) => {
-      acc[model] = category.split(',').map(c => c.trim());
+      acc[model] = String(category || '').split(',').map(c => c.trim()).filter(Boolean);
       return acc;
     }, {}) : {};
+
+  const knownCategories = type === "category"
+    ? new Set(Object.values(modelCategories).flat())
+    : new Set();
 
   const aircraftMap = aircrafts?.reduce((acc, a) => {
     acc[a.reg] = a;
@@ -236,32 +240,35 @@ export const getTotalsByAircraft = (flights, type, models, aircrafts, customFiel
     const ac = aircraftMap[aircraftReg];
 
     if (aircraftType) {
-      // Normal case: real aircraft
+      // Normal case: real aircraft. Category statistics must contain category
+      // names only; never fall back to the aircraft type when no category is set.
       if (type === "category") {
         if (ac) {
-          const effectiveCategories = ac.category.split(',').map(c => c.trim()).filter(Boolean);
-          keys = effectiveCategories.length > 0 ? effectiveCategories : [aircraftType];
+          const effectiveCategories = String(ac.category || '').split(',').map(c => c.trim()).filter(Boolean);
+          keys = effectiveCategories.length > 0 ? effectiveCategories : ["Uncategorized"];
         } else {
-          keys = modelCategories[aircraftType] ?? [aircraftType];
+          const categoriesForType = modelCategories[aircraftType] || [];
+          keys = categoriesForType.length > 0 ? categoriesForType : ["Uncategorized"];
         }
       } else {
         keys = [aircraftType];
       }
     } else {
-      // Simulator case
+      // Simulator case. In category mode, use mapped categories when the
+      // simulator type is a known aircraft type, a category name when it is
+      // explicitly one, and otherwise the generic Simulator category.
       const simType = flight.sim?.type;
-      if (
-        simType &&
-        (models.some(m => m.model === simType) ||
-          Object.values(modelCategories).some(cats => cats.includes(simType)))
-      ) {
-        // If simType matches a known model or category
-        keys = type === "category"
-          ? modelCategories[simType] ?? [simType]
-          : [simType];
+      if (type === "category") {
+        const categoriesForSimType = modelCategories[simType] || [];
+        if (categoriesForSimType.length > 0) {
+          keys = categoriesForSimType;
+        } else if (simType && knownCategories.has(simType)) {
+          keys = [simType];
+        } else {
+          keys = ["Simulator"];
+        }
       } else {
-        // Otherwise keep it as "Simulator"
-        keys = ["Simulator"];
+        keys = [simType || "Simulator"];
       }
     }
 

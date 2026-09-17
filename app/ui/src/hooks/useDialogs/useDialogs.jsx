@@ -1,50 +1,69 @@
-import { createContext, useCallback, useContext, useRef, useState } from 'react';
-// MUI
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 const DialogsContext = createContext(null);
 
-const severityColor = {
-  error: 'error',
-  warning: 'warning',
-  info: 'info',
-  success: 'success',
+const dialogToneClass = (severity) => severity === 'error' ? ' destructive' : '';
+
+const DialogFrame = ({ open, title, children, actions, onBackdrop }) => {
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') onBackdrop?.();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onBackdrop]);
+
+  if (!open) return null;
+  return (
+    <div className="apple-confirm-backdrop" role="presentation" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onBackdrop?.();
+    }}>
+      <div className="apple-confirm-sheet" role="dialog" aria-modal="true" aria-label={title}>
+        <div className="apple-confirm-title">{title}</div>
+        <div className="apple-confirm-content">{children}</div>
+        <div className="apple-confirm-actions">{actions}</div>
+      </div>
+    </div>
+  );
 };
 
 const AlertDialog = ({ open, onClose, payload }) => {
-  const { msg, title = 'Alert', okText = 'OK', severity } = payload;
-  const okColor = severityColor[severity] ?? 'primary';
-
+  const { msg, title = 'Alert', okText = 'Done', severity } = payload;
   return (
-    <Dialog open={open} onClose={() => onClose()} maxWidth="xs" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>{msg}</DialogContent>
-      <DialogActions>
-        <Button color={okColor} onClick={() => onClose()} autoFocus>{okText}</Button>
-      </DialogActions>
-    </Dialog>
+    <DialogFrame
+      open={open}
+      title={title}
+      onBackdrop={() => onClose()}
+      actions={<button type="button" className={`apple-confirm-button primary${dialogToneClass(severity)}`} onClick={() => onClose()} autoFocus>{okText}</button>}
+    >
+      {msg}
+    </DialogFrame>
   );
-}
+};
 
 const ConfirmDialog = ({ open, onClose, payload }) => {
-  const { msg, title = 'Confirm', okText = 'OK', cancelText = 'Cancel', severity } = payload;
-  const okColor = severityColor[severity] ?? 'primary';
+  const { msg, title = 'Confirm', okText, cancelText, severity } = payload;
+  const destructive = severity === 'error';
+  // Destructive actions deliberately use the same Apple-style Back / Done pair
+  // everywhere so a browser-native confirm is never shown for delete flows.
+  const backLabel = destructive ? 'Back' : (cancelText || 'Back');
+  const doneLabel = destructive ? 'Done' : (okText || 'Done');
 
   return (
-    <Dialog open={open} onClose={() => onClose(false)} maxWidth="xs" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>{msg}</DialogContent>
-      <DialogActions>
-        <Button autoFocus onClick={() => onClose(false)}>{cancelText}</Button>
-        <Button color={okColor} onClick={() => onClose(true)}>{okText}</Button>
-      </DialogActions>
-    </Dialog>
+    <DialogFrame
+      open={open}
+      title={title}
+      onBackdrop={() => onClose(false)}
+      actions={<>
+        <button type="button" className="apple-confirm-button back" onClick={() => onClose(false)} autoFocus>{backLabel}</button>
+        <button type="button" className={`apple-confirm-button primary${destructive ? ' destructive' : ''}`} onClick={() => onClose(true)}>{doneLabel}</button>
+      </>}
+    >
+      {msg}
+    </DialogFrame>
   );
-}
+};
 
 export const DialogsProvider = ({ children }) => {
   const [stack, setStack] = useState([]);
@@ -58,16 +77,14 @@ export const DialogsProvider = ({ children }) => {
   }, []);
 
   const dismiss = useCallback((id, result) => {
-    setStack((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, open: false } : d))
-    );
+    setStack((prev) => prev.map((d) => (d.id === id ? { ...d, open: false } : d)));
     setTimeout(() => {
       setStack((prev) => {
         const entry = prev.find((d) => d.id === id);
         if (entry) entry.resolve(result);
         return prev.filter((d) => d.id !== id);
       });
-    }, 300);
+    }, 180);
   }, []);
 
   const alert = useCallback((msg, options = {}) => push(AlertDialog, { msg, ...options }), [push]);
@@ -102,16 +119,14 @@ export const DialogsProvider = ({ children }) => {
       ))}
     </DialogsContext.Provider>
   );
-}
+};
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useDialogs = () => {
   const ctx = useContext(DialogsContext);
-  if (!ctx) {
-    throw new Error('useDialogs must be used within a <DialogsProvider>');
-  }
+  if (!ctx) throw new Error('useDialogs must be used within a <DialogsProvider>');
   return ctx;
-}
+};
 
 // eslint-disable-next-line react-refresh/only-export-components
 export default useDialogs;

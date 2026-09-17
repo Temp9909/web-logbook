@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query';
 import SignaturePad from 'signature_pad';
 import useSettings from '../../hooks/useSettings';
 import useCustomFields from '../../hooks/useCustomFields';
+import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 import { createCustomField, deleteCustomField, updateCustomField } from '../../util/http/fields';
 import { updateSettings, updateSignature } from '../../util/http/settings';
 import { queryClient } from '../../util/http/http';
@@ -39,29 +40,48 @@ export function SwitchColorMenu({value,onChange}){
   />;
 }
 
-function SignatureEditor({settings,setSettings,onSave}){
+function SignatureEditor({settings,onChange,onSignatureChange}){
   const canvasRef=useRef(null);const padRef=useRef(null);const fileRef=useRef(null);
   useEffect(()=>{
     const canvas=canvasRef.current;if(!canvas)return;
     const ratio=Math.max(window.devicePixelRatio||1,1);canvas.width=canvas.offsetWidth*ratio;canvas.height=160*ratio;canvas.getContext('2d').scale(ratio,ratio);
     const pad=new SignaturePad(canvas,{penColor:settings.penColor||'#000000'});padRef.current=pad;
     if(settings.signature_image){try{pad.fromDataURL(settings.signature_image)}catch{/* ignore */}}
-    const sync=()=>{if(!pad.isEmpty())setSettings(p=>({...p,signature_image:pad.toDataURL()}))};pad.addEventListener('endStroke',sync);
+    const sync=()=>{if(!pad.isEmpty())onSignatureChange(pad.toDataURL())};pad.addEventListener('endStroke',sync);
     return()=>{pad.removeEventListener('endStroke',sync);pad.off()};
   },[]);
   useEffect(()=>{if(padRef.current)padRef.current.penColor=settings.penColor||'#000000'},[settings.penColor]);
-  const upload=(file)=>{if(!file)return;const reader=new FileReader();reader.onload=()=>{setSettings(p=>({...p,signature_image:reader.result}));padRef.current?.fromDataURL(reader.result)};reader.readAsDataURL(file)};
-  return <Card title="Logbook signature" subtitle="Draw or upload the signature used on signed records." actions={<><input ref={fileRef} hidden type="file" accept="image/*" onChange={e=>upload(e.target.files?.[0])}/><button className="btn small" onClick={()=>fileRef.current?.click()}>Upload</button><input aria-label="Signature color" type="color" value={settings.penColor||'#000000'} onChange={e=>setSettings(p=>({...p,penColor:e.target.value}))}/><button className="btn danger small" onClick={()=>{padRef.current?.clear();setSettings(p=>({...p,signature_image:''}))}}>Clear</button><button className="btn primary small" onClick={onSave}>Save</button></>}><div className="signature"><canvas ref={canvasRef} style={{width:'100%',height:160,display:'block'}}/></div></Card>
+  const upload=(file)=>{if(!file)return;const reader=new FileReader();reader.onload=()=>{onSignatureChange(reader.result);padRef.current?.fromDataURL(reader.result)};reader.readAsDataURL(file)};
+  return <Card title="Logbook signature" subtitle="Draw or upload the signature used on signed records." actions={<><input ref={fileRef} hidden type="file" accept="image/*" onChange={e=>upload(e.target.files?.[0])}/><button className="btn small" onClick={()=>fileRef.current?.click()}>Upload</button><input aria-label="Signature color" type="color" value={settings.penColor||'#000000'} onChange={e=>onChange('penColor',e.target.value)}/><button className="btn danger small" onClick={()=>{padRef.current?.clear();onSignatureChange('')}}>Clear</button></>}><div className="signature"><canvas ref={canvasRef} style={{width:'100%',height:160,display:'block'}}/></div></Card>
 }
 
 export const Settings=()=>{
+  const dialogs=useDialogs();
   const dbFileRef=useRef(null);
   const [searchParams,setSearchParams]=useSearchParams();
   const allowedTabs=['general','previous','signature','standard','custom','airports'];
   const requestedTab=searchParams.get('tab');
   const initialTab=allowedTabs.includes(requestedTab)?requestedTab:'general';
   const {data,isLoading}=useSettings();const {data:customFields=[],isCustomFieldsLoading}=useCustomFields();const [settings,setSettings]=useState({});const [tab,setTab]=useState(initialTab);const [field,setField]=useState(null);
-  useEffect(()=>{if(data)setSettings(data)},[data]);
+  const settingsHydratedRef=useRef(false);
+  const settingsRef=useRef({});
+  const generalSaveInFlightRef=useRef(false);
+  const pendingGeneralSaveRef=useRef(null);
+  const lastGeneralSnapshotRef=useRef('');
+  const lastSavedPasswordRef=useRef('');
+  const signatureSaveInFlightRef=useRef(false);
+  const pendingSignatureSaveRef=useRef(null);
+  const lastSignatureSnapshotRef=useRef('');
+  useEffect(()=>{
+    if(data && !settingsHydratedRef.current){
+      settingsHydratedRef.current=true;
+      settingsRef.current=data;
+      setSettings(data);
+      const generalSnapshot={...data,signature_image:undefined};
+      lastGeneralSnapshotRef.current=JSON.stringify(generalSnapshot);
+      lastSignatureSnapshotRef.current=String(data.signature_image||'');
+    }
+  },[data]);
   useEffect(()=>{
     const next=searchParams.get('tab');
     if(allowedTabs.includes(next) && next!==tab)setTab(next);
@@ -71,22 +91,96 @@ export const Settings=()=>{
     if(id==='general')setSearchParams({}, {replace:true});
     else setSearchParams({tab:id}, {replace:true});
   },[setSearchParams]);
-  const change=useCallback((key,value)=>setSettings(prev=>setNested(prev,key,value)),[]);
+
+  const persistGeneral=useCallback((nextSettings)=>{
+    if(!settingsHydratedRef.current)return;
+    const localSnapshot={...nextSettings,signature_image:undefined};
+    const serialized=JSON.stringify(localSnapshot);
+    if(serialized===lastGeneralSnapshotRef.current)return;
+    pendingGeneralSaveRef.current={localSnapshot,serialized};
+    if(generalSaveInFlightRef.current)return;
+    generalSaveInFlightRef.current=true;
+    void (async()=>{
+      while(pendingGeneralSaveRef.current){
+        const item=pendingGeneralSaveRef.current;
+        pendingGeneralSaveRef.current=null;
+        const outgoing={...item.localSnapshot};
+        if(outgoing.password && outgoing.password===lastSavedPasswordRef.current)outgoing.password='';
+        try{
+          await updateSettings({settings:outgoing});
+          lastGeneralSnapshotRef.current=item.serialized;
+          if(item.localSnapshot.password)lastSavedPasswordRef.current=item.localSnapshot.password;
+          queryClient.invalidateQueries({queryKey:['settings'],refetchType:'none'});
+        }catch(error){
+          console.error('Settings autosave failed',error);
+        }
+      }
+      generalSaveInFlightRef.current=false;
+      if(pendingGeneralSaveRef.current)persistGeneral(pendingGeneralSaveRef.current.localSnapshot);
+    })();
+  },[]);
+
+  const persistSignature=useCallback((nextSettings)=>{
+    if(!settingsHydratedRef.current)return;
+    const signature=String(nextSettings.signature_image||'');
+    if(signature===lastSignatureSnapshotRef.current)return;
+    pendingSignatureSaveRef.current={...nextSettings,signature_image:signature};
+    if(signatureSaveInFlightRef.current)return;
+    signatureSaveInFlightRef.current=true;
+    void (async()=>{
+      while(pendingSignatureSaveRef.current){
+        const item=pendingSignatureSaveRef.current;
+        pendingSignatureSaveRef.current=null;
+        try{
+          await updateSignature({settings:item});
+          lastSignatureSnapshotRef.current=String(item.signature_image||'');
+          queryClient.invalidateQueries({queryKey:['settings'],refetchType:'none'});
+        }catch(error){
+          console.error('Signature autosave failed',error);
+        }
+      }
+      signatureSaveInFlightRef.current=false;
+      if(pendingSignatureSaveRef.current)persistSignature(pendingSignatureSaveRef.current);
+    })();
+  },[]);
+
+  const change=useCallback((key,value)=>{
+    const next=setNested(settingsRef.current,key,value);
+    settingsRef.current=next;
+    setSettings(next);
+    persistGeneral(next);
+  },[persistGeneral]);
+  const changeSignature=useCallback((value)=>{
+    const next={...settingsRef.current,signature_image:value};
+    settingsRef.current=next;
+    setSettings(next);
+    persistSignature(next);
+  },[persistSignature]);
   const changeSwitchColor=useCallback((value)=>{change('switch_color',value);if(/^#[0-9a-f]{6}$/i.test(value))document.documentElement.style.setProperty('--switch-on-color',value);else document.documentElement.style.removeProperty('--switch-on-color')},[change]);
-  const save=useMutation({mutationFn:()=>updateSettings({settings}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['settings']})});
-  const saveSignature=useMutation({mutationFn:()=>updateSignature({settings}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['settings']})});
   const downloadDb=useMutation({mutationFn:downloadDBFile,onSuccess:(blob)=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='web-logbook.sql';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}});
   const uploadDb=useMutation({mutationFn:(form)=>uploadDBFile({payload:form}),onSuccess:()=>queryClient.invalidateQueries()});
   const saveField=useMutation({mutationFn:()=>field.uuid==='new'?createCustomField({field}):updateCustomField({field}),onSuccess:async()=>{await queryClient.invalidateQueries({queryKey:['custom-fields']});setField(null)}});
   const removeField=useMutation({mutationFn:(uuid)=>deleteCustomField({uuid}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['custom-fields']})});
+  const confirmDeleteField=useCallback(async(row)=>{
+    const confirmed=await dialogs.confirm(`Delete ${row?.name || 'this custom field'}?`,{title:'Delete custom field',severity:'error'});
+    if(confirmed)removeField.mutate(row.uuid);
+  },[dialogs,removeField]);
   const customCols=useMemo(()=>[
     {key:'display_order',label:'Order'},{key:'name',label:'Name'},{key:'description',label:'Description'},{key:'category',label:'Category'},{key:'type',label:'Type'},{key:'stats_function',label:'Stats function'},
-    {key:'actions',label:'',render:r=><div className="exact-actions-cell"><button className="btn small" onClick={e=>{e.stopPropagation();setField({...r})}}>Edit</button><button className="btn danger small" onClick={e=>{e.stopPropagation();if(confirm('Delete this custom field?'))removeField.mutate(r.uuid)}}>Delete</button></div>,searchValue:()=>''}
-  ],[removeField]);
+    {key:'actions',label:'',render:r=><div className="exact-actions-cell"><button className="btn small" onClick={e=>{e.stopPropagation();setField({...r})}}>Edit</button><button className="btn danger small" onClick={e=>{e.stopPropagation();confirmDeleteField(r)}}>Delete</button></div>,searchValue:()=>''}
+  ],[confirmDeleteField]);
+  const handleDbUpload=useCallback(async(event)=>{
+    const file=event.target.files?.[0];
+    event.target.value='';
+    if(!file)return;
+    const confirmed=await dialogs.confirm('Replace the current database with this file?',{title:'Upload database',severity:'error'});
+    if(!confirmed)return;
+    const form=new FormData();form.append('dbfile',file);uploadDb.mutate(form);
+  },[dialogs,uploadDb]);
   const tabs=[['general','General'],['previous','Previous flight experience'],['signature','Logbook signature'],['standard','Standard fields'],['custom','Custom fields'],['airports','Airports']];
   return <section className="exact-react-page">
-    <PageHead title="Settings" subtitle="Configure your logbook, fields, signature, airports and previous experience." actions={['general','previous','standard'].includes(tab)?<button className="btn primary" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save settings'}</button>:null}/>
-    <Loading show={isLoading||save.isPending}/>
+    <PageHead title="Settings" subtitle="Configure your logbook, fields, signature, airports and previous experience." />
+    <Loading show={isLoading}/>
     <div className="settings-tabs">{tabs.map(([id,label])=><button key={id} className={tab===id?'on':''} onClick={()=>selectTab(id)}>{label}</button>)}</div>
 
     {tab==='general'?<div className="grid two">
@@ -107,15 +201,15 @@ export const Settings=()=>{
         <div className="card rows" style={{borderRadius:10}}><SwitchRow label="Enable authentication" checked={Boolean(settings.auth_enabled)} onChange={v=>{change('auth_enabled',v);if(v&&!settings.secret_key){const a=new Uint8Array(32);crypto.getRandomValues(a);change('secret_key',btoa(String.fromCharCode.apply(null,a)))}}}/></div>
         <div className="form-grid two" style={{marginTop:12}}><Field label="Login" value={settings.login||''} disabled={!settings.auth_enabled} onChange={v=>change('login',v)}/><Field label="Password" type="password" value={settings.password||''} disabled={!settings.auth_enabled} onChange={v=>change('password',v)}/><Field label="Secret key" value={settings.secret_key||''} disabled={!settings.auth_enabled} onChange={v=>change('secret_key',v)}/><SelectField label="Time fields autoformat" value={String(settings.time_fields_auto_format??0)} onChange={v=>change('time_fields_auto_format',Number(v))} options={[{value:'0',label:'None'},{value:'1',label:'HH:MM'},{value:'2',label:'H:MM'}]}/><SelectField label="Logbook totals view" value={String(settings.logbook_totals_view??0)} onChange={v=>change('logbook_totals_view',Number(v))} options={[{value:'0',label:'Standard'},{value:'1',label:'Paper Logbook'}]}/></div>
         <div className="section-label" style={{marginTop:15}}>Data</div>
-        <div className="card rows" style={{borderRadius:10}}><div className="setting-row"><div><div className="lbl">Download database</div><div className="sub">Create a local backup of the current database.</div></div><span className="spacer"/><button className="btn small" disabled={downloadDb.isPending} onClick={()=>downloadDb.mutate()}>{downloadDb.isPending?'Preparing…':'Download'}</button></div><div className="setting-row"><div><div className="lbl">Upload database</div><div className="sub exact-warning">Replaces the current database. Make a backup first.</div></div><span className="spacer"/><input ref={dbFileRef} hidden type="file" onChange={e=>{const f=e.target.files?.[0];if(f&&confirm('Replace the current database with this file?')){const form=new FormData();form.append('dbfile',f);uploadDb.mutate(form)}}}/><button className="btn danger small" disabled={uploadDb.isPending} onClick={()=>dbFileRef.current?.click()}>{uploadDb.isPending?'Uploading…':'Upload'}</button></div></div>
+        <div className="card rows" style={{borderRadius:10}}><div className="setting-row"><div><div className="lbl">Download database</div><div className="sub">Create a local backup of the current database.</div></div><span className="spacer"/><button className="btn small" disabled={downloadDb.isPending} onClick={()=>downloadDb.mutate()}>{downloadDb.isPending?'Preparing…':'Download'}</button></div><div className="setting-row"><div><div className="lbl">Upload database</div><div className="sub exact-warning">Replaces the current database. Make a backup first.</div></div><span className="spacer"/><input ref={dbFileRef} hidden type="file" onChange={handleDbUpload}/><button className="btn danger small" disabled={uploadDb.isPending} onClick={()=>dbFileRef.current?.click()}>{uploadDb.isPending?'Uploading…':'Upload'}</button></div></div>
       </Card>
     </div>:null}
 
     {tab==='previous'?<Card title="Previous flight experience" subtitle="Enter totals accumulated before the first flight stored in this logbook."><div className="form-grid">{previousFields.map(([key,label])=><Field key={key} label={label} value={settings.previous_experience?.[key]??''} onChange={v=>change(`previous_experience.${key}`,v)}/>)}</div></Card>:null}
 
-    {tab==='signature'?<SignatureEditor settings={settings} setSettings={setSettings} onSave={()=>saveSignature.mutate()}/>:null}
+    {tab==='signature'?<SignatureEditor settings={settings} onChange={change} onSignatureChange={changeSignature}/>:null}
 
-    {tab==='standard'?<Card title="Standard fields" subtitle="Choose the names used for the standard logbook columns." actions={<button className="btn primary small" onClick={()=>save.mutate()}>Save</button>}><div className="card rows" style={{borderRadius:10,marginBottom:14}}><SwitchRow label="Enable custom names for standard fields" sub="Override the default EASA labels." checked={Boolean(settings.enable_custom_names)} onChange={v=>change('enable_custom_names',v)}/></div><div className="form-grid">{Object.entries(standardLabels).map(([key,label])=><Field key={key} label={label} disabled={!settings.enable_custom_names} value={settings.standard_fields_headers?.[key]??label} onChange={v=>change(`standard_fields_headers.${key}`,v)}/>)}</div></Card>:null}
+    {tab==='standard'?<Card title="Standard fields" subtitle="Choose the names used for the standard logbook columns."><div className="card rows" style={{borderRadius:10,marginBottom:14}}><SwitchRow label="Enable custom names for standard fields" sub="Override the default EASA labels." checked={Boolean(settings.enable_custom_names)} onChange={v=>change('enable_custom_names',v)}/></div><div className="form-grid">{Object.entries(standardLabels).map(([key,label])=><Field key={key} label={label} disabled={!settings.enable_custom_names} value={settings.standard_fields_headers?.[key]??label} onChange={v=>change(`standard_fields_headers.${key}`,v)}/>)}</div></Card>:null}
 
     {tab==='custom'?<Card title="Custom fields" subtitle="Add your own fields and decide how they appear in statistics." actions={<button className="btn primary small" onClick={()=>setField({...CUSTOM_FIELD_INITIAL_STATE})}>＋ New custom field</button>}><NativeTable rows={customFields} columns={customCols} rowKey={r=>r.uuid} loading={isCustomFieldsLoading} searchPlaceholder="Search custom fields…" /></Card>:null}
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { deleteAttachment, downloadAttachments, fetchAttachment, fetchAttachments, uploadAttachement } from '../../util/http/attachment';
 import { fetchLogbookData, resetTrackLog } from '../../util/http/logbook';
 import { queryClient } from '../../util/http/http';
+import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 import AttachmentPreview from './AttachmentPreview';
 import { Card, Chip, EmptyState, Loading, Modal, PageHead, Search, SelectField } from '../AppleExact/Primitives';
 
@@ -18,6 +19,7 @@ const flightLabel=(flight)=>{
 
 export const Attachments=()=>{
   const navigate=useNavigate();
+  const dialogs=useDialogs();
   const fileInputRef=useRef(null);
   const folderInputRef=useRef(null);
   const [query,setQuery]=useState('');
@@ -89,12 +91,18 @@ export const Attachments=()=>{
     },
   });
 
-  const handleDelete=(row)=>{
+  const handleDelete=async(row)=>{
     if(!row?.uuid)return;
-    if(!confirm(`Delete ${row.document_name || 'this attachment'}?`))return;
+    const confirmed=await dialogs.confirm(`Delete ${row.document_name || 'this attachment'}?`,{title:'Delete attachment',severity:'error'});
+    if(!confirmed)return;
     const isTrack=extensionOf(row.document_name)==='kml';
-    const resetTrack=isTrack ? confirm('This KML looks like a track log. Reset the flight track and distance too?') : false;
+    const resetTrack=isTrack ? await dialogs.confirm('This KML looks like a track log. Reset the flight track and distance too?',{title:'Reset track',okText:'Done',cancelText:'Back',severity:'warning'}) : false;
     remove.mutate({row,resetTrack});
+  };
+  const handleDownloadDisplayed=async()=>{
+    if(!filtered.length||downloadAll.isPending)return;
+    const confirmed=await dialogs.confirm(`Download ${filtered.length} displayed attachment${filtered.length===1?'':'s'}?`,{title:'Download attachments',okText:'Done',cancelText:'Back'});
+    if(confirmed)downloadAll.mutate(filtered);
   };
 
   const handleUploadSelection=(event)=>{
@@ -109,7 +117,7 @@ export const Attachments=()=>{
       subtitle="Browse, preview, add, download and remove documents attached to flight records."
       actions={<>
         <button className="btn primary" onClick={()=>setAddOpen(true)}>＋ Add files / folder</button>
-        <button className="btn ghost" disabled={!filtered.length||downloadAll.isPending} onClick={()=>confirm(`Download ${filtered.length} displayed attachment${filtered.length===1?'':'s'}?`)&&downloadAll.mutate(filtered)}>{downloadAll.isPending?'Preparing…':`Download displayed (${filtered.length})`}</button>
+        <button className="btn ghost" disabled={!filtered.length||downloadAll.isPending} onClick={handleDownloadDisplayed}>{downloadAll.isPending?'Preparing…':`Download displayed (${filtered.length})`}</button>
       </>}
     />
     <div className="note exact-attachment-note">Files added here are linked to the flight you choose. “Add folder” imports every file contained in the selected folder.</div>
