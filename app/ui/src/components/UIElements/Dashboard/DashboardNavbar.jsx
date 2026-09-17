@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useSettings from '../../../hooks/useSettings';
 import { fetchLicenses } from '../../../util/http/licensing';
@@ -66,8 +66,30 @@ export default function DashboardNavbar({ open, onNavigate }) {
   const [exportOpen, setExportOpen] = useState(exportSelected);
   const subClass = (path) => location.pathname === path ? 'selected' : '';
 
-  const toggleStats = () => setStatsOpen((current) => !current);
-  const toggleExport = () => setExportOpen((current) => !current);
+  // Stats/Export stay open while navigating inside their own submenu,
+  // then collapse as soon as the user moves to a different main section.
+  useEffect(() => {
+    setStatsOpen(statSelected);
+  }, [statSelected]);
+
+  useEffect(() => {
+    setExportOpen(exportSelected);
+  }, [exportSelected]);
+
+  const toggleStats = () => {
+    setStatsOpen((current) => {
+      const next = !current;
+      if (next) setExportOpen(false);
+      return next;
+    });
+  };
+  const toggleExport = () => {
+    setExportOpen((current) => {
+      const next = !current;
+      if (next) setStatsOpen(false);
+      return next;
+    });
+  };
 
   return (
     <aside className={`sidebar${open ? ' open' : ''}`} aria-hidden={!open} inert={open ? undefined : ''}>
