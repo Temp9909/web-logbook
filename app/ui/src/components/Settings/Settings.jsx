@@ -16,7 +16,54 @@ const standardLabels={date:'Date',departure:'Departure Header',dep_place:'Place'
 const previousFields=[['total_time','Total time'],['se_time','SP SE'],['me_time','SP ME'],['mcc_time','Multi-pilot'],['night_time','Night'],['ifr_time','IFR'],['pic_time','PIC'],['co_pilot_time','Co-pilot'],['dual_time','Dual'],['instructor_time','Instructor'],['sim_time','FSTD / Sim'],['me_total_time','Total ME'],['cc_time','Cross country'],['landings_day','Day landings'],['landings_night','Night landings']];
 const fieldTypes=['text','number','time','duration','enroute'];
 const statsByType={text:['none','count'],number:['none','sum','average','count'],time:['none','count'],duration:['none','sum','average','count'],enroute:['none']};
-const switchColors=[['#34C759','Green'],['#007AFF','Blue'],['#FF9500','Orange'],['#FF3B30','Red'],['#AF52DE','Purple'],['#FF2D55','Pink'],['#5AC8FA','Teal'],['#FFCC00','Yellow']];
+const switchColors=[
+  {name:'Automatic',value:'',color:'#4AD968'},
+  {name:'Red',value:'#FF3B30',color:'#FF3B30'},
+  {name:'Orange',value:'#FF9500',color:'#FF9500'},
+  {name:'Yellow',value:'#FFCC00',color:'#FFCC00'},
+  {name:'Green',value:'#4AD968',color:'#4AD968'},
+  {name:'Blue',value:'#007AFF',color:'#007AFF'},
+  {name:'Purple',value:'#AF52DE',color:'#AF52DE'},
+  {name:'Gray',value:'#8E8E93',color:'#8E8E93'},
+];
+
+function SwitchColorMenu({value,onChange}){
+  const [open,setOpen]=useState(false);
+  const menuRef=useRef(null);
+  const normalizedValue=typeof value==='string'?value.toUpperCase():'';
+  const selected=switchColors.find(option=>option.value.toUpperCase()===normalizedValue)
+    || (normalizedValue==='#34C759'?switchColors.find(option=>option.name==='Green'):switchColors[0]);
+
+  useEffect(()=>{
+    if(!open)return undefined;
+    const closeOnOutsideClick=(event)=>{if(!menuRef.current?.contains(event.target))setOpen(false)};
+    const closeOnEscape=(event)=>{if(event.key==='Escape')setOpen(false)};
+    document.addEventListener('pointerdown',closeOnOutsideClick);
+    document.addEventListener('keydown',closeOnEscape);
+    return()=>{
+      document.removeEventListener('pointerdown',closeOnOutsideClick);
+      document.removeEventListener('keydown',closeOnEscape);
+    };
+  },[open]);
+
+  return <div className="switch-color-menu" ref={menuRef}>
+    <button type="button" className="switch-color-trigger" aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(current=>!current)}>
+      <span className="switch-color-dot" style={{background:selected.color}} aria-hidden="true"/>
+      <span>{selected.name}</span>
+      <svg className="switch-color-chevron" viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5"/></svg>
+    </button>
+    {open?<div className="switch-color-popover" role="menu" aria-label="Switch color">
+      {switchColors.map(option=>{
+        const isSelected=option.name===selected.name;
+        return <button key={option.name} type="button" className={`switch-color-option${isSelected?' selected':''}`} role="menuitemradio" aria-checked={isSelected} onClick={()=>{onChange(option.value);setOpen(false)}}>
+          <span className="switch-color-check" aria-hidden="true">{isSelected?'✓':''}</span>
+          <span className="switch-color-dot" style={{background:option.color}} aria-hidden="true"/>
+          <span>{option.name}</span>
+        </button>;
+      })}
+    </div>:null}
+  </div>;
+}
 
 function SignatureEditor({settings,setSettings,onSave}){
   const canvasRef=useRef(null);const padRef=useRef(null);const fileRef=useRef(null);
@@ -78,13 +125,7 @@ export const Settings=()=>{
           <div className="setting-row">
             <div><div className="lbl">On / Off switch color</div><div className="sub">Choose the color used when switches are enabled across the app.</div></div>
             <span className="spacer"/>
-            <div className="switch-color-settings">
-              <div className="switch-color-swatches" aria-label="Switch color presets">
-                {switchColors.map(([color,name])=><button key={color} type="button" title={name} aria-label={name} className={`switch-color-swatch${(settings.switch_color||'#34C759').toUpperCase()===color?' selected':''}`} style={{background:color}} onClick={()=>changeSwitchColor(color)}/>)}
-              </div>
-              <input className="switch-color-custom" aria-label="Custom switch color" title="Custom color" type="color" value={settings.switch_color||'#34C759'} onChange={e=>changeSwitchColor(e.target.value)}/>
-              <button type="button" className="btn small" onClick={()=>changeSwitchColor('')}>Default</button>
-            </div>
+            <SwitchColorMenu value={settings.switch_color} onChange={changeSwitchColor}/>
           </div>
         </div>
       </Card>

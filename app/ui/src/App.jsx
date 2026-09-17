@@ -32,7 +32,7 @@ function SwitchColorSync() {
   useEffect(() => {
     const color = data?.switch_color;
     if (typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color)) {
-      document.documentElement.style.setProperty('--switch-on-color', color);
+      document.documentElement.style.setProperty('--switch-on-color', color.toUpperCase() === '#34C759' ? '#4AD968' : color);
     } else {
       document.documentElement.style.removeProperty('--switch-on-color');
     }

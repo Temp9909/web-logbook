@@ -2037,11 +2037,11 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 /* === GLOBAL IOS26 SWITCH OVERRIDE === */
 :root {
   --ios-toggle-width: 59px;
-  --ios-toggle-height: 25px;
+  --ios-toggle-height: 26px;
   --ios-toggle-knob-width: 34px;
-  --ios-toggle-knob-height: 21px;
+  --ios-toggle-knob-height: 22px;
   --ios-toggle-shift: 21px;
-  --ios-toggle-off: #D8D8DC;
+  --ios-toggle-off: #C7C7CC;
 }
 
 .MuiSwitch-root,
@@ -2069,7 +2069,7 @@ body.apple-legacy-page .MuiSwitch-thumb {
   height: var(--ios-toggle-knob-height) !important;
   border-radius: 999px !important;
   background: #fff !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,.18) !important;
+  box-shadow: none !important;
 }
 
 .MuiSwitch-track,
@@ -2083,7 +2083,7 @@ body.apple-legacy-page .MuiSwitch-track {
 [data-theme="dark"] .MuiSwitch-track,
 [data-theme="dark"] .apple-legacy-page .MuiSwitch-track,
 body.apple-legacy-page[data-theme="dark"] .MuiSwitch-track {
-  background: #3A3A3E !important;
+  background: var(--ios-toggle-off) !important;
 }
 
 .MuiSwitch-switchBase.Mui-checked,
@@ -2096,7 +2096,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked {
 .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track,
 .apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track,
 body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
-  background: var(--switch-on-color, var(--green)) !important;
+  background: var(--switch-on-color, #4AD968) !important;
   opacity: 1 !important;
 }
 
@@ -2111,7 +2111,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 
 [data-theme="dark"] .switch,
 [data-theme="dark"] .apple-switch-control {
-  background: #3A3A3E !important;
+  background: var(--ios-toggle-off) !important;
 }
 
 .switch::after,
@@ -2121,12 +2121,12 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   border-radius: 999px !important;
   top: 2px !important;
   left: 2px !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,.18) !important;
+  box-shadow: none !important;
 }
 
 .switch.on,
 .apple-switch-control.on {
-  background: var(--switch-on-color, var(--green)) !important;
+  background: var(--switch-on-color, #4AD968) !important;
 }
 
 .switch.on::after,
