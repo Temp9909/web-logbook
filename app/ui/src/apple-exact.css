@@ -2759,3 +2759,96 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 [data-theme="dark"] .sidebar{
   background:var(--sidebar) !important;
 }
+
+/* Sidebar horizontal alignment: the TEXT column is the 25px anchor.
+   Icons sit immediately to its left, so their own offset is smaller.
+   Hiding icons never moves the text. */
+.sidebar .nav-item{
+  position:relative !important;
+  padding-left:25px !important;
+  padding-right:10px !important;
+  gap:0 !important;
+}
+.sidebar .nav-icon-slot{
+  position:absolute !important;
+  left:0 !important;
+  top:50% !important;
+  transform:translateY(-50%) !important;
+  width:17px !important;
+  min-width:17px !important;
+  height:17px !important;
+  margin:0 !important;
+}
+.sidebar .nav-item-label{
+  margin:0 !important;
+  padding:0 !important;
+}
+.sidebar .nav-item-label + .licensing-count{
+  margin-left:auto !important;
+}
+.sidebar .nav-caret,
+.sidebar .nav-link-caret{
+  margin-left:auto !important;
+}
+.sidebar .nav-group-sub{
+  padding-left:25px !important;
+}
+
+/* Final sidebar layout requested: white background, uniform 6px rhythm, no separators. */
+.sidebar{
+  background:#FFFFFF !important;
+}
+.sidebar .nav-sep{
+  display:none !important;
+  height:0 !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+}
+.sidebar .nav-item{
+  margin:0 0 6px 0 !important;
+}
+.sidebar .nav-group-sub{
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  margin:0 !important;
+}
+.sidebar .nav-group-sub a{
+  display:block !important;
+  margin:0 0 6px 0 !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  min-height:24px !important;
+}
+
+/* Brand uses the exact same text anchor as main navigation. */
+.sidebar .sidebar-brand{
+  position:relative !important;
+  display:flex !important;
+  align-items:center !important;
+  min-height:26px !important;
+  padding:0 10px 0 25px !important;
+  margin:0 0 21px 0 !important;
+  gap:0 !important;
+  border:0 !important;
+}
+.sidebar .sidebar-brand-icon{
+  position:absolute !important;
+  left:0 !important;
+  top:50% !important;
+  transform:translateY(-50%) !important;
+  width:17px !important;
+  min-width:17px !important;
+  height:17px !important;
+  margin:0 !important;
+}
+.sidebar .sidebar-brand-icon svg{
+  width:17px !important;
+  height:17px !important;
+}
+.sidebar .sidebar-brand-name{
+  margin:0 !important;
+  padding:0 !important;
+}
