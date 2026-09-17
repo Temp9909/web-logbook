@@ -77,6 +77,43 @@ const parseTimeParts = (value) => {
   return { hour: '', minute: '' };
 };
 
+const formatDisplayTime = (value, mode = 'duration') => {
+  const parts = parseTimeParts(value);
+  if (!parts.hour) return '';
+  return mode === 'clock'
+    ? `${parts.hour}:${(parts.minute || '00').padStart(2, '0')}`
+    : `${String(Number(parts.hour))}:${(parts.minute || '00').padStart(2, '0')}`;
+};
+
+const normalizeTypedTime = (rawValue, mode = 'duration') => {
+  const raw = String(rawValue ?? '').trim();
+  if (!raw) return '';
+  const digits = raw.replace(/\D/g, '');
+  let hour = '';
+  let minute = '';
+  if (raw.includes(':')) {
+    const [h = '', m = ''] = raw.split(':');
+    hour = h.replace(/\D/g, '');
+    minute = m.replace(/\D/g, '');
+  } else if (digits.length === 4) {
+    hour = digits.slice(0, 2);
+    minute = digits.slice(2, 4);
+  } else if (digits.length === 3) {
+    hour = digits.slice(0, 1);
+    minute = digits.slice(1, 3);
+  } else {
+    return null;
+  }
+  if (!hour || minute.length < 2) return null;
+  const hourNumber = Number(hour);
+  const minuteNumber = Number(minute);
+  if (Number.isNaN(hourNumber) || Number.isNaN(minuteNumber) || minuteNumber > 59) return null;
+  if (mode === 'clock' && hourNumber > 23) return null;
+  return mode === 'clock'
+    ? `${String(hourNumber).padStart(2, '0')}${String(minuteNumber).padStart(2, '0')}`
+    : `${hourNumber}:${String(minuteNumber).padStart(2, '0')}`;
+};
+
 export const TimeSelectField = ({
   label,
   value = '',
@@ -89,7 +126,10 @@ export const TimeSelectField = ({
   quickFillLabel = '',
   className = '',
 }) => {
-  const inputRef = useRef(null);
+  const pickerInputRef = useRef(null);
+  const textInputRef = useRef(null);
+  const [draftValue, setDraftValue] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   const isZeroDuration = (candidate) => {
     if (mode === 'clock' || !zeroAsEmpty) return false;
@@ -103,14 +143,18 @@ export const TimeSelectField = ({
   const normalizedValue = isZeroDuration(value) ? '' : String(value ?? '').trim();
   const parts = parseTimeParts(normalizedValue);
   const nativeValue = parts.hour && Number(parts.hour) <= 23 ? `${parts.hour}:${parts.minute || '00'}` : '';
+  const formattedValue = formatDisplayTime(normalizedValue, mode);
+  const visibleValue = isEditing ? draftValue : formattedValue;
 
-  const emit = (nativeTime, event) => {
-    if (!nativeTime) {
+  useEffect(() => {
+    if (!isEditing) setDraftValue(formattedValue);
+  }, [formattedValue, isEditing]);
+
+  const emit = (nextValue, event) => {
+    if (!nextValue) {
       onChange?.('', event);
       return;
     }
-    const [hour, minute] = nativeTime.split(':');
-    const nextValue = mode === 'clock' ? `${hour}${minute}` : `${Number(hour)}:${minute}`;
     if (isZeroDuration(nextValue)) {
       onChange?.('', event);
       return;
@@ -118,9 +162,26 @@ export const TimeSelectField = ({
     onChange?.(nextValue, event);
   };
 
+  const commitDraft = (event) => {
+    const normalized = normalizeTypedTime(draftValue, mode);
+    setIsEditing(false);
+    if (draftValue.trim() === '') {
+      setDraftValue('');
+      emit('', event);
+      return;
+    }
+    if (normalized == null) {
+      setDraftValue(formattedValue);
+      return;
+    }
+    const nextDisplay = formatDisplayTime(normalized, mode);
+    setDraftValue(nextDisplay);
+    emit(normalized, event);
+  };
+
   const openPicker = () => {
     if (disabled || readOnly) return;
-    const input = inputRef.current;
+    const input = pickerInputRef.current;
     if (!input) return;
     input.focus({ preventScroll: true });
     if (typeof input.showPicker === 'function') {
@@ -128,7 +189,7 @@ export const TimeSelectField = ({
         input.showPicker();
         return;
       } catch {
-        // Browsers without showPicker keep their normal native time fallback.
+        // keep normal fallback
       }
     }
     input.click();
@@ -136,9 +197,7 @@ export const TimeSelectField = ({
 
   const openPickerFromSurround = (event) => {
     if (disabled || readOnly) return;
-    // Direct clicks on the actual --:-- / HH:MM characters stay in native
-    // manual editing mode. Every other point inside the field opens the picker.
-    if (event.target.closest('.exact-native-time-input, .exact-time-quick-fill')) return;
+    if (event.target.closest('.exact-manual-time-input, .exact-time-quick-fill')) return;
     openPicker();
   };
 
@@ -153,17 +212,47 @@ export const TimeSelectField = ({
       >
         <span className="exact-time-edit-zone">
           <input
-            ref={inputRef}
-            className={`input exact-native-time-input${nativeValue ? '' : ' empty'}`}
-            type="time"
-            step="60"
-            value={nativeValue}
-            onChange={(event) => emit(event.target.value, event)}
+            ref={textInputRef}
+            className="input exact-manual-time-input"
+            type="text"
+            inputMode="numeric"
+            value={visibleValue}
+            onFocus={() => {
+              setIsEditing(true);
+              setDraftValue(formattedValue);
+            }}
+            onChange={(event) => setDraftValue(event.target.value)}
+            onBlur={commitDraft}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.currentTarget.blur();
+              } else if (event.key === 'Escape') {
+                setIsEditing(false);
+                setDraftValue(formattedValue);
+                event.currentTarget.blur();
+              }
+            }}
+            placeholder="--:--"
             disabled={disabled}
             readOnly={readOnly}
             aria-label={label ? `${label} manual time entry` : 'Manual time entry'}
           />
-          {!nativeValue ? <span className="exact-time-empty-placeholder" aria-hidden="true">--:--</span> : null}
+          <input
+            ref={pickerInputRef}
+            className="exact-native-picker-input"
+            type="time"
+            step="60"
+            value={nativeValue}
+            onChange={(event) => emit(mode === 'clock'
+              ? event.target.value.replace(':', '')
+              : `${Number(event.target.value.split(':')[0])}:${event.target.value.split(':')[1]}`,
+              event)}
+            tabIndex={-1}
+            aria-hidden="true"
+            disabled={disabled}
+            readOnly={readOnly}
+          />
         </span>
         <span className="exact-time-picker-space" aria-hidden="true" />
         <span className="exact-time-picker-hint" aria-hidden="true">◷</span>

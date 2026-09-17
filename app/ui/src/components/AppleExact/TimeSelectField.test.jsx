@@ -3,15 +3,17 @@ import { describe, expect, it, vi } from 'vitest';
 import { TimeSelectField } from './Primitives';
 
 describe('TimeSelectField', () => {
-  it('keeps the native HH:MM control manually editable while preserving HHMM storage', () => {
+  it('keeps a compact manual text entry while preserving HHMM storage', () => {
     const onChange = vi.fn();
     render(<TimeSelectField label="Departure time (UTC)" mode="clock" value="0910" onChange={onChange} />);
 
     const input = screen.getByLabelText('Departure time (UTC) manual time entry');
-    expect(input).toHaveAttribute('type', 'time');
+    expect(input).toHaveAttribute('type', 'text');
     expect(input).toHaveValue('09:10');
 
+    fireEvent.focus(input);
     fireEvent.change(input, { target: { value: '11:25' } });
+    fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledWith('1125', expect.anything());
   });
 
@@ -20,7 +22,9 @@ describe('TimeSelectField', () => {
     render(<TimeSelectField label="Departure time (UTC)" mode="clock" value="0900" onChange={onChange} />);
     const input = screen.getByLabelText('Departure time (UTC) manual time entry');
 
+    fireEvent.focus(input);
     fireEvent.change(input, { target: { value: '09:30' } });
+    fireEvent.blur(input);
     expect(onChange).toHaveBeenCalledWith('0930', expect.anything());
   });
 
@@ -40,21 +44,22 @@ describe('TimeSelectField', () => {
     render(<TimeSelectField label="Arrival time (UTC)" mode="clock" value="1125" onChange={() => {}} />);
     const input = screen.getByLabelText('Arrival time (UTC) manual time entry');
     const row = input.closest('.exact-native-time-row');
-    input.showPicker = vi.fn();
+    const picker = row.querySelector('.exact-native-picker-input');
+    picker.showPicker = vi.fn();
 
     fireEvent.click(input);
-    expect(input.showPicker).not.toHaveBeenCalled();
+    expect(picker.showPicker).not.toHaveBeenCalled();
 
     fireEvent.click(row);
-    expect(input.showPicker).toHaveBeenCalledTimes(1);
+    expect(picker.showPicker).toHaveBeenCalledTimes(1);
   });
 
-  it('uses the native time value when the surrounding zone opens it', () => {
+  it('uses the native picker value when the surrounding zone opens it', () => {
     const onChange = vi.fn();
     render(<TimeSelectField label="Arrival time (UTC)" mode="clock" value="" onChange={onChange} />);
-    const input = screen.getByLabelText('Arrival time (UTC) manual time entry');
+    const picker = document.querySelector('.exact-native-picker-input');
 
-    fireEvent.change(input, { target: { value: '14:42' } });
+    fireEvent.change(picker, { target: { value: '14:42' } });
     expect(onChange).toHaveBeenCalledWith('1442', expect.anything());
   });
 });
