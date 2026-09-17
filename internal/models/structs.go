@@ -278,6 +278,8 @@ type Settings struct {
 	LogbookTotalsView     byte          `json:"logbook_totals_view"`
 	TimeFieldsAutoFormat  byte          `json:"time_fields_auto_format"`
 	SwitchColor           string        `json:"switch_color"`
+	HideMenuIcons         bool          `json:"hide_menu_icons"`
+	ShowMenuLinkChevrons  bool          `json:"show_menu_link_chevrons"`
 	EnableCustomNames     bool          `json:"enable_custom_names"`
 	StandardFieldsHeaders ColumnsHeader `json:"standard_fields_headers"`
 

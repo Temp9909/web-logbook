@@ -2648,3 +2648,67 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .mini-tabs button.on {
   color:rgb(0,122,252) !important;
 }
+
+
+/* Sidebar interaction lock: hover changes color only, never typography or geometry. */
+.sidebar .nav-item,
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected {
+  font-family:Cera,"Open Sans",sans-serif !important;
+  font-style:normal !important;
+  font-weight:700 !important;
+  font-size:16px !important;
+  line-height:24px !important;
+  letter-spacing:0 !important;
+  transition:none !important;
+  animation:none !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.sidebar .nav-item { color:#566171 !important; }
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected { color:rgb(0,122,252) !important; }
+.sidebar .nav-item-label { font:inherit !important; color:inherit !important; }
+
+.sidebar .nav-group-sub a,
+.sidebar .nav-group-sub a:hover,
+.sidebar .nav-group-sub a.selected,
+.settings-tabs button,
+.settings-tabs button:hover,
+.settings-tabs button.on,
+.mini-tabs button,
+.mini-tabs button:hover,
+.mini-tabs button.on {
+  font-family:"Open Sans",sans-serif !important;
+  font-style:normal !important;
+  font-weight:400 !important;
+  font-size:16px !important;
+  line-height:24px !important;
+  letter-spacing:0 !important;
+  transition:none !important;
+  animation:none !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.sidebar .nav-group-sub a,
+.settings-tabs button,
+.mini-tabs button { color:#566171 !important; }
+.sidebar .nav-group-sub a:hover,
+.sidebar .nav-group-sub a.selected,
+.settings-tabs button:hover,
+.settings-tabs button.on,
+.mini-tabs button:hover,
+.mini-tabs button.on { color:rgb(0,122,252) !important; }
+
+.sidebar .nav-caret,
+.sidebar .nav-caret svg,
+.sidebar .nav-caret path {
+  width:16px !important;
+  height:16px !important;
+  color:currentColor !important;
+  stroke:currentColor !important;
+  transition:none !important;
+  animation:none !important;
+}
+.sidebar .nav-link-caret { margin-left:auto !important; flex:0 0 16px !important; }
+.sidebar .nav-caret.open { transition:none !important; }

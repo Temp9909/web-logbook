@@ -23,6 +23,13 @@ const Caret = ({ open = false }) => (
     </svg>
   </span>
 );
+const RightCaret = () => (
+  <span className="nav-caret nav-link-caret" aria-hidden="true">
+    <svg width="16" height="16" viewBox="0 0 16 16">
+      <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </span>
+);
 
 function LicensingCount() {
   const { settings } = useSettings();
@@ -37,12 +44,12 @@ function LicensingCount() {
   return count > 0 ? <span className="chip warn licensing-count">{count}</span> : null;
 }
 
-const MainLink = ({ to, segment, label, Icon, count, onNavigate, location }) => {
+const MainLink = ({ to, segment, label, Icon, count, onNavigate, location, showIcons = true, showRightChevron = false }) => {
   const selected = location.pathname === '/' ? segment === 'logbook' : location.pathname.startsWith(`/${segment}`);
-  return <Link to={to} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}><Icon />{label}{count}</Link>;
+  return <Link to={to} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}>{showIcons ? <Icon /> : null}<span className="nav-item-label">{label}</span>{count}{showRightChevron ? <RightCaret /> : null}</Link>;
 };
 
-const MainToggle = ({ segment, label, Icon, open, onToggle, location }) => {
+const MainToggle = ({ segment, label, Icon, open, onToggle, location, showIcons = true }) => {
   const selected = location.pathname.startsWith(`/${segment}`);
   return (
     <button
@@ -52,13 +59,16 @@ const MainToggle = ({ segment, label, Icon, open, onToggle, location }) => {
       aria-expanded={open}
       aria-controls={`${segment}-submenu`}
     >
-      <Icon />{label}<Caret open={open}/>
+      {showIcons ? <Icon /> : null}<span className="nav-item-label">{label}</span><Caret open={open}/>
     </button>
   );
 };
 
 export default function DashboardNavbar({ open, onNavigate }) {
   const location = useLocation();
+  const { settings } = useSettings();
+  const showIcons = !Boolean(settings?.hide_menu_icons);
+  const showLinkChevrons = Boolean(settings?.show_menu_link_chevrons);
   const statSelected = location.pathname.startsWith('/stats');
   const exportSelected = location.pathname.startsWith('/export');
   const [statsOpen, setStatsOpen] = useState(statSelected);
@@ -74,20 +84,20 @@ export default function DashboardNavbar({ open, onNavigate }) {
         <span className="sidebar-brand-icon"><AppLogo /></span>
         <span className="sidebar-brand-name">Logbook</span>
       </div>
-      <MainLink to="/logbook" segment="logbook" label="Logbook" Icon={BookIcon} onNavigate={onNavigate} location={location}/>
-      <MainLink to="/licensing" segment="licensing" label="Licensing" Icon={LicenseIcon} count={<LicensingCount/>} onNavigate={onNavigate} location={location}/>
-      <MainLink to="/map" segment="map" label="Map" Icon={MapIcon} onNavigate={onNavigate} location={location}/>
-      <MainLink to="/aircrafts" segment="aircrafts" label="Aircrafts" Icon={AircraftIcon} onNavigate={onNavigate} location={location}/>
-      <MainLink to="/persons" segment="persons" label="Persons" Icon={PersonIcon} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/logbook" segment="logbook" label="Logbook" Icon={BookIcon} showIcons={showIcons} showRightChevron={showLinkChevrons} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/licensing" segment="licensing" label="Licensing" Icon={LicenseIcon} showIcons={showIcons} showRightChevron={showLinkChevrons} count={<LicensingCount/>} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/map" segment="map" label="Map" Icon={MapIcon} showIcons={showIcons} showRightChevron={showLinkChevrons} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/aircrafts" segment="aircrafts" label="Aircrafts" Icon={AircraftIcon} showIcons={showIcons} showRightChevron={showLinkChevrons} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/persons" segment="persons" label="Persons" Icon={PersonIcon} showIcons={showIcons} showRightChevron={showLinkChevrons} onNavigate={onNavigate} location={location}/>
       <div className="nav-sep"/>
-      <MainToggle segment="stats" label="Stats" Icon={StatsIcon} open={statsOpen} onToggle={toggleStats} location={location}/>
+      <MainToggle segment="stats" label="Stats" Icon={StatsIcon} showIcons={showIcons} open={statsOpen} onToggle={toggleStats} location={location}/>
       {statsOpen ? <div id="stats-submenu" className="nav-group-sub"><Link className={subClass('/stats/dashboard')} to="/stats/dashboard" onClick={onNavigate}>Dashboard</Link><Link className={subClass('/stats/by-year')} to="/stats/by-year" onClick={onNavigate}>By year</Link><Link className={subClass('/stats/by-type')} to="/stats/by-type" onClick={onNavigate}>By type</Link><Link className={subClass('/stats/by-category')} to="/stats/by-category" onClick={onNavigate}>By category</Link></div> : null}
       <div className="nav-sep"/>
-      <MainToggle segment="export" label="Export" Icon={ExportIcon} open={exportOpen} onToggle={toggleExport} location={location}/>
+      <MainToggle segment="export" label="Export" Icon={ExportIcon} showIcons={showIcons} open={exportOpen} onToggle={toggleExport} location={location}/>
       {exportOpen ? <div id="export-submenu" className="nav-group-sub"><Link className={subClass('/export/a4')} to="/export/a4" onClick={onNavigate}>A4</Link><Link className={subClass('/export/a5')} to="/export/a5" onClick={onNavigate}>A5</Link></div> : null}
-      <MainLink to="/import" segment="import" label="Import" Icon={ImportIcon} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/import" segment="import" label="Import" Icon={ImportIcon} showIcons={showIcons} showRightChevron={showLinkChevrons} onNavigate={onNavigate} location={location}/>
       <div className="nav-sep"/>
-      <MainLink to="/settings" segment="settings" label="Settings" Icon={SettingsIcon} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/settings" segment="settings" label="Settings" Icon={SettingsIcon} showIcons={showIcons} showRightChevron={false} onNavigate={onNavigate} location={location}/>
     </aside>
   );
 }
