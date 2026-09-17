@@ -40,7 +40,7 @@ export const RunImportButton = ({ data }) => {
 
   const handleImportClick = async () => {
     const options = await dialogs.open(ImportOptionsDialog);
-    if (options && options.backup) {
+    if (options) {
       await importData(options);
     }
   };

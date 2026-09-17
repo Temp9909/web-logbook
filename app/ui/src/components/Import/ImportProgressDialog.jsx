@@ -4,7 +4,6 @@ import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
-import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 // Custom helpers
 import { API_URL } from '../../constants/constants';
@@ -13,12 +12,10 @@ import AppleDialogPanel from '../UIElements/AppleDialogPanel';
 
 const ImportProgressDialog = ({ open, onClose, payload }) => {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
-  const [logs, setLogs] = useState([]);
   const [status, setStatus] = useState('idle'); // 'idle' | 'running' | 'success' | 'error'
   const [errorMessage, setErrorMessage] = useState('');
   const [resultMessage, setResultMessage] = useState('');
 
-  const logEndRef = useRef(null);
   const abortControllerRef = useRef(null);
 
   useEffect(() => {
@@ -33,16 +30,10 @@ const ImportProgressDialog = ({ open, onClose, payload }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  useEffect(() => {
-    if (logEndRef.current) {
-      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [logs]);
 
   const startImport = async () => {
     setStatus('running');
     setProgress({ current: 0, total: payload?.data?.length || 0 });
-    setLogs([]);
     setErrorMessage('');
     setResultMessage('');
 
@@ -114,9 +105,6 @@ const ImportProgressDialog = ({ open, onClose, payload }) => {
         break;
 
       case "log":
-        if (chunk.message) {
-          setLogs((prev) => [...prev, chunk.message]);
-        }
         break;
 
       case "result":
@@ -133,13 +121,12 @@ const ImportProgressDialog = ({ open, onClose, payload }) => {
     }
   };
 
-  const progressPercent = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
 
   return (
     <Dialog fullWidth maxWidth="md" open={open} onClose={() => status !== 'running' && onClose(status === 'success')}>
       <AppleDialogPanel
         title="Importing flight records"
-        subtitle="Progress and detailed import log."
+        subtitle="Import progress."
         actions={(
           <Button
             onClick={() => onClose(status === 'success')}
@@ -153,15 +140,9 @@ const ImportProgressDialog = ({ open, onClose, payload }) => {
       >
         {status === 'running' && (
           <Box sx={{ width: '100%', mt: 1, mb: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Processing {progress.current} of {progress.total}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {Math.round(progressPercent)}%
-              </Typography>
-            </Box>
-            <LinearProgress variant="determinate" value={progressPercent} />
+            <Typography variant="body2" color="text.secondary">
+              Processing {progress.current} of {progress.total}
+            </Typography>
           </Box>
         )}
 
@@ -176,38 +157,6 @@ const ImportProgressDialog = ({ open, onClose, payload }) => {
             {resultMessage || errorMessage || `Import completed with warnings or failed.`}
           </Alert>
         )}
-
-        <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
-          Import Log
-        </Typography>
-        <Box
-          sx={{
-            bgcolor: 'grey.900',
-            color: 'grey.100',
-            fontFamily: 'monospace',
-            fontSize: '0.8rem',
-            p: 2,
-            borderRadius: 1,
-            height: '240px',
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0.5,
-          }}
-        >
-          {logs.length === 0 ? (
-            <Typography variant="caption" sx={{ color: 'grey.500', fontStyle: 'italic' }}>
-              Waiting for progress...
-            </Typography>
-          ) : (
-            logs.map((item, index) => (
-              <Box key={index} sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                {item}
-              </Box>
-            ))
-          )}
-          <div ref={logEndRef} />
-        </Box>
       </AppleDialogPanel>
     </Dialog>
   );

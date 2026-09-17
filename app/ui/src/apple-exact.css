@@ -2303,3 +2303,110 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .mini-tabs button.on {
   color: var(--blue) !important;
 }
+
+/* Mapbox-reference navigation typography/colors.
+   Text-only active state, no selected pill/background. */
+.sidebar .nav-item,
+.sidebar .nav-group-sub a,
+.settings-tabs button,
+.mini-tabs button {
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Segoe UI",Arial,sans-serif !important;
+  font-size:16px !important;
+  line-height:1.35 !important;
+  letter-spacing:0 !important;
+}
+
+.sidebar .nav-item {
+  color:#586170 !important;
+  font-weight:500 !important;
+}
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected {
+  color:#3478F4 !important;
+  font-weight:500 !important;
+  background:transparent !important;
+}
+.sidebar .nav-item svg {
+  color:currentColor !important;
+}
+
+.sidebar .nav-group-sub {
+  padding-top:2px !important;
+  padding-bottom:5px !important;
+}
+.sidebar .nav-group-sub a {
+  color:#586170 !important;
+  font-weight:400 !important;
+  padding-top:5px !important;
+  padding-bottom:5px !important;
+  background:transparent !important;
+}
+.sidebar .nav-group-sub a:hover,
+.sidebar .nav-group-sub a.selected {
+  color:#3478F4 !important;
+  font-weight:400 !important;
+  background:transparent !important;
+}
+
+.settings-tabs button,
+.mini-tabs button {
+  color:#586170 !important;
+  font-weight:400 !important;
+  background:transparent !important;
+  border-radius:0 !important;
+}
+.settings-tabs button:hover,
+.settings-tabs button.on,
+.mini-tabs button:hover,
+.mini-tabs button.on {
+  color:#3478F4 !important;
+  font-weight:400 !important;
+  background:transparent !important;
+}
+
+[data-theme="dark"] .sidebar .nav-item,
+[data-theme="dark"] .sidebar .nav-group-sub a,
+[data-theme="dark"] .settings-tabs button,
+[data-theme="dark"] .mini-tabs button {
+  color:#A8B0BE !important;
+}
+[data-theme="dark"] .sidebar .nav-item:hover,
+[data-theme="dark"] .sidebar .nav-item.selected,
+[data-theme="dark"] .sidebar .nav-group-sub a:hover,
+[data-theme="dark"] .sidebar .nav-group-sub a.selected,
+[data-theme="dark"] .settings-tabs button:hover,
+[data-theme="dark"] .settings-tabs button.on,
+[data-theme="dark"] .mini-tabs button:hover,
+[data-theme="dark"] .mini-tabs button.on {
+  color:#5E9CFF !important;
+}
+
+/* Brand/header in sidebar: same Mapbox-reference typography palette, no blue logo. */
+.sidebar .sidebar-brand {
+  color:#586170 !important;
+}
+.sidebar .sidebar-brand-icon {
+  color:#586170 !important;
+}
+.sidebar .sidebar-brand-icon svg {
+  color:currentColor !important;
+  stroke:currentColor !important;
+}
+.sidebar .sidebar-brand-name {
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Segoe UI",Arial,sans-serif !important;
+  font-size:16px !important;
+  line-height:1.35 !important;
+  letter-spacing:0 !important;
+  font-weight:600 !important;
+  color:#586170 !important;
+}
+[data-theme="dark"] .sidebar .sidebar-brand,
+[data-theme="dark"] .sidebar .sidebar-brand-icon,
+[data-theme="dark"] .sidebar .sidebar-brand-name {
+  color:#A8B0BE !important;
+}
+
+/* Remove divider between the sidebar brand and the first Logbook navigation item. */
+.sidebar .sidebar-brand{
+  border-bottom:0 !important;
+}

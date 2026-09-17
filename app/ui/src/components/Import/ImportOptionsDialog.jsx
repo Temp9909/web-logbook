@@ -8,7 +8,6 @@ import IconButton from '@mui/material/IconButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import ToggleButton from "@mui/material/ToggleButton";
-import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
 // MUI Icons
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
@@ -19,7 +18,6 @@ import OptionSwitch from "../UIElements/OptionSwitch";
 import useSettings from "../../hooks/useSettings";
 
 const DEFAULT_OPTIONS = {
-  backup: false,
   create_persons: false,
   create_person_format: "",
   create_person_from: { pic: true },
@@ -96,7 +94,7 @@ const ImportOptionsDialog = ({ open, onClose }) => {
     <Box display="flex" alignItems="center" gap={0}>
       <Tooltip title="Run Import">
         <span>
-          <IconButton size="small" onClick={() => onClose(options)} disabled={options.backup === false} >
+          <IconButton size="small" onClick={() => onClose(options)} >
             <FileUploadOutlinedIcon />
           </IconButton>
         </span>
@@ -113,19 +111,10 @@ const ImportOptionsDialog = ({ open, onClose }) => {
     <Dialog fullWidth open={open} onClose={() => onClose(null)}>
       <AppleDialogPanel
         title="Import options"
-        subtitle="Backup and PIC Name person creation options."
+        subtitle="PIC Name person creation options."
         actions={actionButtons}
       >
-          <Grid container spacing={1}>
-            <OptionSwitch
-              id="backup"
-              checked={options.backup}
-              handleChange={handleChange}
-              label="I have a logbook backup"
-            />
-          </Grid>
 
-          <Divider sx={{ m: 1 }} />
           <Typography variant="caption" color="warning">
             * Create Persons uses imported PIC Name values.
           </Typography>
