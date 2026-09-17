@@ -22,6 +22,11 @@ const withoutCategories = (value, excludedValue) => {
   return joinCategories(splitCategories(value).filter((category) => !excluded.has(category)));
 };
 
+const onlyCategories = (value, allowedValue) => {
+  const allowed = new Set(splitCategories(allowedValue));
+  return joinCategories(splitCategories(value).filter((category) => allowed.has(category)));
+};
+
 export const Aircrafts = () => {
   const { data: aircrafts = [], isLoading: loadingAircrafts } = useQuery({queryKey:['aircrafts','build-list'],queryFn:({signal})=>fetchAircraftsBuildList({signal})});
   const { data: categories = [], isLoading: loadingCategories } = useQuery({queryKey:['models-categories'],queryFn:({signal})=>fetchAircraftModelsCategories({signal})});
@@ -109,12 +114,16 @@ export const Aircrafts = () => {
   };
 
   const openAircraft = (row) => {
-    const inherited = modelCategoryFor(categories, row.model) || row.model_category || '';
+    const typeCategories = modelCategoryFor(categories, row.model)
+      || joinCategories([...splitCategories(row.model_category || ''), ...splitCategories(row.excluded_model_category || '')]);
+    const excluded = onlyCategories(row.excluded_model_category || '', typeCategories);
+    const inherited = withoutCategories(typeCategories, excluded);
     lastSavedReg.current = row.reg;
     setEditAircraft({
       ...row,
       original_reg: row.reg,
       model_category: inherited,
+      excluded_model_category: excluded,
       custom_category: withoutCategories(row.custom_category || '', inherited),
     });
   };
@@ -133,7 +142,17 @@ export const Aircrafts = () => {
     {key:'chevron',label:'',width:34,render:()=> <span className="exact-row-chevron" aria-hidden="true">›</span>,searchValue:()=>''}
   ],[]);
 
-  const inheritedCategory = editAircraft?.model_category || '';
+  const typeCategoriesForEditedAircraft = editAircraft
+    ? (modelCategoryFor(categories, editAircraft.model)
+      || joinCategories([
+        ...splitCategories(editAircraft.model_category || ''),
+        ...splitCategories(editAircraft.excluded_model_category || ''),
+      ]))
+    : '';
+  const inheritedCategory = withoutCategories(
+    typeCategoriesForEditedAircraft,
+    editAircraft?.excluded_model_category || '',
+  );
 
   const changeEditedAircraftType = (model) => {
     if (!editAircraft) return;
@@ -142,6 +161,7 @@ export const Aircrafts = () => {
       ...editAircraft,
       model,
       model_category: nextInherited,
+      excluded_model_category: '',
       custom_category: withoutCategories(editAircraft.custom_category || '', nextInherited),
     };
     setEditAircraft(next);
@@ -150,23 +170,24 @@ export const Aircrafts = () => {
 
   const changeInheritedCategories = (nextInherited) => {
     if (!editAircraft) return;
-    const typeRow = (Array.isArray(categories) ? categories : []).find((row) => row?.model === editAircraft.model);
-    const nextCustom = withoutCategories(editAircraft.custom_category || '', nextInherited);
-    const nextAircraft = { ...editAircraft, model_category: nextInherited, custom_category: nextCustom };
+    const allowedInherited = onlyCategories(nextInherited, typeCategoriesForEditedAircraft);
+    const nextExcluded = withoutCategories(typeCategoriesForEditedAircraft, allowedInherited);
+    const nextCustom = withoutCategories(editAircraft.custom_category || '', allowedInherited);
+    const nextAircraft = {
+      ...editAircraft,
+      model_category: allowedInherited,
+      excluded_model_category: nextExcluded,
+      custom_category: nextCustom,
+    };
     setEditAircraft(nextAircraft);
-    queueTypeSave({
-      ...(typeRow || {}),
-      model: editAircraft.model,
-      category: nextInherited,
-    });
-    if (nextCustom !== editAircraft.custom_category) queueAircraftSave(nextAircraft);
+    queueAircraftSave(nextAircraft);
   };
 
   const changeExtraCategories = (nextCustom) => {
     if (!editAircraft) return;
     const next = {
       ...editAircraft,
-      custom_category: withoutCategories(nextCustom, editAircraft.model_category),
+      custom_category: withoutCategories(nextCustom, inheritedCategory),
     };
     setEditAircraft(next);
     queueAircraftSave(next);
@@ -237,9 +258,11 @@ export const Aircrafts = () => {
         <AircraftCategoryPicker
           label="Categories inherited from type"
           value={inheritedCategory}
-          options={categoryOptions}
+          options={splitCategories(typeCategoriesForEditedAircraft)}
           excludeOptions={splitCategories(editAircraft.custom_category || '')}
           onChange={changeInheritedCategories}
+          includeDefaultOptions={false}
+          allowNew={false}
         />
         <AircraftCategoryPicker
           label="Extra categories for this registration"
@@ -249,8 +272,7 @@ export const Aircrafts = () => {
           onChange={changeExtraCategories}
         />
         {saveAircraft.isError ? <div className="note exact-error-note">Unable to save aircraft: {saveAircraft.error?.info?.message || saveAircraft.error?.message || 'Unknown error'}</div> : null}
-        {saveCategory.isError ? <div className="note exact-error-note">Unable to save inherited categories: {saveCategory.error?.info?.message || saveCategory.error?.message || 'Unknown error'}</div> : null}
-        <Loading show={saveAircraft.isPending || saveCategory.isPending}/>
+        <Loading show={saveAircraft.isPending}/>
       </> : null}
     </Modal>
 

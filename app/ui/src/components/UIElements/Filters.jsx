@@ -55,10 +55,15 @@ const filterData = (data, filter, modelsData, aircrafts) => {
     // filter category
     const matchesCategory = (() => {
       if (!filter.aircraft_category) return true;
-      const acs = getAircraftsByCategory(aircrafts, filter.aircraft_category)
+      const acs = getAircraftsByCategory(aircrafts, filter.aircraft_category);
       const models = getModelsByCategory(modelsData, filter.aircraft_category);
+      const aircraft = aircrafts?.find((item) => item.reg === flight.aircraft.reg_name);
+
+      if (flight.aircraft.reg_name && aircraft) {
+        return acs.includes(flight.aircraft.reg_name);
+      }
+
       return (
-        acs.includes(flight.aircraft.reg_name) ||
         models.includes(flight.aircraft.model) ||
         models.includes(flight.sim.type) ||
         filter.aircraft_category === flight.sim.type

@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // GetAircraftsInLogbook returns already recorded aircrafts
@@ -207,13 +208,64 @@ func (m *DBModel) GetAircraftModelsCategories() (categories []Category, err erro
 	return categories, nil
 }
 
+func splitAircraftCategories(value string) []string {
+	seen := make(map[string]bool)
+	items := make([]string, 0)
+	for _, raw := range strings.Split(value, ",") {
+		item := strings.TrimSpace(raw)
+		if item == "" || seen[item] {
+			continue
+		}
+		seen[item] = true
+		items = append(items, item)
+	}
+	return items
+}
+
+func joinAircraftCategories(items []string) string {
+	return strings.Join(items, ",")
+}
+
+func applyAircraftCategoryOverrides(aircraft *Aircraft, modelCategories string) {
+	excluded := make(map[string]bool)
+	for _, item := range splitAircraftCategories(aircraft.ExcludedModelCategory) {
+		excluded[item] = true
+	}
+
+	effectiveModelCategories := make([]string, 0)
+	for _, item := range splitAircraftCategories(modelCategories) {
+		if !excluded[item] {
+			effectiveModelCategories = append(effectiveModelCategories, item)
+		}
+	}
+
+	combined := make([]string, 0)
+	seen := make(map[string]bool)
+	for _, item := range append(effectiveModelCategories, splitAircraftCategories(aircraft.CustomCategory)...) {
+		if item == "" || seen[item] {
+			continue
+		}
+		seen[item] = true
+		combined = append(combined, item)
+	}
+
+	aircraft.ModelCategory = joinAircraftCategories(effectiveModelCategories)
+	aircraft.Category = joinAircraftCategories(combined)
+}
+
 func (m *DBModel) GetAircrafts() (aircrafts []Aircraft, err error) {
 	ctx, cancel := m.ContextWithDefaultTimeout()
 	defer cancel()
 
-	query := `SELECT 
-				reg_name, aircraft_model, categories, model_categories, custom_categories
-			FROM aircrafts_view av`
+	query := `SELECT
+			a.reg_name,
+			a.aircraft_model,
+			IFNULL(ac.categories, ''),
+			a.custom_categories,
+			IFNULL(a.excluded_model_categories, '')
+		FROM aircrafts a
+		LEFT JOIN aircraft_categories ac ON a.aircraft_model = ac.model
+		ORDER BY a.aircraft_model, a.reg_name`
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
 		return aircrafts, err
@@ -222,9 +274,11 @@ func (m *DBModel) GetAircrafts() (aircrafts []Aircraft, err error) {
 
 	for rows.Next() {
 		var ac Aircraft
-		if err = rows.Scan(&ac.Reg, &ac.Model, &ac.Category, &ac.ModelCategory, &ac.CustomCategory); err != nil {
+		var modelCategories string
+		if err = rows.Scan(&ac.Reg, &ac.Model, &modelCategories, &ac.CustomCategory, &ac.ExcludedModelCategory); err != nil {
 			return aircrafts, err
 		}
+		applyAircraftCategoryOverrides(&ac, modelCategories)
 		aircrafts = append(aircrafts, ac)
 	}
 
@@ -256,12 +310,21 @@ func (m *DBModel) GetAircraft(reg string) (aircraft Aircraft, err error) {
 	ctx, cancel := m.ContextWithDefaultTimeout()
 	defer cancel()
 	query := `SELECT
-				reg_name, aircraft_model, categories, model_categories, custom_categories
-			FROM aircrafts_view
-			WHERE reg_name = ?`
+			a.reg_name,
+			a.aircraft_model,
+			IFNULL(ac.categories, ''),
+			a.custom_categories,
+			IFNULL(a.excluded_model_categories, '')
+		FROM aircrafts a
+		LEFT JOIN aircraft_categories ac ON a.aircraft_model = ac.model
+		WHERE a.reg_name = ?`
 	row := m.DB.QueryRowContext(ctx, query, reg)
 
-	err = row.Scan(&aircraft.Reg, &aircraft.Model, &aircraft.Category, &aircraft.ModelCategory, &aircraft.CustomCategory)
+	var modelCategories string
+	err = row.Scan(&aircraft.Reg, &aircraft.Model, &modelCategories, &aircraft.CustomCategory, &aircraft.ExcludedModelCategory)
+	if err == nil {
+		applyAircraftCategoryOverrides(&aircraft, modelCategories)
+	}
 	return aircraft, err
 }
 
@@ -314,9 +377,9 @@ func (m *DBModel) UpdateAircraft(aircraft Aircraft) (err error) {
 
 	// Update the aircraft record, including its primary-key registration.
 	query := `UPDATE aircrafts
-		SET reg_name = ?, custom_categories = ?, aircraft_model = ?
+		SET reg_name = ?, custom_categories = ?, aircraft_model = ?, excluded_model_categories = ?
 		WHERE reg_name = ?`
-	if _, err = tx.ExecContext(ctx, query, aircraft.Reg, aircraft.CustomCategory, aircraft.Model, lookupReg); err != nil {
+	if _, err = tx.ExecContext(ctx, query, aircraft.Reg, aircraft.CustomCategory, aircraft.Model, aircraft.ExcludedModelCategory, lookupReg); err != nil {
 		return err
 	}
 

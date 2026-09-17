@@ -129,7 +129,7 @@ export const normalizeValidity = (record) => {
   if (rule.kind === 'fixed') {
     return {
       valid_from: source.valid_from || '',
-      valid_until: calculateRegulatoryValidUntil(source.valid_from, rule),
+      valid_until: source.valid_until || calculateRegulatoryValidUntil(source.valid_from, rule),
     };
   }
   return {

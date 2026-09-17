@@ -5,7 +5,7 @@ const joinCategories = (items) => Array.from(new Set(
   items.map((item) => String(item || '').trim()).filter(Boolean),
 )).join(',');
 
-const AircraftCategoryPicker = ({ label = 'Category', value = '', options = [], excludeOptions = [], onChange }) => {
+const AircraftCategoryPicker = ({ label = 'Category', value = '', options = [], excludeOptions = [], onChange, includeDefaultOptions = true, allowNew = true }) => {
   const [newCategory, setNewCategory] = useState('');
   const selected = useMemo(() => new Set(splitCategories(value)), [value]);
   const excluded = useMemo(() => new Set(
@@ -14,10 +14,10 @@ const AircraftCategoryPicker = ({ label = 'Category', value = '', options = [], 
       .filter(Boolean),
   ), [excludeOptions]);
   const allOptions = useMemo(() => Array.from(new Set([
-    ...DEFAULT_CATEGORIES,
+    ...(includeDefaultOptions ? DEFAULT_CATEGORIES : []),
     ...options,
     ...splitCategories(value),
-  ])).filter((category) => category && isAircraftCategoryAllowed(category) && !excluded.has(category)).sort((a, b) => a.localeCompare(b)), [excluded, options, value]);
+  ])).filter((category) => category && isAircraftCategoryAllowed(category) && !excluded.has(category)).sort((a, b) => a.localeCompare(b)), [excluded, includeDefaultOptions, options, value]);
 
   const toggle = (category) => {
     const next = new Set(selected);
@@ -50,7 +50,7 @@ const AircraftCategoryPicker = ({ label = 'Category', value = '', options = [], 
           </button>
         ))}
       </div>
-      <div className="row exact-category-add-row">
+      {allowNew ? <div className="row exact-category-add-row">
         <input
           className="input"
           value={newCategory}
@@ -64,7 +64,7 @@ const AircraftCategoryPicker = ({ label = 'Category', value = '', options = [], 
           placeholder="New category…"
         />
         <button type="button" className="btn small" onClick={addCategory}>Add</button>
-      </div>
+      </div> : null}
     </div>
   );
 };

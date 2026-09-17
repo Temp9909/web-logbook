@@ -6,7 +6,7 @@ import { createLicenseRecord, deleteLicenseRecord, fetchLicense, fetchLicenseCat
 import { queryClient } from '../../util/http/http';
 import { Card, Field, Loading, PageHead, SelectField, TextArea, fromInputDate, toInputDate } from '../AppleExact/Primitives';
 import { EASA_LICENSE_CATEGORIES, namesForLicenseCategory } from './easaLicenseOptions';
-import { normalizeValidity, validityRuleFor } from './easaValidityRules';
+import { calculateRegulatoryValidUntil, normalizeValidity, validityRuleFor } from './easaValidityRules';
 
 const CUSTOM_NAME_VALUE = '__custom_name__';
 
@@ -25,14 +25,6 @@ export const LicenseRecord = () => {
     setCustomNameMode(Boolean(data.name) && !prescribedNames.includes(data.name));
   }, [data]);
   const change = useCallback((key,value)=>setLicense(prev=>({...prev,[key]:value})),[]);
-
-  useEffect(() => {
-    setLicense((current) => {
-      const normalized = normalizeValidity(current);
-      if (current.valid_from === normalized.valid_from && current.valid_until === normalized.valid_until) return current;
-      return { ...current, ...normalized };
-    });
-  }, [license.category, license.name, license.valid_from]);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -71,8 +63,15 @@ export const LicenseRecord = () => {
 
   const changeCategory = (category) => {
     const nextNames = namesForLicenseCategory(category);
+    const nextName = nextNames[0] || '';
     setCustomNameMode(nextNames.length === 0);
-    setLicense((current)=>({...current,category,name:nextNames[0] || ''}));
+    setLicense((current) => {
+      const rule = validityRuleFor(category, nextName);
+      const next = { ...current, category, name: nextName };
+      if (rule.kind === 'none') return { ...next, valid_from: '', valid_until: '' };
+      if (rule.kind === 'fixed') return { ...next, valid_until: calculateRegulatoryValidUntil(current.valid_from, rule) };
+      return next;
+    });
   };
 
   const changeName = (name) => {
@@ -82,7 +81,24 @@ export const LicenseRecord = () => {
       return;
     }
     setCustomNameMode(false);
-    change('name',name);
+    setLicense((current) => {
+      const rule = validityRuleFor(current.category, name);
+      const next = { ...current, name };
+      if (rule.kind === 'none') return { ...next, valid_from: '', valid_until: '' };
+      if (rule.kind === 'fixed') return { ...next, valid_until: calculateRegulatoryValidUntil(current.valid_from, rule) };
+      return next;
+    });
+  };
+
+  const changeValidFrom = (validFrom) => {
+    setLicense((current) => {
+      const rule = validityRuleFor(current.category, current.name);
+      if (rule.kind === 'none') return { ...current, valid_from: '', valid_until: '' };
+      if (rule.kind === 'fixed') {
+        return { ...current, valid_from: validFrom, valid_until: calculateRegulatoryValidUntil(validFrom, rule) };
+      }
+      return { ...current, valid_from: validFrom };
+    });
   };
 
   return <section className="exact-react-page">
@@ -97,9 +113,9 @@ export const LicenseRecord = () => {
           {selectedNameIsCustom ? <Field label="Custom name" value={license.name || ''} onChange={(v)=>change('name',v)} /> : null}
           <Field label="Number / reference" value={license.number || ''} onChange={(v)=>change('number',v)} />
           <Field label="Issued" type="date" value={toInputDate(license.issued)} onChange={(v)=>change('issued',fromInputDate(v))} />
-          {showValidityDates ? <Field label="Valid from" type="date" value={toInputDate(license.valid_from)} onChange={(v)=>change('valid_from',fromInputDate(v))} /> : null}
-          {showValidityDates ? <Field label="Valid until" type="date" value={toInputDate(license.valid_until)} onChange={(v)=>change('valid_until',fromInputDate(v))} readOnly={autoValidity} /> : null}
-          {license.name ? <div className="muted" style={{gridColumn:'1 / -1',fontSize:12,marginTop:-2}}>{autoValidity ? `Valid until is calculated automatically: ${validityRule.label}.` : `${validityRule.label}.`}</div> : null}
+          {showValidityDates ? <Field label="Valid from" type="date" value={toInputDate(license.valid_from)} onChange={(v)=>changeValidFrom(fromInputDate(v))} /> : null}
+          {showValidityDates ? <Field label="Valid until" type="date" value={toInputDate(license.valid_until)} onChange={(v)=>change('valid_until',fromInputDate(v))} /> : null}
+          {license.name ? <div className="muted" style={{gridColumn:'1 / -1',fontSize:12,marginTop:-2}}>{autoValidity ? `Valid until is calculated automatically: ${validityRule.label}. You can adjust it manually if needed.` : `${validityRule.label}.`}</div> : null}
           <label className="field"><span>Attachment</span><input className="input" type="file" onChange={(e)=>{const file=e.target.files?.[0];if(file){change('document',file);change('document_name',file.name);}}}/></label>
           <Field label="Document name" value={license.document_name || ''} onChange={(v)=>change('document_name',v)} readOnly={license.document instanceof File} />
         </div>

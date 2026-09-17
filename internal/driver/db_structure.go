@@ -1,7 +1,7 @@
 package driver
 
 var (
-	schemaVersion = "44"
+	schemaVersion = "45"
 
 	UUID      = ColumnType{SQLite: "TEXT", MySQL: "VARCHAR(36)"}
 	DateTime  = ColumnType{SQLite: "TEXT", MySQL: "VARCHAR(32)"}
@@ -109,6 +109,7 @@ var aircraftsTable = NewTable("aircrafts", "reg_name", SmallText,
 	[]Column{
 		{Name: "aircraft_model", Type: SmallText, Properties: "NOT NULL"},
 		{Name: "custom_categories", Type: BigText, Properties: "NOT NULL DEFAULT ''"},
+		{Name: "excluded_model_categories", Type: BigText, Properties: "NOT NULL DEFAULT ''"},
 	})
 
 var aircraftCategoriesTable = NewTable("aircraft_categories", "model", SmallText,
