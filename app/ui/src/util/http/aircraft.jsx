@@ -81,3 +81,22 @@ export const updateAircraft = async ({ payload }) => {
   };
   return await handleFetch(url, options, 'Cannot update aircraft');
 }
+
+
+export const deleteAircraft = async ({ reg }) => {
+  const url = `${API_URL}/aircraft/${encodeURIComponent(reg)}`;
+  const options = {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+  };
+  return await handleFetch(url, options, 'Cannot delete aircraft');
+}
+
+export const deleteAircraftType = async ({ model }) => {
+  const url = `${API_URL}/aircraft/models-categories/${encodeURIComponent(model)}`;
+  const options = {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+  };
+  return await handleFetch(url, options, 'Cannot delete aircraft type');
+}

@@ -1,12 +1,13 @@
 import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { fetchAircraftModelsCategories, fetchAircraftsBuildList, updateAircraft, updateAircraftModelsCategories } from '../../util/http/aircraft';
+import { deleteAircraft, deleteAircraftType, fetchAircraftModelsCategories, fetchAircraftsBuildList, updateAircraft, updateAircraftModelsCategories } from '../../util/http/aircraft';
 import { queryClient } from '../../util/http/http';
 import { Card, Field, Loading, Modal, NativeTable, PageHead, SelectField, SwitchRow } from '../AppleExact/Primitives';
 import AircraftCategoryPicker from './AircraftCategoryPicker';
 import { DEFAULT_CATEGORIES, splitCategories } from './aircraftCategories';
 import NewAircraftModal from './NewAircraftModal';
 import NewAircraftTypeModal from './NewAircraftTypeModal';
+import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 
 const modelCategoryFor = (categories, model) => {
   const item = (Array.isArray(categories) ? categories : []).find((category) => category?.model === model);
@@ -28,6 +29,7 @@ const onlyCategories = (value, allowedValue) => {
 };
 
 export const Aircrafts = () => {
+  const dialogs = useDialogs();
   const { data: aircrafts = [], isLoading: loadingAircrafts } = useQuery({queryKey:['aircrafts','build-list'],queryFn:({signal})=>fetchAircraftsBuildList({signal})});
   const { data: categories = [], isLoading: loadingCategories } = useQuery({queryKey:['models-categories'],queryFn:({signal})=>fetchAircraftModelsCategories({signal})});
   const [newAircraftOpen,setNewAircraftOpen]=useState(false);
@@ -67,6 +69,28 @@ export const Aircrafts = () => {
   const saveCategory=useMutation({
     mutationFn:(payload)=>updateAircraftModelsCategories({payload}),
     onSuccess:async()=>{
+      await Promise.all([
+        queryClient.invalidateQueries({queryKey:['aircrafts']}),
+        queryClient.invalidateQueries({queryKey:['models-categories']}),
+      ]);
+    }
+  });
+
+  const deleteAircraftMutation=useMutation({
+    mutationFn:(reg)=>deleteAircraft({reg}),
+    onSuccess:async()=>{
+      setEditAircraft(null);
+      await Promise.all([
+        queryClient.invalidateQueries({queryKey:['aircrafts']}),
+        queryClient.invalidateQueries({queryKey:['models-categories']}),
+      ]);
+    }
+  });
+
+  const deleteTypeMutation=useMutation({
+    mutationFn:(model)=>deleteAircraftType({model}),
+    onSuccess:async()=>{
+      setEditCategory(null);
       await Promise.all([
         queryClient.invalidateQueries({queryKey:['aircrafts']}),
         queryClient.invalidateQueries({queryKey:['models-categories']}),
@@ -245,6 +269,46 @@ export const Aircrafts = () => {
     queueTypeSave(next);
   };
 
+  const handleDeleteAircraft = async () => {
+    if (!editAircraft || deleteAircraftMutation.isPending) return;
+    const reg = String(editAircraft.reg || '').trim().toUpperCase();
+    const confirmed = await dialogs.confirm(
+      `Would you like to continue? Historical flights using ${reg} will not be deleted.`,
+      { title: `You’re about to delete ${reg}.`, severity: 'error', cancelText: 'Back', okText: 'Done' },
+    );
+    if (!confirmed) return;
+    await aircraftSaveQueue.current.catch(() => undefined);
+    try {
+      await deleteAircraftMutation.mutateAsync(reg);
+    } catch {
+      // Mutation state is shown inside the editor.
+    }
+  };
+
+  const handleDeleteType = async () => {
+    if (!editCategory || deleteTypeMutation.isPending) return;
+    const model = String(editCategory.model || '').trim().toUpperCase();
+    const aircraftUsingType = (Array.isArray(aircrafts) ? aircrafts : []).filter((row) => String(row?.model || '').trim().toUpperCase() === model).length;
+    if (aircraftUsingType > 0) {
+      await dialogs.alert(
+        `This type is still used by ${aircraftUsingType} aircraft. Delete or change those aircraft first.`,
+        { title: 'Type is in use', okText: 'Done' },
+      );
+      return;
+    }
+    const confirmed = await dialogs.confirm(
+      'Would you like to continue?',
+      { title: `You’re about to delete ${model}.`, severity: 'error', cancelText: 'Back', okText: 'Done' },
+    );
+    if (!confirmed) return;
+    await typeSaveQueue.current.catch(() => undefined);
+    try {
+      await deleteTypeMutation.mutateAsync(model);
+    } catch {
+      // Mutation state is shown inside the editor.
+    }
+  };
+
   return <section className="exact-react-page">
     <PageHead
       title="Aircrafts"
@@ -287,7 +351,6 @@ export const Aircrafts = () => {
           label="Categories inherited from type"
           value={inheritedCategory}
           options={splitCategories(typeCategoriesForEditedAircraft)}
-          excludeOptions={splitCategories(editAircraft.custom_category || '')}
           onChange={changeInheritedCategories}
           includeDefaultOptions={false}
           allowNew={false}
@@ -296,17 +359,22 @@ export const Aircrafts = () => {
           label="Extra categories for this registration"
           value={editAircraft.custom_category || ''}
           options={categoryOptions}
-          excludeOptions={splitCategories(inheritedCategory)}
+          excludeOptions={splitCategories(typeCategoriesForEditedAircraft)}
           onChange={changeExtraCategories}
+          allowNew={false}
         />
+        <div className="row exact-aircraft-delete-row">
+          <button type="button" className="btn danger" disabled={deleteAircraftMutation.isPending} onClick={handleDeleteAircraft}>Delete aircraft</button>
+        </div>
         {saveAircraft.isError ? <div className="note exact-error-note">Unable to save aircraft: {saveAircraft.error?.info?.message || saveAircraft.error?.message || 'Unknown error'}</div> : null}
+        {deleteAircraftMutation.isError ? <div className="note exact-error-note">Unable to delete aircraft: {deleteAircraftMutation.error?.info?.message || deleteAircraftMutation.error?.message || 'Unknown error'}</div> : null}
       </> : null}
     </Modal>
 
     <Modal open={!!editCategory} title="Edit aircraft type" onClose={()=>setEditCategory(null)} showCloseButton hideActions>
       {editCategory ? <>
         <Field label="Type" value={editCategory.model || ''} readOnly/>
-        <AircraftCategoryPicker label="Categories" value={editCategory.category || ''} options={categoryOptions} onChange={changeEditedTypeCategories}/>
+        <AircraftCategoryPicker label="Categories" value={editCategory.category || ''} options={categoryOptions} onChange={changeEditedTypeCategories} allowNew={false}/>
         <div className="section-label exact-autofill-label">Auto-fill total flight time into</div>
         <div className="card rows exact-autofill-card">
           {[
@@ -314,7 +382,11 @@ export const Aircrafts = () => {
             ['pic_time','PIC'],['co_pilot_time','Co-pilot'],['dual_time','Dual'],['instructor_time','Instructor'],
           ].map(([key,label])=><SwitchRow key={key} label={label} checked={Boolean(editCategory.time_fields_auto_fill?.[key])} onChange={(checked)=>changeEditedTypeAutoFill(key, checked)}/>) }
         </div>
+        <div className="row exact-aircraft-delete-row">
+          <button type="button" className="btn danger" disabled={deleteTypeMutation.isPending} onClick={handleDeleteType}>Delete type</button>
+        </div>
         {saveCategory.isError ? <div className="note exact-error-note">Unable to save aircraft type: {saveCategory.error?.info?.message || saveCategory.error?.message || 'Unknown error'}</div> : null}
+        {deleteTypeMutation.isError ? <div className="note exact-error-note">Unable to delete aircraft type: {deleteTypeMutation.error?.info?.message || deleteTypeMutation.error?.message || 'This type may still be used by an aircraft.'}</div> : null}
         <Loading show={saveCategory.isPending}/>
       </> : null}
     </Modal>

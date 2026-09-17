@@ -82,10 +82,12 @@ func (app *application) routes() *chi.Mux {
 			r.Get("/models", app.HandlerApiAircraftModels)
 			r.Get("/models-categories", app.HandlerApiAircraftModelsCategoriesList)
 			r.Put("/models-categories", app.HandlerApiAircraftModelsCategoriesUpdate)
+			r.Delete("/models-categories/{model}", app.HandlerApiAircraftTypeDelete)
 			r.Get("/logbook", app.HandlerAircrafts)
 			r.Get("/logbook/{filter}", app.HandlerAircrafts)
 			r.Post("/new", app.HandlerApiAircraftNew)
 			r.Put("/update", app.HandlerApiAircraftUpdate)
+			r.Delete("/{reg}", app.HandlerApiAircraftDelete)
 		})
 
 		// settings

@@ -135,3 +135,29 @@ func (app *application) HandlerApiAircraftUpdate(w http.ResponseWriter, r *http.
 
 	app.writeOkResponse(w, "Aircraft have been updated")
 }
+
+func (app *application) HandlerApiAircraftDelete(w http.ResponseWriter, r *http.Request) {
+	reg := strings.ToUpper(strings.TrimSpace(chi.URLParam(r, "reg")))
+	if reg == "" {
+		http.Error(w, "Registration is required", http.StatusBadRequest)
+		return
+	}
+	if err := app.db.DeleteAircraft(reg); err != nil {
+		app.handleError(w, err)
+		return
+	}
+	app.writeOkResponse(w, "Aircraft has been deleted")
+}
+
+func (app *application) HandlerApiAircraftTypeDelete(w http.ResponseWriter, r *http.Request) {
+	model := strings.ToUpper(strings.TrimSpace(chi.URLParam(r, "model")))
+	if model == "" {
+		http.Error(w, "Aircraft type is required", http.StatusBadRequest)
+		return
+	}
+	if err := app.db.DeleteAircraftType(model); err != nil {
+		app.handleError(w, err)
+		return
+	}
+	app.writeOkResponse(w, "Aircraft type has been deleted")
+}

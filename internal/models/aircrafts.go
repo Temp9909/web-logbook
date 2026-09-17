@@ -17,10 +17,11 @@ func (m *DBModel) GetAircraftsInLogbook(condition int) (aircrafts map[string]str
 	if condition == LastAircrafts {
 		query = "SELECT DISTINCT aircraft_model, reg_name FROM " +
 			"(SELECT aircraft_model, reg_name FROM logbook_view " +
-			"WHERE aircraft_model <> '' ORDER BY m_date DESC LIMIT 100) AS T1 " +
+			"WHERE aircraft_model <> '' AND reg_name NOT IN (SELECT reg_name FROM deleted_aircrafts) ORDER BY m_date DESC LIMIT 100) AS T1 " +
 			"ORDER BY aircraft_model "
 	} else {
 		query = "SELECT aircraft_model, reg_name FROM logbook_view WHERE aircraft_model <> '' " +
+			"AND reg_name NOT IN (SELECT reg_name FROM deleted_aircrafts) " +
 			"GROUP BY aircraft_model, reg_name ORDER BY aircraft_model"
 	}
 
@@ -52,6 +53,7 @@ func (m *DBModel) GetAircraftModels() (models []string, err error) {
 			UNION
 			SELECT DISTINCT aircraft_model FROM aircrafts WHERE aircraft_model <> ''
 		) recorded_aircraft_models
+		WHERE aircraft_model NOT IN (SELECT model FROM deleted_aircraft_types)
 		ORDER BY aircraft_model`
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -78,6 +80,7 @@ func (m *DBModel) GetAircraftRegs(records int) (regs []string, err error) {
 	query := `SELECT DISTINCT reg_name
 		FROM logbook_view
 		WHERE reg_name <> ""
+			AND reg_name NOT IN (SELECT reg_name FROM deleted_aircrafts)
 		ORDER BY reg_name`
 	if records > 0 {
 		query = `SELECT DISTINCT reg_name
@@ -85,6 +88,7 @@ func (m *DBModel) GetAircraftRegs(records int) (regs []string, err error) {
 				SELECT reg_name
 				FROM logbook_view
 				WHERE reg_name <> ""
+					AND reg_name NOT IN (SELECT reg_name FROM deleted_aircrafts)
 				ORDER BY m_date DESC
 				LIMIT ` + fmt.Sprintf("%d", records) +
 			`) subquery
@@ -126,7 +130,8 @@ func (m *DBModel) GenerateAircraftTable() (err error) {
 			AND lv.reg_name IS NOT NULL
 			AND lv.reg_name <> ''
 		GROUP BY lv.reg_name
-		HAVING lv.reg_name NOT IN (SELECT reg_name FROM aircrafts)`
+		HAVING lv.reg_name NOT IN (SELECT reg_name FROM aircrafts)
+			AND lv.reg_name NOT IN (SELECT reg_name FROM deleted_aircrafts)`
 	_, err = tx.ExecContext(ctx, query)
 	if err != nil {
 		tx.Rollback()
@@ -166,7 +171,8 @@ func (m *DBModel) GenerateAircraftTable() (err error) {
 			SELECT DISTINCT aircraft_model FROM aircrafts WHERE aircraft_model <> ''
 		) recorded_aircraft_models
 		LEFT JOIN aircraft_categories ac ON recorded_aircraft_models.aircraft_model = ac.model
-		WHERE ac.model IS NULL`
+		WHERE ac.model IS NULL
+			AND recorded_aircraft_models.aircraft_model NOT IN (SELECT model FROM deleted_aircraft_types)`
 	_, err = tx.ExecContext(ctx, query)
 	if err != nil {
 		tx.Rollback()
@@ -184,6 +190,7 @@ func (m *DBModel) GetAircraftModelsCategories() (categories []Category, err erro
 
 	query := `SELECT model, categories, IFNULL(time_fields_auto_fill, '') AS time_fields_auto_fill
 		FROM aircraft_categories
+		WHERE model NOT IN (SELECT model FROM deleted_aircraft_types)
 		ORDER BY model`
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -289,6 +296,10 @@ func (m *DBModel) UpdateAircraftModelsCategories(category Category) (err error) 
 	ctx, cancel := m.ContextWithDefaultTimeout()
 	defer cancel()
 
+	if _, err = m.DB.ExecContext(ctx, `DELETE FROM deleted_aircraft_types WHERE model = ?`, category.Model); err != nil {
+		return err
+	}
+
 	autoFill, _ := json.Marshal(category.TimeFieldsAutoFill)
 	query := `UPDATE aircraft_categories
 		SET categories = ?, time_fields_auto_fill = ?
@@ -338,6 +349,13 @@ func (m *DBModel) CreateAircraft(aircraft Aircraft) (err error) {
 	}
 	defer tx.Rollback()
 
+	if _, err = tx.ExecContext(ctx, `DELETE FROM deleted_aircrafts WHERE reg_name = ?`, aircraft.Reg); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM deleted_aircraft_types WHERE model = ?`, aircraft.Model); err != nil {
+		return err
+	}
+
 	query := `INSERT INTO aircrafts (reg_name, aircraft_model, custom_categories)
 		VALUES (?, ?, ?)`
 	if _, err = tx.ExecContext(ctx, query, aircraft.Reg, aircraft.Model, aircraft.CustomCategory); err != nil {
@@ -375,6 +393,13 @@ func (m *DBModel) UpdateAircraft(aircraft Aircraft) (err error) {
 	}
 	defer tx.Rollback()
 
+	if _, err = tx.ExecContext(ctx, `DELETE FROM deleted_aircrafts WHERE reg_name = ?`, aircraft.Reg); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM deleted_aircraft_types WHERE model = ?`, aircraft.Model); err != nil {
+		return err
+	}
+
 	// Update the aircraft record, including its primary-key registration.
 	query := `UPDATE aircrafts
 		SET reg_name = ?, custom_categories = ?, aircraft_model = ?, excluded_model_categories = ?
@@ -393,5 +418,58 @@ func (m *DBModel) UpdateAircraft(aircraft Aircraft) (err error) {
 		}
 	}
 
+	return tx.Commit()
+}
+
+// DeleteAircraft removes an aircraft profile from the aircraft list without
+// deleting historical flight records. A tombstone prevents GenerateAircraftTable
+// from recreating the profile from the logbook until the registration is created again.
+func (m *DBModel) DeleteAircraft(reg string) (err error) {
+	ctx, cancel := m.ContextWithDefaultTimeout()
+	defer cancel()
+
+	tx, err := m.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err = tx.ExecContext(ctx, `INSERT INTO deleted_aircrafts (reg_name)
+		SELECT ? WHERE NOT EXISTS (SELECT 1 FROM deleted_aircrafts WHERE reg_name = ?)`, reg, reg); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM aircrafts WHERE reg_name = ?`, reg); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// DeleteAircraftType removes an unused aircraft type definition. Types still
+// referenced by an active aircraft are protected to avoid orphaning aircraft data.
+func (m *DBModel) DeleteAircraftType(model string) (err error) {
+	ctx, cancel := m.ContextWithDefaultTimeout()
+	defer cancel()
+
+	var count int
+	if err = m.DB.QueryRowContext(ctx, `SELECT COUNT(*) FROM aircrafts WHERE aircraft_model = ?`, model).Scan(&count); err != nil {
+		return err
+	}
+	if count > 0 {
+		return fmt.Errorf("aircraft type %s is still used by %d aircraft", model, count)
+	}
+
+	tx, err := m.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err = tx.ExecContext(ctx, `INSERT INTO deleted_aircraft_types (model)
+		SELECT ? WHERE NOT EXISTS (SELECT 1 FROM deleted_aircraft_types WHERE model = ?)`, model, model); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, `DELETE FROM aircraft_categories WHERE model = ?`, model); err != nil {
+		return err
+	}
 	return tx.Commit()
 }
