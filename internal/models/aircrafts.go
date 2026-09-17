@@ -45,9 +45,12 @@ func (m *DBModel) GetAircraftModels() (models []string, err error) {
 	ctx, cancel := m.ContextWithDefaultTimeout()
 	defer cancel()
 
-	query := `SELECT DISTINCT aircraft_model 
-		FROM logbook_view 
-		WHERE aircraft_model <> '' 
+	query := `SELECT aircraft_model
+		FROM (
+			SELECT DISTINCT aircraft_model FROM logbook_view WHERE aircraft_model <> ''
+			UNION
+			SELECT DISTINCT aircraft_model FROM aircrafts WHERE aircraft_model <> ''
+		) recorded_aircraft_models
 		ORDER BY aircraft_model`
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -129,19 +132,6 @@ func (m *DBModel) GenerateAircraftTable() (err error) {
 		return err
 	}
 
-	// remove aircrafts which are not in the logbook anymore
-	query = `DELETE FROM aircrafts
-		WHERE reg_name NOT IN (
-			SELECT DISTINCT lv.reg_name
-			FROM logbook_view lv
-			WHERE lv.reg_name IS NOT NULL AND lv.reg_name <> ''
-		)`
-	_, err = tx.ExecContext(ctx, query)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
 	// update aircraft types if they were modified
 	query = `UPDATE aircrafts
 		SET aircraft_model = (
@@ -168,11 +158,14 @@ func (m *DBModel) GenerateAircraftTable() (err error) {
 
 	// update aircraft categories table
 	query = `INSERT INTO aircraft_categories (model, categories)
-		SELECT DISTINCT lv.aircraft_model, ''
-		FROM logbook_view lv
-			LEFT JOIN aircraft_categories ac ON lv.aircraft_model = ac.model
-		WHERE lv.aircraft_model <> ''
-			AND ac.model IS NULL`
+		SELECT recorded_aircraft_models.aircraft_model, ''
+		FROM (
+			SELECT DISTINCT aircraft_model FROM logbook_view WHERE aircraft_model <> ''
+			UNION
+			SELECT DISTINCT aircraft_model FROM aircrafts WHERE aircraft_model <> ''
+		) recorded_aircraft_models
+		LEFT JOIN aircraft_categories ac ON recorded_aircraft_models.aircraft_model = ac.model
+		WHERE ac.model IS NULL`
 	_, err = tx.ExecContext(ctx, query)
 	if err != nil {
 		tx.Rollback()
@@ -190,7 +183,11 @@ func (m *DBModel) GetAircraftModelsCategories() (categories []Category, err erro
 
 	query := `SELECT model, categories, IFNULL(time_fields_auto_fill, '') AS time_fields_auto_fill
 		FROM aircraft_categories
-		WHERE model IN (SELECT DISTINCT lv.aircraft_model FROM logbook_view lv)
+		WHERE model IN (
+			SELECT DISTINCT aircraft_model FROM logbook_view
+			UNION
+			SELECT DISTINCT aircraft_model FROM aircrafts
+		)
 		ORDER BY model`
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -263,6 +260,32 @@ func (m *DBModel) GetAircraft(reg string) (aircraft Aircraft, err error) {
 
 	err = row.Scan(&aircraft.Reg, &aircraft.Model, &aircraft.Category, &aircraft.ModelCategory, &aircraft.CustomCategory)
 	return aircraft, err
+}
+
+func (m *DBModel) CreateAircraft(aircraft Aircraft) (err error) {
+	ctx, cancel := m.ContextWithDefaultTimeout()
+	defer cancel()
+
+	tx, err := m.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	query := `INSERT INTO aircrafts (reg_name, aircraft_model, custom_categories)
+		VALUES (?, ?, ?)`
+	if _, err = tx.ExecContext(ctx, query, aircraft.Reg, aircraft.Model, aircraft.CustomCategory); err != nil {
+		return err
+	}
+
+	query = `INSERT INTO aircraft_categories (model, categories)
+		SELECT ?, ''
+		WHERE NOT EXISTS (SELECT 1 FROM aircraft_categories WHERE model = ?)`
+	if _, err = tx.ExecContext(ctx, query, aircraft.Model, aircraft.Model); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
 
 func (m *DBModel) UpdateAircraft(aircraft Aircraft) (err error) {

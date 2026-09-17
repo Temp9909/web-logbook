@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchAircraftModelsCategories, fetchAircraftsBuildList, updateAircraft, updateAircraftModelsCategories } from '../../util/http/aircraft';
 import { queryClient } from '../../util/http/http';
 import { Card, Field, Loading, Modal, NativeTable, PageHead, SelectField, SwitchRow } from '../AppleExact/Primitives';
+import NewAircraftModal from './NewAircraftModal';
 
 const DEFAULT_CATEGORIES = [
   'Single Engine',
@@ -61,6 +62,7 @@ const modelCategoryFor = (categories, model) => {
 export const Aircrafts = () => {
   const { data: aircrafts = [], isLoading: loadingAircrafts } = useQuery({queryKey:['aircrafts','build-list'],queryFn:({signal})=>fetchAircraftsBuildList({signal})});
   const { data: categories = [], isLoading: loadingCategories } = useQuery({queryKey:['models-categories'],queryFn:({signal})=>fetchAircraftModelsCategories({signal})});
+  const [newAircraftOpen,setNewAircraftOpen]=useState(false);
   const [editAircraft,setEditAircraft]=useState(null);
   const [editCategory,setEditCategory]=useState(null);
 
@@ -120,7 +122,7 @@ export const Aircrafts = () => {
   const inheritedCategory = editAircraft ? modelCategoryFor(categories, editAircraft.model) : '';
 
   return <section className="exact-react-page">
-    <PageHead title="Aircrafts" subtitle="Manage registrations, aircraft types and categories." />
+    <PageHead title="Aircrafts" subtitle="Manage registrations, aircraft types and categories." actions={<button className="btn primary" type="button" onClick={()=>setNewAircraftOpen(true)}>＋ New aircraft</button>} />
     <div className="grid two">
       <Card title="Aircrafts" subtitle="Registrations and aircraft types used by your logbook.">
         <NativeTable rows={aircrafts} columns={aircraftCols} rowKey={(r)=>r.reg} loading={loadingAircrafts} searchPlaceholder="Search aircraft…" onRowClick={openAircraft} />
@@ -129,6 +131,8 @@ export const Aircrafts = () => {
         <NativeTable rows={categories} columns={categoryCols} rowKey={(r)=>r.model} loading={loadingCategories} searchPlaceholder="Search type…" onRowClick={openCategory} />
       </Card>
     </div>
+
+    {newAircraftOpen ? <NewAircraftModal open modelOptions={modelOptions} onClose={()=>setNewAircraftOpen(false)} /> : null}
 
     <Modal open={!!editAircraft} title="Edit aircraft" onClose={()=>setEditAircraft(null)} actions={<><button className="btn" onClick={()=>setEditAircraft(null)}>Cancel</button><button className="btn primary" disabled={saveAircraft.isPending || !editAircraft?.reg?.trim()} onClick={()=>saveAircraft.mutate()}>Save aircraft</button></>}>
       {editAircraft ? <>

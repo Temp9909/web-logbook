@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/vsimakhin/web-logbook/internal/models"
@@ -93,6 +94,29 @@ func (app *application) HandlerApiAircraftModelsCategoriesUpdate(w http.Response
 	}
 
 	app.writeOkResponse(w, "Aircraft categories have been updated")
+}
+
+func (app *application) HandlerApiAircraftNew(w http.ResponseWriter, r *http.Request) {
+	var aircraft models.Aircraft
+	if err := json.NewDecoder(r.Body).Decode(&aircraft); err != nil {
+		app.handleError(w, err)
+		return
+	}
+
+	aircraft.Reg = strings.ToUpper(strings.TrimSpace(aircraft.Reg))
+	aircraft.Model = strings.ToUpper(strings.TrimSpace(aircraft.Model))
+	aircraft.CustomCategory = strings.TrimSpace(aircraft.CustomCategory)
+	if aircraft.Reg == "" || aircraft.Model == "" {
+		http.Error(w, "Registration and aircraft type are required", http.StatusBadRequest)
+		return
+	}
+
+	if err := app.db.CreateAircraft(aircraft); err != nil {
+		app.handleError(w, err)
+		return
+	}
+
+	app.writeJSON(w, http.StatusCreated, aircraft)
 }
 
 func (app *application) HandlerApiAircraftUpdate(w http.ResponseWriter, r *http.Request) {

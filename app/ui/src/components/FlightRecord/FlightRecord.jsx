@@ -9,6 +9,7 @@ import { queryClient } from '../../util/http/http';
 import useCustomFields from '../../hooks/useCustomFields';
 import FlightMap from '../FlightMap/FlightMap';
 import { Card, Field, Loading, PageHead, SelectField, TextArea, TimeSelectField, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
+import NewAircraftModal from '../Aircrafts/NewAircraftModal';
 
 const timeFields = [
   ['time.total_time','Total'],['time.se_time','SE'],['time.me_time','ME'],['time.mcc_time','Multi-pilot'],
@@ -51,6 +52,7 @@ export const FlightRecord = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [flight, setFlight] = useState({ ...FLIGHT_INITIAL_STATE, uuid: id });
+  const [newAircraftOpen, setNewAircraftOpen] = useState(false);
   const { customFields = [] } = useCustomFields();
 
   const { data, isLoading } = useQuery({
@@ -126,6 +128,14 @@ export const FlightRecord = () => {
     });
   }, [aircrafts]);
 
+  const handleAircraftCreated = useCallback((aircraft) => {
+    setFlight((current) => {
+      let next = setNested(current, 'aircraft.reg_name', String(aircraft?.reg || '').toUpperCase());
+      next = setNested(next, 'aircraft.model', String(aircraft?.model || '').toUpperCase());
+      return next;
+    });
+  }, []);
+
   const handleRoleChange = useCallback((role) => {
     setFlight((prev) => {
       const total = prev?.time?.total_time || '';
@@ -199,7 +209,11 @@ export const FlightRecord = () => {
           </div>
         </Card>
 
-        <Card title="Aircraft" subtitle="Registration, type, pilot in command and flight role.">
+        <Card
+          title="Aircraft"
+          subtitle="Registration, type, pilot in command and flight role."
+          actions={<button className="btn small" type="button" onClick={() => setNewAircraftOpen(true)}>＋ New aircraft</button>}
+        >
           <div className="form-grid two">
             <SelectField
               label="Registration"
@@ -268,6 +282,14 @@ export const FlightRecord = () => {
         </Card> : null}
       </div>
       {id !== 'new' && mapData.length ? <div className="exact-map-host" style={{marginTop:12}}><FlightMap data={mapData} title="Flight map" /></div> : null}
+      {newAircraftOpen ? (
+        <NewAircraftModal
+          open
+          modelOptions={typeOptions}
+          onCreated={handleAircraftCreated}
+          onClose={() => setNewAircraftOpen(false)}
+        />
+      ) : null}
     </section>
   );
 };

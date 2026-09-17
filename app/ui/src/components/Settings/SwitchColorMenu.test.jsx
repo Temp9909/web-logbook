@@ -3,13 +3,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { SwitchColorMenu } from './Settings';
 
 describe('SwitchColorMenu', () => {
-  it('opens above the page and applies the selected preset', async () => {
+  it('uses the standard application select and applies the selected preset', () => {
     const onChange = vi.fn();
     render(<SwitchColorMenu value="" onChange={onChange} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Automatic/i }));
-    const blue = await screen.findByRole('menuitemradio', { name: 'Blue' });
-    fireEvent.click(blue);
+    const select = screen.getByRole('combobox');
+    expect(select).toHaveClass('select');
+    fireEvent.change(select, { target: { value: '#007AFF' } });
 
     expect(onChange).toHaveBeenCalledWith('#007AFF');
   });

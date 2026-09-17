@@ -11,95 +11,18 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   opacity: 1 !important;
 }
 
-.switch-color-menu {
-  position: relative;
-  flex: 0 0 auto;
+.switch-color-native-field {
+  width: 160px;
+  flex: 0 0 160px;
 }
 
-.switch-color-trigger {
-  min-width: 132px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 9px;
-  border: 1px solid var(--separator);
-  border-radius: 7px;
-  background: var(--paper);
-  color: var(--label);
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
-  line-height: 1;
+.switch-color-native-field .select {
   cursor: pointer;
 }
 
-.switch-color-trigger:hover { background: var(--fill); }
-.switch-color-trigger:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-
-.switch-color-dot {
-  width: 11px;
-  height: 11px;
-  flex: 0 0 11px;
-  border: 1px solid rgba(0,0,0,.12);
-  border-radius: 50%;
-}
-
-.switch-color-chevron {
-  width: 9px;
-  height: 6px;
-  margin-left: auto;
-  fill: none;
-  stroke: var(--secondary);
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.MuiPaper-root.switch-color-popover {
-  width: 168px;
-  margin-top: 5px;
-  padding: 4px;
-  border: 1px solid var(--separator);
-  border-radius: 10px !important;
-  background: color-mix(in srgb, var(--paper) 94%, transparent) !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,.18) !important;
-  backdrop-filter: saturate(180%) blur(18px);
-  -webkit-backdrop-filter: saturate(180%) blur(18px);
-}
-.switch-color-popover .MuiList-root { padding: 0 !important; }
-
-.switch-color-option {
-  width: 100% !important;
-  min-height: 28px !important;
-  display: grid !important;
-  grid-template-columns: 14px 11px 1fr;
-  align-items: center;
-  gap: 7px;
-  padding: 0 7px !important;
-  border-radius: 6px !important;
-  background: transparent !important;
-  color: var(--label) !important;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
-  line-height: 1;
-  text-align: left;
-  cursor: pointer;
-}
-
-.switch-color-option:hover,
-.switch-color-option:focus-visible,
-.switch-color-option.Mui-selected,
-.switch-color-option.Mui-selected:hover {
-  outline: 0;
-  background: var(--blue) !important;
-  color: #fff !important;
-}
-
-.switch-color-check {
-  width: 14px;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
+@media (max-width: 520px) {
+  .switch-color-native-field {
+    width: 100%;
+    flex-basis: 100%;
+  }
 }
