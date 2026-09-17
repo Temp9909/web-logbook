@@ -5,15 +5,24 @@ import { LICENSE_INITIAL_STATE } from '../../constants/constants';
 import { createLicenseRecord, deleteLicenseRecord, fetchLicense, fetchLicenseCategory, updateLicenseRecord } from '../../util/http/licensing';
 import { queryClient } from '../../util/http/http';
 import { Card, Field, Loading, PageHead, SelectField, TextArea, fromInputDate, toInputDate } from '../AppleExact/Primitives';
+import { EASA_LICENSE_CATEGORIES, namesForLicenseCategory } from './easaLicenseOptions';
+
+const CUSTOM_NAME_VALUE = '__custom_name__';
 
 export const LicenseRecord = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [license, setLicense] = useState({ ...LICENSE_INITIAL_STATE, uuid: id });
+  const [customNameMode, setCustomNameMode] = useState(false);
 
   const { data, isLoading } = useQuery({ queryKey:['license',id], queryFn:({signal})=>fetchLicense({signal,id}), enabled:id !== 'new' });
   const { data: categories = [] } = useQuery({ queryKey:['license-categories'], queryFn:({signal})=>fetchLicenseCategory({signal}) });
-  useEffect(() => { if (data) setLicense(data); }, [data]);
+  useEffect(() => {
+    if (!data) return;
+    setLicense(data);
+    const prescribedNames = namesForLicenseCategory(data.category);
+    setCustomNameMode(Boolean(data.name) && !prescribedNames.includes(data.name));
+  }, [data]);
   const change = useCallback((key,value)=>setLicense(prev=>({...prev,[key]:value})),[]);
 
   const save = useMutation({
@@ -35,18 +44,43 @@ export const LicenseRecord = () => {
   });
   const remove = useMutation({ mutationFn:()=>deleteLicenseRecord({id:license.uuid}), onSuccess:async()=>{await queryClient.invalidateQueries({queryKey:['licensing']});navigate('/licensing');} });
 
-  const categoryOptions = (Array.isArray(categories) ? categories : []).map((c)=>typeof c === 'string' ? c : c?.name || c?.category).filter(Boolean);
-  if (license.category && !categoryOptions.includes(license.category)) categoryOptions.unshift(license.category);
+  const storedCategories = (Array.isArray(categories) ? categories : []).map((c)=>typeof c === 'string' ? c : c?.name || c?.category).filter(Boolean);
+  const categoryOptions = [...new Set([...EASA_LICENSE_CATEGORIES, ...storedCategories])];
+  if (license.category && !categoryOptions.includes(license.category)) categoryOptions.push(license.category);
+  const prescribedNames = namesForLicenseCategory(license.category);
+  const selectedNameIsCustom = customNameMode || (Boolean(license.name) && !prescribedNames.includes(license.name));
+  const nameOptions = [
+    {value:'',label:license.category ? 'Select a name…' : 'Select a category first…'},
+    ...prescribedNames,
+    {value:CUSTOM_NAME_VALUE,label:'Other / custom…'},
+  ];
+
+  const changeCategory = (category) => {
+    const nextNames = namesForLicenseCategory(category);
+    setCustomNameMode(nextNames.length === 0);
+    setLicense((current)=>({...current,category,name:nextNames[0] || ''}));
+  };
+
+  const changeName = (name) => {
+    if (name === CUSTOM_NAME_VALUE) {
+      setCustomNameMode(true);
+      change('name','');
+      return;
+    }
+    setCustomNameMode(false);
+    change('name',name);
+  };
 
   return <section className="exact-react-page">
-    <PageHead title={id === 'new' ? 'Add a rating' : 'Rating details'} subtitle={id === 'new' ? 'Add a licence, rating or certification record.' : 'Review and update this licensing record.'} actions={<><button className="btn ghost" onClick={()=>navigate('/licensing')}>Cancel</button>{id !== 'new' ? <button className="btn danger" onClick={()=>confirm('Delete this licensing record?') && remove.mutate()}>Delete</button>:null}<button className="btn primary" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save rating'}</button></>} />
+    <PageHead title={id === 'new' ? 'Add a licensing record' : 'Licensing record'} subtitle={id === 'new' ? 'Add a licence, rating, medical or certification record.' : 'Review and update this licensing record.'} actions={<><button className="btn ghost" onClick={()=>navigate('/licensing')}>Cancel</button>{id !== 'new' ? <button className="btn danger" onClick={()=>confirm('Delete this licensing record?') && remove.mutate()}>Delete</button>:null}<button className="btn primary" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save record'}</button></>} />
     <Loading show={isLoading || save.isPending || remove.isPending}/>
     {save.error ? <div className="note exact-inline-danger">{String(save.error.message || save.error)}</div> : null}
     <div className="split">
       <Card title="License & certification record" subtitle="Enter the rating details and validity dates.">
         <div className="form-grid two">
-          <SelectField label="Category" value={license.category || ''} onChange={(v)=>change('category',v)} options={categoryOptions.length ? categoryOptions : ['Licence','Rating','Medical','Certificate']} />
-          <Field label="Name" value={license.name || ''} onChange={(v)=>change('name',v)} />
+          <SelectField label="Category" value={license.category || ''} onChange={changeCategory} options={[{value:'',label:'Select a category…'},...categoryOptions]} />
+          <SelectField label="Name" value={selectedNameIsCustom ? CUSTOM_NAME_VALUE : (license.name || '')} onChange={changeName} options={nameOptions} disabled={!license.category} />
+          {selectedNameIsCustom ? <Field label="Custom name" value={license.name || ''} onChange={(v)=>change('name',v)} /> : null}
           <Field label="Number / reference" value={license.number || ''} onChange={(v)=>change('number',v)} />
           <Field label="Issued" type="date" value={toInputDate(license.issued)} onChange={(v)=>change('issued',fromInputDate(v))} />
           <Field label="Valid from" type="date" value={toInputDate(license.valid_from)} onChange={(v)=>change('valid_from',fromInputDate(v))} />

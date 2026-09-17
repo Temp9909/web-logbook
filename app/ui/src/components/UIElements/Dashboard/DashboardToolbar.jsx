@@ -4,13 +4,13 @@ import { ColorModeContext } from '../../../context/ColorModeContext';
 
 const TITLES = { logbook:'Logbook', licensing:'Licensing', map:'Map', aircrafts:'Aircrafts', airports:'Airports', persons:'Persons', attachments:'Attachments', stats:'Stats', currency:'Currency', export:'Export', import:'Import', settings:'Settings' };
 
-export default function DashboardToolbar({ onMenu }) {
+export default function DashboardToolbar({ onMenu, menuOpen }) {
   const { toggleColorMode } = useContext(ColorModeContext);
   const location = useLocation();
   const segment = location.pathname.split('/').filter(Boolean)[0] || 'logbook';
   return (
     <header className="topbar">
-      <button className="icon-btn" title="Menu" aria-label="Menu" onClick={onMenu}>
+      <button className="icon-btn" title={menuOpen ? 'Hide sidebar' : 'Show sidebar'} aria-label={menuOpen ? 'Hide sidebar' : 'Show sidebar'} aria-expanded={menuOpen} onClick={onMenu}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
       </button>
       <span className="title">{TITLES[segment] || 'Logbook'}</span>

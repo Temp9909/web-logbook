@@ -63,7 +63,7 @@ export default function DashboardNavbar({ open, onNavigate }) {
   const toggleExport = () => setExportOpen((current) => !current);
 
   return (
-    <aside className={`sidebar${open ? ' open' : ''}`}>
+    <aside className={`sidebar${open ? ' open' : ''}`} aria-hidden={!open} inert={open ? undefined : ''}>
       <div className="sidebar-brand">
         <span className="sidebar-brand-icon"><AppLogo /></span>
         <span className="sidebar-brand-name">Logbook</span>

@@ -55,6 +55,22 @@
     padding: 60px 8px 12px;
     overflow-y: auto;
   }
+  @media (min-width: 801px) {
+    .sidebar {
+      transition: width .2s ease, padding-left .2s ease, padding-right .2s ease, border-color .2s ease;
+    }
+    .sidebar:not(.open) {
+      width: 0;
+      padding-left: 0;
+      padding-right: 0;
+      border-right-color: transparent;
+      overflow: hidden;
+    }
+    .sidebar:not(.open) > * {
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
   .sidebar-brand {
     display: flex; align-items: center; gap: 9px;
     padding: 4px 10px 14px; margin-bottom: 6px;

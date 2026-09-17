@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import SignaturePad from 'signature_pad';
 import useSettings from '../../hooks/useSettings';
 import useCustomFields from '../../hooks/useCustomFields';
@@ -27,41 +29,36 @@ const switchColors=[
   {name:'Gray',value:'#8E8E93',color:'#8E8E93'},
 ];
 
-function SwitchColorMenu({value,onChange}){
-  const [open,setOpen]=useState(false);
-  const menuRef=useRef(null);
+export function SwitchColorMenu({value,onChange}){
+  const [anchorEl,setAnchorEl]=useState(null);
+  const open=Boolean(anchorEl);
   const normalizedValue=typeof value==='string'?value.toUpperCase():'';
   const selected=switchColors.find(option=>option.value.toUpperCase()===normalizedValue)
     || (normalizedValue==='#34C759'?switchColors.find(option=>option.name==='Green'):switchColors[0]);
 
-  useEffect(()=>{
-    if(!open)return undefined;
-    const closeOnOutsideClick=(event)=>{if(!menuRef.current?.contains(event.target))setOpen(false)};
-    const closeOnEscape=(event)=>{if(event.key==='Escape')setOpen(false)};
-    document.addEventListener('pointerdown',closeOnOutsideClick);
-    document.addEventListener('keydown',closeOnEscape);
-    return()=>{
-      document.removeEventListener('pointerdown',closeOnOutsideClick);
-      document.removeEventListener('keydown',closeOnEscape);
-    };
-  },[open]);
-
-  return <div className="switch-color-menu" ref={menuRef}>
-    <button type="button" className="switch-color-trigger" aria-haspopup="menu" aria-expanded={open} onClick={()=>setOpen(current=>!current)}>
+  return <div className="switch-color-menu">
+    <button type="button" className="switch-color-trigger" aria-haspopup="menu" aria-expanded={open} onClick={(event)=>setAnchorEl(event.currentTarget)}>
       <span className="switch-color-dot" style={{background:selected.color}} aria-hidden="true"/>
       <span>{selected.name}</span>
       <svg className="switch-color-chevron" viewBox="0 0 12 8" aria-hidden="true"><path d="m1 1 5 5 5-5"/></svg>
     </button>
-    {open?<div className="switch-color-popover" role="menu" aria-label="Switch color">
+    <Menu
+      anchorEl={anchorEl}
+      open={open}
+      onClose={()=>setAnchorEl(null)}
+      anchorOrigin={{vertical:'bottom',horizontal:'right'}}
+      transformOrigin={{vertical:'top',horizontal:'right'}}
+      slotProps={{paper:{className:'switch-color-popover'},list:{'aria-label':'Switch color',dense:true}}}
+    >
       {switchColors.map(option=>{
         const isSelected=option.name===selected.name;
-        return <button key={option.name} type="button" className={`switch-color-option${isSelected?' selected':''}`} role="menuitemradio" aria-checked={isSelected} onClick={()=>{onChange(option.value);setOpen(false)}}>
+        return <MenuItem key={option.name} className="switch-color-option" selected={isSelected} role="menuitemradio" aria-checked={isSelected} onClick={()=>{onChange(option.value);setAnchorEl(null)}}>
           <span className="switch-color-check" aria-hidden="true">{isSelected?'✓':''}</span>
           <span className="switch-color-dot" style={{background:option.color}} aria-hidden="true"/>
           <span>{option.name}</span>
-        </button>;
+        </MenuItem>;
       })}
-    </div>:null}
+    </Menu>
   </div>;
 }
 

@@ -10,7 +10,10 @@ import { calculateExpiry } from './helpers';
 const classify = (item) => {
   const c = String(item?.category || '').toLowerCase();
   const n = String(item?.name || '').toLowerCase();
-  return (c.includes('licen') || c.includes('medical') || n.includes('medical') || n.includes('licen')) ? 'Licences' : 'Ratings';
+  if (c.includes('medical') || n.includes('medical') || n.includes('class 1') || n.includes('class 2')) return 'Medical';
+  if (c.includes('licen') || n.includes('licen') || /^(lapl|ppl|cpl|mpl|atpl|spl|bpl)/.test(n)) return 'Licences';
+  if (c.includes('rating')) return 'Ratings';
+  return 'Certificates & qualifications';
 };
 
 const expiryMeta = (item, warningDays) => {
@@ -53,7 +56,7 @@ export default function Licensing() {
   useErrorNotification({ isError, error, fallbackMessage:'Failed to load licenses' });
 
   const groups = useMemo(() => {
-    const out = { Licences:[], Ratings:[] };
+    const out = { Licences:[], Ratings:[], Medical:[], 'Certificates & qualifications':[] };
     (Array.isArray(data) ? data : []).forEach(item => out[classify(item)].push(item));
     return out;
   }, [data]);
@@ -69,7 +72,9 @@ export default function Licensing() {
       {isLoading && <LinearProgress sx={{mb:1.5,borderRadius:99}} />}
       <Group title="Licences" rows={groups.Licences} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />
       <Group title="Ratings" rows={groups.Ratings} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />
-      <button className="btn primary" onClick={()=>navigate('/licensing/new')}>＋ Add a rating</button>
+      <Group title="Medical" rows={groups.Medical} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />
+      <Group title="Certificates & qualifications" rows={groups['Certificates & qualifications']} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />
+      <button className="btn primary" onClick={()=>navigate('/licensing/new')}>＋ Add a record</button>
     </section>
   );
 }
