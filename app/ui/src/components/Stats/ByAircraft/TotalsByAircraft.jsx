@@ -46,10 +46,11 @@ export const TotalsByAircraft = ({ type }) => {
     return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
   }, [type, models, aircrafts]);
 
-  const totalsData = useMemo(() =>
-    getTotalsByAircraft(flights, type, models, aircrafts, customFields, allCategories),
-    [flights, type, models, aircrafts, customFields, allCategories]
-  );
+  const totalsData = useMemo(() => {
+    const rows = getTotalsByAircraft(flights, type, models, aircrafts, customFields, allCategories);
+    if (type !== 'category') return rows;
+    return rows.filter((row) => String(row?.model || '').trim().toLocaleUpperCase() !== 'IFR');
+  }, [flights, type, models, aircrafts, customFields, allCategories]);
 
   return (
     <TotalsByAircraftTable
