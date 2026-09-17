@@ -51,7 +51,7 @@ export const Import=()=>{
     <Modal open={optionsOpen} title="Import options" onClose={()=>setOptionsOpen(false)} actions={<button className="btn primary" onClick={()=>setOptionsOpen(false)}>Done</button>}>
       <div className="card rows" style={{borderRadius:10}}><SwitchRow label="Create persons" sub="Create persons from imported PIC Name values." checked={options.create_persons} onChange={v=>setOptions(p=>({...p,create_persons:v,create_person_from:{pic:true}}))}/></div>
     </Modal>
-    <Modal open={progressOpen} title="Importing flight records" onClose={()=>progress.status==='running'?null:setProgressOpen(false)} actions={<button className="btn primary" disabled={progress.status==='running'} onClick={()=>setProgressOpen(false)}>OK</button>}>
+    <Modal open={progressOpen} title="Importing flight records" onClose={()=>progress.status==='running'?null:setProgressOpen(false)} actions={<button className="btn primary" disabled={progress.status==='running'} onClick={()=>setProgressOpen(false)}>Done</button>}>
       <div className="note">{progress.status==='running'?`Processing ${progress.current} of ${progress.total}`:progress.message||progress.status}</div>
     </Modal>
   </section>;

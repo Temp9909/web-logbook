@@ -122,10 +122,45 @@ export const addMarker = (features, airport, options) => {
   features.push(feature);
 }
 
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || "";
+
+const getMapboxStyleTiles = (styleId) => {
+  if (!MAPBOX_TOKEN) return null;
+  return `https://api.mapbox.com/styles/v1/mapbox/${styleId}/tiles/256/{z}/{x}/{y}?access_token=${MAPBOX_TOKEN}`;
+};
+
+const makeMapboxLayer = (styleId) => {
+  const url = getMapboxStyleTiles(styleId);
+  if (!url) return null;
+
+  return new TileLayer({
+    source: new XYZ({
+      url,
+      attributions: '© Mapbox © OpenStreetMap',
+      maxZoom: 20,
+      crossOrigin: 'anonymous',
+    }),
+  });
+};
+
 export const getMapBase = (index) => {
+  // Use the real Mapbox basemap whenever a public Vite token is configured.
+  // OpenLayers stays as the rendering engine, which avoids the previous
+  // mapbox-gl dependency/build issue while still using Mapbox map tiles.
+  if (MAPBOX_TOKEN) {
+    switch (index) {
+      case 1:
+        return makeMapboxLayer('satellite-streets-v12');
+      case 2:
+        return makeMapboxLayer('outdoors-v12');
+      case 0:
+      default:
+        return makeMapboxLayer('streets-v12');
+    }
+  }
+
+  // Safe fallback when no token is configured.
   switch (index) {
-    case 0:
-      return new TileLayer({ source: new OSM() });
     case 1:
       return new TileLayer({
         source: new XYZ({
@@ -144,7 +179,9 @@ export const getMapBase = (index) => {
           crossOrigin: 'anonymous',
         }),
       });
+    case 0:
     default:
       return new TileLayer({ source: new OSM() });
   }
-}
+};
+

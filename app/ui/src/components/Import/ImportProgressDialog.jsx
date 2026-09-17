@@ -134,7 +134,7 @@ const ImportProgressDialog = ({ open, onClose, payload }) => {
             variant="contained"
             color="primary"
           >
-            {status === 'running' ? 'Importing…' : 'OK'}
+            {status === 'running' ? 'Importing…' : 'Done'}
           </Button>
         )}
       >

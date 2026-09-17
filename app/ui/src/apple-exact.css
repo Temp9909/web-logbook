@@ -2317,10 +2317,16 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 }
 
 .sidebar .nav-item {
-  color:#586170 !important;
+  color:#4F5968 !important;
   font-weight:500 !important;
+  text-transform:uppercase !important;
+  letter-spacing:.035em !important;
 }
-.sidebar .nav-item:hover,
+.sidebar .nav-item:hover {
+  color:#4A86F6 !important;
+  font-weight:500 !important;
+  background:transparent !important;
+}
 .sidebar .nav-item.selected {
   color:#3478F4 !important;
   font-weight:500 !important;
@@ -2328,6 +2334,11 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 }
 .sidebar .nav-item svg {
   color:currentColor !important;
+}
+.sidebar .nav-item .nav-caret,
+.sidebar .nav-item .nav-caret svg {
+  color:currentColor !important;
+  opacity:1 !important;
 }
 
 .sidebar .nav-group-sub {
@@ -2340,8 +2351,14 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   padding-top:5px !important;
   padding-bottom:5px !important;
   background:transparent !important;
+  text-transform:none !important;
+  letter-spacing:0 !important;
 }
-.sidebar .nav-group-sub a:hover,
+.sidebar .nav-group-sub a:hover {
+  color:#4A86F6 !important;
+  font-weight:400 !important;
+  background:transparent !important;
+}
 .sidebar .nav-group-sub a.selected {
   color:#3478F4 !important;
   font-weight:400 !important;
@@ -2354,10 +2371,16 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   font-weight:400 !important;
   background:transparent !important;
   border-radius:0 !important;
+  text-transform:none !important;
+  letter-spacing:0 !important;
 }
 .settings-tabs button:hover,
+.mini-tabs button:hover {
+  color:#4A86F6 !important;
+  font-weight:400 !important;
+  background:transparent !important;
+}
 .settings-tabs button.on,
-.mini-tabs button:hover,
 .mini-tabs button.on {
   color:#3478F4 !important;
   font-weight:400 !important;
@@ -2371,12 +2394,14 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   color:#A8B0BE !important;
 }
 [data-theme="dark"] .sidebar .nav-item:hover,
-[data-theme="dark"] .sidebar .nav-item.selected,
 [data-theme="dark"] .sidebar .nav-group-sub a:hover,
-[data-theme="dark"] .sidebar .nav-group-sub a.selected,
 [data-theme="dark"] .settings-tabs button:hover,
+[data-theme="dark"] .mini-tabs button:hover {
+  color:#74ACFF !important;
+}
+[data-theme="dark"] .sidebar .nav-item.selected,
+[data-theme="dark"] .sidebar .nav-group-sub a.selected,
 [data-theme="dark"] .settings-tabs button.on,
-[data-theme="dark"] .mini-tabs button:hover,
 [data-theme="dark"] .mini-tabs button.on {
   color:#5E9CFF !important;
 }
