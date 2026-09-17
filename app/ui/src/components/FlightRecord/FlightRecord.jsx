@@ -232,10 +232,9 @@ export const FlightRecord = () => {
       const normalizedFlight = normalizeFlightTimeZeroes(flight);
       return normalizedFlight.uuid === 'new' ? createFlightRecord({ flight: normalizedFlight }) : updateFlightRecord({ flight: normalizedFlight });
     },
-    onSuccess: async (result) => {
-      const newId = flight.uuid === 'new' ? result?.data : flight.uuid;
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['logbook'] });
-      if (newId && flight.uuid === 'new') navigate(`/logbook/${newId}`, { replace: true });
+      navigate('/logbook');
     },
   });
 
@@ -254,7 +253,7 @@ export const FlightRecord = () => {
   const actions = <>
     <button className="btn ghost" onClick={() => navigate('/logbook')}>Back</button>
     {id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button> : null}
-    <button className="btn primary" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? 'Saving…' : (id === 'new' ? 'Done' : 'Save flight')}</button>
+    <button className="btn primary" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? 'Saving…' : 'Done'}</button>
   </>;
 
   return (

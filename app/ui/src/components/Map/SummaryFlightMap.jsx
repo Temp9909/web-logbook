@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchLogbookMapData } from '../../util/http/logbook';
 import { fetchAirports } from '../../util/http/airport';
 import { getStats } from '../../util/helpers';
-import FlightMap from '../FlightMap/FlightMap';
+import MapboxFlightMap from './MapboxFlightMap';
 import { DEFAULT_MAP_OPTIONS } from '../FlightMap/helpers';
 import { Card, Loading, PageHead, SelectField, SwitchRow } from '../AppleExact/Primitives';
 
@@ -69,7 +69,7 @@ export const SummaryFlightMap = () => {
           </div>
         </Card>
       </aside>
-      <div className="exact-map-host"><FlightMap data={filtered} airportsMap={airportsMap} embedded optionsOverride={options} /></div>
+      <div className="exact-map-host"><MapboxFlightMap data={filtered} airportsMap={airportsMap} options={options} /></div>
     </div>
   </section>;
 };
