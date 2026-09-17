@@ -12,7 +12,8 @@ import AircraftType from "./AircraftType";
 import AircraftCategories from "./AircraftCategories";
 import TextField from "./TextField";
 import Select from "./Select";
-import { fetchAircraftModelsCategories, fetchAircrafts } from "../../util/http/aircraft";
+import { fetchAircraftModelsCategories, fetchAircraftsBuildList } from "../../util/http/aircraft";
+import { splitCategories } from "../Aircrafts/aircraftCategories";
 import FlightTags from "./FlightTags";
 
 const MAP_FILTER_INITIAL_STATE = {
@@ -27,16 +28,26 @@ const MAP_FILTER_INITIAL_STATE = {
 
 const getModelsByCategory = (modelsData, category) => {
   if (!category || !modelsData) return [];
-  return modelsData
-    .filter(item => item.category.split(',').map(c => c.trim()).includes(category))
-    .map(item => item.model);
+  return (Array.isArray(modelsData) ? modelsData : [])
+    .filter((item) => splitCategories(item?.category).includes(category))
+    .map((item) => item.model)
+    .filter(Boolean);
 };
 
 const getAircraftsByCategory = (aircrafts, category) => {
   if (!category || !aircrafts) return [];
-  return aircrafts
-    .filter(item => item.category.split(',').map(c => c.trim()).includes(category))
-    .map(item => item.reg);
+  return (Array.isArray(aircrafts) ? aircrafts : [])
+    .filter((item) => {
+      const effective = new Set([
+        ...splitCategories(item?.category),
+        ...splitCategories(item?.model_category),
+        ...splitCategories(item?.custom_category),
+      ]);
+      splitCategories(item?.excluded_model_category).forEach((value) => effective.delete(value));
+      return effective.has(category);
+    })
+    .map((item) => item.reg)
+    .filter(Boolean);
 }
 
 const filterData = (data, filter, modelsData, aircrafts) => {
@@ -108,8 +119,8 @@ export const Filters = ({ data, callbackFunction, quickSelect = defaultQuickSele
   });
 
   const { data: aircrafts } = useQuery({
-    queryKey: ['aircrafts'],
-    queryFn: ({ signal }) => fetchAircrafts({ signal }),
+    queryKey: ['aircrafts', 'build-list'],
+    queryFn: ({ signal }) => fetchAircraftsBuildList({ signal }),
     staleTime: 3600000,
     gcTime: 3600000,
   })

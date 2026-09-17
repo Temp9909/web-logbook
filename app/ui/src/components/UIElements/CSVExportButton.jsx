@@ -109,7 +109,7 @@ const exportMappers = {
     "CC": convertMinutesToTime(row.time.cc_time),
     "Sim": convertMinutesToTime(row.sim.time),
     "D/N": `${row.landings.day}/${row.landings.night}`,
-    "Distance": row.distance,
+    "Distance (NM)": row.distance,
     "Total": convertMinutesToTime(row.time.total_time),
   })),
 
@@ -127,7 +127,7 @@ const exportMappers = {
     "CC": convertMinutesToTime(row.time.cc_time),
     "Sim": convertMinutesToTime(row.sim.time),
     "D/N": `${row.landings.day}/${row.landings.night}`,
-    "Distance": row.distance,
+    "Distance (NM)": row.distance,
     "Total": convertMinutesToTime(row.time.total_time),
   })),
 

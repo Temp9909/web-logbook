@@ -86,7 +86,7 @@ export const StatsBookTable = ({
     fieldName('pic'), fieldName('cop'), fieldName('dual'), fieldName('instr'),
     'CC', `${fieldName('fstd')} ${fieldName('sim_time')}`,
     `${fieldName('land_day')} ${fieldName('landings')}`, `${fieldName('land_night')} ${fieldName('landings')}`,
-    'Distance',
+    'Distance (NM)',
     ...statsFields.map((field) => field.name),
     fieldName('total'),
   ], [fieldName, groupLabel, statsFields]);
@@ -140,7 +140,7 @@ export const StatsBookTable = ({
             <th rowSpan="2">Cross<br/>Country</th>
             <th rowSpan="2">FSTD<br/>Time</th>
             <th colSpan="2">Landings</th>
-            <th rowSpan="2">Distance</th>
+            <th rowSpan="2">Distance<br/>(NM)</th>
             {statsFields.length ? <th colSpan={statsFields.length}>Custom fields</th> : null}
             <th rowSpan="2">Total<br/>Time</th>
           </tr>

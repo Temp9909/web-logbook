@@ -96,7 +96,7 @@ export const createStatsColumns = ({ fieldName, customFields }) => {
     },
     {
       field: "distance",
-      headerName: "Distance",
+      headerName: "Distance (NM)",
       width: 100,
       headerAlign: 'center',
       align: 'center',

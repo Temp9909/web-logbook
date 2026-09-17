@@ -2,17 +2,25 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 // Custom
 import Select from "./Select";
-import { fetchAircraftModelsCategories, fetchAircrafts } from "../../util/http/aircraft";
+import { fetchAircraftModelsCategories, fetchAircraftsBuildList } from "../../util/http/aircraft";
+import { DEFAULT_CATEGORIES, splitCategories } from "../Aircrafts/aircraftCategories";
 
 const getUniqueCategoriesFromKey = (items, key) => {
   const set = new Set();
-  items.forEach(item => {
-    item[key]?.split(",").forEach(c => {
-      c = c.trim();
-      if (c) set.add(c);
-    });
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    splitCategories(item?.[key]).forEach((category) => set.add(category));
   });
-  return Array.from(set).sort();
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
+};
+
+const getAllAircraftCategories = (items) => {
+  const values = [...DEFAULT_CATEGORIES];
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    values.push(...splitCategories(item?.category));
+    values.push(...splitCategories(item?.model_category));
+    values.push(...splitCategories(item?.custom_category));
+  });
+  return Array.from(new Set(values)).sort((a, b) => a.localeCompare(b));
 };
 
 export const AircraftCategories = ({
@@ -34,24 +42,25 @@ export const AircraftCategories = ({
     select: data => getUniqueCategoriesFromKey(data, "category"),
   })
 
-  const { data: customCategoriesOptions = [] } = useQuery({
-    queryKey: ['aircrafts'],
-    queryFn: ({ signal }) => fetchAircrafts({ signal }),
+  const { data: aircraftCategoriesOptions = [] } = useQuery({
+    queryKey: ['aircrafts', 'build-list'],
+    queryFn: ({ signal }) => fetchAircraftsBuildList({ signal }),
     staleTime: 3600000,
     gcTime: 3600000,
-    select: data => getUniqueCategoriesFromKey(data, "custom_category"),
+    select: data => getAllAircraftCategories(data),
   });
 
   const selectOptions = useMemo(() => {
     if (options === "models") return modelCategoriesOptions ?? [];
-    if (options === "custom") return customCategoriesOptions ?? [];
+    if (options === "custom") return aircraftCategoriesOptions ?? [];
     if (options === "all")
       return Array.from(new Set([
+        ...DEFAULT_CATEGORIES,
         ...(modelCategoriesOptions ?? []),
-        ...(customCategoriesOptions ?? [])
-      ])).sort();
+        ...(aircraftCategoriesOptions ?? [])
+      ])).sort((a, b) => a.localeCompare(b));
     return [];
-  }, [options, modelCategoriesOptions, customCategoriesOptions]);
+  }, [options, modelCategoriesOptions, aircraftCategoriesOptions]);
 
   return (
     <Select gsize={gsize}

@@ -209,7 +209,7 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedde
   const mapCanvas = (
     <div className="apple-map-canvas-wrap" style={sx}>
       <div ref={mapRef} className="apple-map-canvas" />
-      {distance > 0 && <div className="apple-map-distance">{`Distance: ${distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} nm / ${(distance * 1.852).toLocaleString(undefined, { maximumFractionDigits: 2 })} km`}</div>}
+      {distance > 0 && <div className="apple-map-distance">{`Distance: ${distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} NM / ${(distance * 1.852).toLocaleString(undefined, { maximumFractionDigits: 2 })} km`}</div>}
     </div>
   );
 

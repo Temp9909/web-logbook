@@ -15,7 +15,7 @@ export const SummaryStats = ({ data, airportsMap }) => {
       <Tile title="Airports" value={stats.airports} size={size} />
       <Tile title="Routes" value={stats.routes} size={size} />
       <Tile title="Countries" value={stats.countries} size={size} />
-      <Tile title="Distance (nm)" value={stats.totals.distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} size={size} />
+      <Tile title="Distance (NM)" value={stats.totals.distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} size={size} />
       <Tile title="Landings (D/N)" value={`${stats.totals.landings.day}/${stats.totals.landings.night}`} size={size} />
     </Grid>
   );

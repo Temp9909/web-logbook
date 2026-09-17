@@ -64,7 +64,7 @@ export const SummaryFlightMap = () => {
           <div className="exact-stat-grid">
             <div><div className="muted" style={{fontSize:11}}>FLIGHTS</div><div className="exact-stat-number">{filtered.length}</div></div>
             <div><div className="muted" style={{fontSize:11}}>AIRPORTS</div><div className="exact-stat-number">{stats?.airports ?? 0}</div></div>
-            <div><div className="muted" style={{fontSize:11}}>DISTANCE</div><div className="exact-stat-number">{Math.round((stats?.totals?.distance || 0)*1.852).toLocaleString()} km</div></div>
+            <div><div className="muted" style={{fontSize:11}}>DISTANCE (NM)</div><div className="exact-stat-number">{Math.round(stats?.totals?.distance || 0).toLocaleString()} NM</div></div>
             <div><div className="muted" style={{fontSize:11}}>HOURS</div><div className="exact-stat-number">{stats?.totals?.time?.total_time || '0:00'}</div></div>
           </div>
         </Card>

@@ -53,7 +53,7 @@ export const DashboardTiles = ({ data, dashboardOptions, airportsMap }) => {
           <Tile title="Countries" value={stats.countries} size={size} />
           <Tile title="Aircrafts" value={stats.aircraftRegs} size={size} />
           <Tile title="Aircraft Types" value={stats.aircraftModels} size={size} />
-          <Tile title="Distance (nm)" value={stats.totals.distance.toLocaleString(undefined, { maximumFractionDigits: 0 })} size={size} />
+          <Tile title="Distance (NM)" value={stats.totals.distance.toLocaleString(undefined, { maximumFractionDigits: 0 })} size={size} />
         </Grid>
       </CardContent>
     </Card >
