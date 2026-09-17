@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 export const PageHead = ({ title, subtitle, actions }) => (
   <div className="page-head">
@@ -87,6 +87,8 @@ export const TimeSelectField = ({
   quickFillLabel = '',
   className = '',
 }) => {
+  const inputRef = useRef(null);
+
   const isZeroDuration = (candidate) => {
     if (mode === 'clock' || !zeroAsEmpty) return false;
     if (candidate === 0) return true;
@@ -113,11 +115,28 @@ export const TimeSelectField = ({
     onChange?.(nextValue, event);
   };
 
+  const openPickerFromSurround = (event) => {
+    if (event.target !== event.currentTarget || disabled || readOnly) return;
+    const input = inputRef.current;
+    if (!input) return;
+    input.focus();
+    if (typeof input.showPicker === 'function') {
+      try {
+        input.showPicker();
+        return;
+      } catch {
+        // Some browsers expose showPicker but only allow the input's native fallback.
+      }
+    }
+    input.click();
+  };
+
   return (
     <div className={`field exact-time-field ${className}`.trim()}>
       {label ? <span>{label}</span> : null}
-      <div className="exact-native-time-row">
+      <div className="exact-native-time-row" onClick={openPickerFromSurround}>
         <input
+          ref={inputRef}
           className="input exact-native-time-input"
           type="time"
           step="60"

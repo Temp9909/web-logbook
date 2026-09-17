@@ -24,4 +24,17 @@ describe('TimeSelectField', () => {
     rerender(<TimeSelectField label="PIC" value="0:56" onChange={onChange} quickFillValue="0:56" quickFillLabel="+56" />);
     expect(screen.queryByRole('button', { name: '+56' })).not.toBeInTheDocument();
   });
+
+  it('opens the native picker from the surrounding zone but preserves direct input clicks', () => {
+    render(<TimeSelectField label="Arrival time (UTC)" mode="clock" value="1125" onChange={() => {}} />);
+    const input = screen.getByLabelText('Arrival time (UTC)');
+    const row = input.closest('.exact-native-time-row');
+    input.showPicker = vi.fn();
+
+    fireEvent.click(input);
+    expect(input.showPicker).not.toHaveBeenCalled();
+
+    fireEvent.click(row);
+    expect(input.showPicker).toHaveBeenCalledTimes(1);
+  });
 });

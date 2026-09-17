@@ -2033,7 +2033,7 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 }
 
 /* V8.5 — Native operating-system time controls. */
-.exact-native-time-row{display:flex;align-items:center;gap:6px;width:100%}.exact-native-time-input{min-width:0;flex:1;font-variant-numeric:tabular-nums;cursor:pointer}.exact-native-time-input::-webkit-calendar-picker-indicator{cursor:pointer}.exact-time-quick-fill{flex:0 0 auto;min-width:42px;min-height:36px;padding:6px 9px;border:1px solid rgba(0,122,255,.24);border-radius:9px;background:var(--tint);color:var(--blue);font:600 12px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;cursor:pointer}.exact-time-quick-fill:hover{background:var(--tint-soft)}
+.exact-native-time-row{display:flex;align-items:center;gap:6px;width:calc(100% + 10px);margin:-5px;padding:5px;border-radius:13px;cursor:pointer}.exact-native-time-row:hover{background:var(--fill)}.exact-native-time-input{min-width:0;flex:1;font-variant-numeric:tabular-nums;cursor:text}.exact-native-time-input::-webkit-calendar-picker-indicator{cursor:pointer}.exact-time-quick-fill{flex:0 0 auto;min-width:42px;min-height:36px;padding:6px 9px;border:1px solid rgba(0,122,255,.24);border-radius:9px;background:var(--tint);color:var(--blue);font:600 12px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;cursor:pointer}.exact-time-quick-fill:hover{background:var(--tint-soft)}
 
 /* V8.5.2 — By type scrolls as one table; no pinned aircraft-type cell. */
 .exact-stats-book-table.exact-stats-no-sticky .exact-stats-group-cell,
