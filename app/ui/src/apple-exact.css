@@ -9,9 +9,9 @@
     --secondary: rgba(60,60,67,0.60);
     --separator: rgba(60,60,67,0.18);
     --fill: rgba(116,116,128,0.08);
-    --bg: #F2F2F7;
-    --paper: #FFFFFF;
-    --sidebar: rgba(246,246,248,0.78);
+    --bg: #FFFFFF;
+    --paper: #F8F9FC;
+    --sidebar: #FFFFFF;
     --bar: rgba(255,255,255,0.72);
     --tint: rgba(0,122,255,0.12);
     --tint-soft: rgba(0,122,255,0.10);
@@ -2877,24 +2877,104 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   margin-bottom:3px !important;
 }
 
-/* Logbook-only surface inversion.
-   Former grouped/background areas become white; former white cards/surfaces become #F8F9FC. */
-.apple-main-content.apple-route-logbook{
-  background:#FFFFFF !important;
+/* Final exact navigation typography/colors supplied by user. */
+.sidebar .sidebar-brand-name,
+.sidebar .nav-item,
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected {
+  font-family:Cera,"Open Sans",sans-serif !important;
+  font-style:normal !important;
+  font-weight:700 !important;
+  font-size:16px !important;
+  line-height:24px !important;
+  letter-spacing:0 !important;
+  transition:none !important;
+  animation:none !important;
 }
-.apple-route-logbook .card,
-.apple-route-logbook .table-wrap,
-.apple-route-logbook .search,
-.apple-route-logbook .input,
-.apple-route-logbook .select,
-.apple-route-logbook .textarea,
-.apple-route-logbook .exact-native-table-wrap{
-  background:#F8F9FC !important;
+.sidebar .sidebar-brand-name,
+.sidebar .sidebar-brand,
+.sidebar .sidebar-brand-icon,
+.sidebar .nav-item {
+  color:#566171 !important;
 }
-.apple-route-logbook .apple-logbook-table,
-.apple-route-logbook .apple-logbook-table thead,
-.apple-route-logbook .apple-logbook-table tbody,
-.apple-route-logbook .apple-logbook-table th,
-.apple-route-logbook .apple-logbook-table td{
-  background-color:#F8F9FC;
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected {
+  color:#007afc !important;
+}
+.sidebar .nav-item svg,
+.sidebar .nav-caret,
+.sidebar .nav-caret svg,
+.sidebar .nav-caret path {
+  color:currentColor !important;
+  stroke:currentColor !important;
+}
+
+.sidebar .nav-group-sub a,
+.sidebar .nav-group-sub a:hover,
+.sidebar .nav-group-sub a.selected,
+.settings-tabs button,
+.settings-tabs button:hover,
+.settings-tabs button.on,
+.mini-tabs button,
+.mini-tabs button:hover,
+.mini-tabs button.on {
+  font-family:"Open Sans",sans-serif !important;
+  font-style:normal !important;
+  font-weight:400 !important;
+  font-size:16px !important;
+  line-height:24px !important;
+  letter-spacing:0 !important;
+  transition:none !important;
+  animation:none !important;
+}
+.sidebar .nav-group-sub a,
+.settings-tabs button,
+.mini-tabs button {
+  color:#566171 !important;
+}
+.sidebar .nav-group-sub a:hover,
+.sidebar .nav-group-sub a.selected,
+.settings-tabs button:hover,
+.settings-tabs button.on,
+.mini-tabs button:hover,
+.mini-tabs button.on {
+  color:#007afc !important;
+}
+
+/* Active sidebar row — Mapbox reference geometry.
+   30px outer inset, compact ~30px row, fully rounded pill.
+   Keep the main text column anchored at x=71px. */
+.sidebar .nav-item {
+  width:calc(100% - 44px) !important;
+  margin-left:22px !important;
+  margin-right:22px !important;
+  padding-left:41px !important;
+  padding-right:12px !important;
+  min-height:30px !important;
+  border-radius:999px !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  transition:none !important;
+  animation:none !important;
+}
+.sidebar .nav-icon-slot {
+  left:14px !important;
+}
+.sidebar .nav-item:hover {
+  background:transparent !important;
+}
+.sidebar .nav-item.selected {
+  background:#E5F2FF !important;
+  color:#007AFC !important;
+  border-radius:999px !important;
+}
+.sidebar .nav-item.selected:hover {
+  background:#E5F2FF !important;
+  color:#007AFC !important;
+}
+.sidebar .nav-item.selected .nav-caret,
+.sidebar .nav-item.selected .nav-caret svg,
+.sidebar .nav-item.selected .nav-caret path {
+  color:#007AFC !important;
+  stroke:#007AFC !important;
 }

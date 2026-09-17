@@ -187,7 +187,6 @@ export const Settings=()=>{
         <div className="section-label" style={{marginTop:15}}>Appearance</div>
         <div className="card rows" style={{borderRadius:10}}>
           <SwitchRow label="Show menu icons" sub="Show or hide the icons in the left sidebar." checked={!Boolean(settings.hide_menu_icons)} onChange={v=>change('hide_menu_icons',!v)}/>
-          <SwitchRow label="Show right chevrons" sub="Temporary: show 16 × 16 right chevrons on sidebar links, except Settings." checked={Boolean(settings.show_menu_link_chevrons)} onChange={v=>change('show_menu_link_chevrons',v)}/>
           <div className="setting-row">
             <div><div className="lbl">On / Off switch color</div><div className="sub">Choose the color used when switches are enabled across the app.</div></div>
             <span className="spacer"/>

@@ -109,7 +109,7 @@ export const inputsCustomizations = {
         const c = apple(theme.palette.mode);
         return {
           borderRadius: 9,
-          backgroundColor: theme.palette.mode === 'dark' ? c.fill : '#FFFFFF',
+          backgroundColor: theme.palette.mode === 'dark' ? c.fill : '#F8F9FC',
           transition: 'box-shadow 150ms ease, border-color 150ms ease',
           '& .MuiOutlinedInput-notchedOutline': {
             borderColor: c.separator,

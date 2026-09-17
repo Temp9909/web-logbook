@@ -95,8 +95,8 @@ export const appleLight = {
   separator: 'rgba(60, 60, 67, 0.18)',
   fill: 'rgba(116, 116, 128, 0.08)',
   fillStrong: 'rgba(116, 116, 128, 0.14)',
-  groupedBackground: '#F2F2F7',
-  elevated: '#FFFFFF',
+  groupedBackground: '#FFFFFF',
+  elevated: '#F8F9FC',
   materialBar: 'rgba(255, 255, 255, 0.72)',
   materialSidebar: 'rgba(246, 246, 248, 0.78)',
 };
