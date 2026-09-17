@@ -2852,3 +2852,49 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   margin:0 !important;
   padding:0 !important;
 }
+
+/* Final sidebar geometry: text/brand title anchored at x=71px from the viewport.
+   Sidebar has 8px horizontal padding, so the internal text anchor is 63px.
+   Icons remain immediately to the left and can be hidden without moving text. */
+.sidebar .nav-item{
+  padding-left:63px !important;
+}
+.sidebar .nav-icon-slot{
+  left:36px !important;
+}
+.sidebar .sidebar-brand{
+  padding-left:63px !important;
+}
+.sidebar .sidebar-brand-icon{
+  left:36px !important;
+}
+.sidebar .nav-group-sub{
+  padding-left:63px !important;
+}
+
+/* Nested items: compact 3px vertical rhythm. */
+.sidebar .nav-group-sub a{
+  margin-bottom:3px !important;
+}
+
+/* Logbook-only surface inversion.
+   Former grouped/background areas become white; former white cards/surfaces become #F8F9FC. */
+.apple-main-content.apple-route-logbook{
+  background:#FFFFFF !important;
+}
+.apple-route-logbook .card,
+.apple-route-logbook .table-wrap,
+.apple-route-logbook .search,
+.apple-route-logbook .input,
+.apple-route-logbook .select,
+.apple-route-logbook .textarea,
+.apple-route-logbook .exact-native-table-wrap{
+  background:#F8F9FC !important;
+}
+.apple-route-logbook .apple-logbook-table,
+.apple-route-logbook .apple-logbook-table thead,
+.apple-route-logbook .apple-logbook-table tbody,
+.apple-route-logbook .apple-logbook-table th,
+.apple-route-logbook .apple-logbook-table td{
+  background-color:#F8F9FC;
+}
