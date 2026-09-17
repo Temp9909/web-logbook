@@ -7,7 +7,6 @@ import { fetchAircraftModels, fetchAircraftModelsCategories, fetchAircrafts } fr
 import { fetchPersons } from '../../util/http/person';
 import { queryClient } from '../../util/http/http';
 import useCustomFields from '../../hooks/useCustomFields';
-import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 import FlightMap from '../FlightMap/FlightMap';
 import { Card, Field, Loading, PageHead, SelectField, TextArea, TimeSelectField, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
 import { DEFAULT_CATEGORIES, splitCategories } from '../Aircrafts/aircraftCategories';
@@ -56,10 +55,10 @@ export const FlightRecord = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const dialogs = useDialogs();
   const [flight, setFlight] = useState({ ...FLIGHT_INITIAL_STATE, uuid: id });
   const [newAircraftOpen, setNewAircraftOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const { customFields = [] } = useCustomFields();
 
   const { data, isLoading } = useQuery({
@@ -151,6 +150,9 @@ export const FlightRecord = () => {
     const registration = String(value || '').toUpperCase();
     setFlight((prev) => {
       let next = setNested(prev, 'aircraft.reg_name', registration);
+      if (!registration) {
+        return setNested(next, 'aircraft.model', '');
+      }
       const match = aircrafts.find((aircraft) => String(aircraft?.reg || '').toUpperCase() === registration);
       if (match?.model) next = setNested(next, 'aircraft.model', String(match.model).toUpperCase());
       return next;
@@ -233,12 +235,11 @@ export const FlightRecord = () => {
     onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['logbook'] }); navigate('/logbook'); },
   });
 
-  const handleDelete = async () => {
-    const confirmed = await dialogs.confirm('Delete this flight record?', {
-      title: 'Delete flight',
-      severity: 'error',
-    });
-    if (confirmed) deleteMutation.mutate();
+  const handleDelete = () => setDeleteConfirmOpen(true);
+
+  const confirmDelete = () => {
+    setDeleteConfirmOpen(false);
+    deleteMutation.mutate();
   };
 
   const actions = <>
@@ -249,6 +250,22 @@ export const FlightRecord = () => {
 
   return (
     <section className="exact-react-page">
+      {deleteConfirmOpen ? (
+        <div
+          className="apple-confirm-backdrop flight-delete-confirm-backdrop"
+          role="presentation"
+          onMouseDown={(event) => { if (event.target === event.currentTarget) setDeleteConfirmOpen(false); }}
+        >
+          <div className="flight-delete-confirm-sheet" role="dialog" aria-modal="true" aria-labelledby="flight-delete-confirm-title">
+            <div id="flight-delete-confirm-title" className="flight-delete-confirm-title">You’re about to delete this flight record.</div>
+            <div className="flight-delete-confirm-subtitle">Would you like to continue?</div>
+            <div className="flight-delete-confirm-actions">
+              <button type="button" className="flight-delete-confirm-button back" onClick={() => setDeleteConfirmOpen(false)} autoFocus>Back</button>
+              <button type="button" className="flight-delete-confirm-button yes" onClick={confirmDelete}>Yes</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       <PageHead title={id === 'new' ? 'New flight' : 'Flight record'} subtitle={id === 'new' ? 'Create a new logbook entry.' : 'Review and edit the selected flight.'} actions={actions} />
       <Loading show={isLoading || saveMutation.isPending || deleteMutation.isPending} />
       {(saveMutation.error || deleteMutation.error) ? <div className="note exact-inline-danger">{String(saveMutation.error || deleteMutation.error)}</div> : null}

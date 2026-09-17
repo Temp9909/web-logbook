@@ -300,7 +300,6 @@ export const Aircrafts = () => {
           onChange={changeExtraCategories}
         />
         {saveAircraft.isError ? <div className="note exact-error-note">Unable to save aircraft: {saveAircraft.error?.info?.message || saveAircraft.error?.message || 'Unknown error'}</div> : null}
-        <Loading show={saveAircraft.isPending}/>
       </> : null}
     </Modal>
 

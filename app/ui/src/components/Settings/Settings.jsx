@@ -61,8 +61,8 @@ export const Settings=()=>{
   const [searchParams,setSearchParams]=useSearchParams();
   const allowedTabs=['general','previous','signature','standard','custom','airports'];
   const requestedTab=searchParams.get('tab');
-  const initialTab=allowedTabs.includes(requestedTab)?requestedTab:'general';
-  const {data,isLoading}=useSettings();const {data:customFields=[],isCustomFieldsLoading}=useCustomFields();const [settings,setSettings]=useState({});const [tab,setTab]=useState(initialTab);const [field,setField]=useState(null);
+  const tab=allowedTabs.includes(requestedTab)?requestedTab:'general';
+  const {data,isLoading}=useSettings();const {data:customFields=[],isCustomFieldsLoading}=useCustomFields();const [settings,setSettings]=useState({});const [field,setField]=useState(null);
   const settingsHydratedRef=useRef(false);
   const settingsRef=useRef({});
   const generalSaveInFlightRef=useRef(false);
@@ -82,12 +82,7 @@ export const Settings=()=>{
       lastSignatureSnapshotRef.current=String(data.signature_image||'');
     }
   },[data]);
-  useEffect(()=>{
-    const next=searchParams.get('tab');
-    if(allowedTabs.includes(next) && next!==tab)setTab(next);
-  },[searchParams,tab]);
   const selectTab=useCallback((id)=>{
-    setTab(id);
     if(id==='general')setSearchParams({}, {replace:true});
     else setSearchParams({tab:id}, {replace:true});
   },[setSearchParams]);
