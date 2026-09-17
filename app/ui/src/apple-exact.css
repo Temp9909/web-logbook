@@ -2257,3 +2257,49 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .apple-mapbox-marker-pin{font-size:18px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.18))}
 .apple-mapbox-marker-code{display:inline-flex;align-items:center;min-height:22px;padding:2px 7px;border-radius:999px;background:rgba(255,255,255,.96);border:1px solid rgba(0,0,0,.08);color:#111;font-size:11px;font-weight:700;letter-spacing:.02em;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 [data-theme="dark"] .apple-mapbox-marker-code{background:rgba(28,28,30,.96);border-color:rgba(255,255,255,.08);color:#fff}
+
+/* Navigation selection: text-only blue state, no highlighted tile/pill. */
+.sidebar .nav-item,
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected {
+  color: var(--blue) !important;
+}
+.sidebar .nav-item:hover svg,
+.sidebar .nav-item.selected svg {
+  color: var(--blue) !important;
+  opacity: 1 !important;
+}
+
+/* Stats / Export submenu: same text-only interaction. */
+.sidebar .nav-group-sub a,
+.sidebar .nav-group-sub a:hover,
+.sidebar .nav-group-sub a.selected {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.sidebar .nav-group-sub a:hover,
+.sidebar .nav-group-sub a.selected {
+  color: var(--blue) !important;
+}
+
+/* Settings navigation: no capsule/background; active and hover are blue text only. */
+.settings-tabs button,
+.settings-tabs button:hover,
+.settings-tabs button.on,
+.mini-tabs button,
+.mini-tabs button:hover,
+.mini-tabs button.on {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.settings-tabs button:hover,
+.settings-tabs button.on,
+.mini-tabs button:hover,
+.mini-tabs button.on {
+  color: var(--blue) !important;
+}

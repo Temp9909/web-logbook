@@ -2,7 +2,7 @@ import Feature from 'ol/Feature';
 import Stroke from 'ol/style/Stroke';
 import Point from 'ol/geom/Point';
 import LineString from 'ol/geom/LineString';
-import { Style, Icon, Text } from 'ol/style';
+import { Style, Icon, Text, Fill } from 'ol/style';
 import { transform } from 'ol/proj';
 import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
@@ -85,7 +85,7 @@ export const addMarker = (features, airport, options) => {
    * If the airport has both IATA and ICAO codes and they are different, 
    * the code will be in the format "ICAO/IATA". Otherwise, it will just be the ICAO code.
    */
-  const code = airport.iata && airport.iata !== airport.icao ? `${airport.icao}/${airport.iata}` : airport.icao;
+  const code = airport.icao || airport.iata;
 
   const icon = options.airport.icon || 0;
 
@@ -105,12 +105,16 @@ export const addMarker = (features, airport, options) => {
 
   feature.setStyle(
     new Style({
-      image: new Icon({ ...MAP_ICONS[icon] }),
+      image: options.airport.ids ? undefined : new Icon({ ...MAP_ICONS[icon] }),
       text: options.airport.ids ? new Text({
-        text: code,
-        offsetY: MAP_ICONS[icon].textOffsetY,
-        offsetX: MAP_ICONS[icon].textOffsetX,
-        scale: 1.3,
+        text: `📍 ${code}`,
+        offsetY: -18,
+        offsetX: 0,
+        font: '700 13px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif',
+        fill: new Fill({ color: '#111111' }),
+        backgroundFill: new Fill({ color: 'rgba(255,255,255,0.96)' }),
+        backgroundStroke: new Stroke({ color: 'rgba(0,0,0,0.10)', width: 1 }),
+        padding: [3, 7, 3, 7],
       }) : null,
     }),
   );

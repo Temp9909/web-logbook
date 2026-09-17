@@ -15,16 +15,14 @@ import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 // Custom components
 import AppleDialogPanel from "../UIElements/AppleDialogPanel";
-import { useCustomFields } from '../../hooks/useCustomFields';
 import OptionSwitch from "../UIElements/OptionSwitch";
 import useSettings from "../../hooks/useSettings";
 
 const DEFAULT_OPTIONS = {
   backup: false,
-  recalculate_night_time: false,
   create_persons: false,
   create_person_format: "",
-  create_person_from: {},
+  create_person_from: { pic: true },
 };
 
 const TOGGLE_BUTTONS = [
@@ -71,7 +69,6 @@ const TOGGLE_BUTTONS = [
 
 const ImportOptionsDialog = ({ open, onClose }) => {
   const [options, setOptions] = useState(DEFAULT_OPTIONS);
-  const { customFields } = useCustomFields();
   const { fieldNameF } = useSettings();
 
   const PICFieldName = fieldNameF("pic_name");
@@ -116,7 +113,7 @@ const ImportOptionsDialog = ({ open, onClose }) => {
     <Dialog fullWidth open={open} onClose={() => onClose(null)}>
       <AppleDialogPanel
         title="Import options"
-        subtitle="Backup, night-time recalculation and person creation options."
+        subtitle="Backup and PIC Name person creation options."
         actions={actionButtons}
       >
           <Grid container spacing={1}>
@@ -126,17 +123,11 @@ const ImportOptionsDialog = ({ open, onClose }) => {
               handleChange={handleChange}
               label="I have a logbook backup"
             />
-            <OptionSwitch
-              id="recalculate_night_time"
-              checked={!!options.recalculate_night_time}
-              handleChange={handleChange}
-              label="Recalculate Night Time"
-            />
           </Grid>
 
           <Divider sx={{ m: 1 }} />
           <Typography variant="caption" color="warning">
-            * Creating Persons from imported records is still an experimental feature.
+            * Create Persons uses imported PIC Name values.
           </Typography>
 
           <Grid container spacing={1}>
@@ -158,18 +149,6 @@ const ImportOptionsDialog = ({ open, onClose }) => {
                     label={PICFieldName}
                     disabled={!options.create_persons}
                   />
-
-                  {customFields?.map((customField) => (
-                    <OptionSwitch
-                      gsize={{ xs: 12, sm: 6 }}
-                      id={`create_person_from.${customField.uuid}`}
-                      key={customField.uuid}
-                      checked={!!options.create_person_from?.[customField.uuid]}
-                      handleChange={handleChange}
-                      label={`${customField.name}`}
-                      disabled={!options.create_persons}
-                    />
-                  ))}
 
                   <Grid size={{ xs: 12 }}>
                     <FormControlLabel

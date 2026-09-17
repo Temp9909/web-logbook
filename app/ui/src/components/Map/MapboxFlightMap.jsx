@@ -1,12 +1,17 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import FlightMap from "../FlightMap/FlightMap";
 
 const createRasterStyle = (baseIndex = 0) => {
   const variants = {
     0: {
-      tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-      attribution: "© OpenStreetMap contributors",
+      tiles: [
+        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+      ],
+      attribution: "© OpenStreetMap contributors © CARTO",
       tileSize: 256,
     },
     1: {
@@ -131,11 +136,12 @@ export const MapboxFlightMap = ({ data, airportsMap, options }) => {
   const mapNodeRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const [useFallbackMap, setUseFallbackMap] = useState(false);
 
   const mapData = useMemo(() => buildMapData(data, airportsMap, options || {}), [data, airportsMap, options]);
 
   useEffect(() => {
-    if (!mapNodeRef.current) return undefined;
+    if (useFallbackMap || !mapNodeRef.current) return undefined;
 
     const map = new mapboxgl.Map({
       container: mapNodeRef.current,
@@ -147,6 +153,17 @@ export const MapboxFlightMap = ({ data, airportsMap, options }) => {
 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: true, visualizePitch: false }), "top-right");
     map.addControl(new mapboxgl.FullscreenControl(), "top-right");
+
+    let basemapErrorCount = 0;
+    const handleMapError = (event) => {
+      const sourceId = event?.sourceId || event?.source?.id || "";
+      const message = String(event?.error?.message || "").toLowerCase();
+      if (sourceId === "basemap" || message.includes("tile") || message.includes("raster")) {
+        basemapErrorCount += 1;
+        if (basemapErrorCount >= 2) setUseFallbackMap(true);
+      }
+    };
+    map.on("error", handleMapError);
 
     map.on("load", () => {
       map.addSource("flight-lines", { type: "geojson", data: mapData.geojson });
@@ -179,12 +196,14 @@ export const MapboxFlightMap = ({ data, airportsMap, options }) => {
     return () => {
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
+      map.off("error", handleMapError);
       map.remove();
       mapRef.current = null;
     };
-  }, [options?.map_base]);
+  }, [options?.map_base, useFallbackMap]);
 
   useEffect(() => {
+    if (useFallbackMap) return;
     const map = mapRef.current;
     if (!map) return;
 
@@ -246,7 +265,11 @@ export const MapboxFlightMap = ({ data, airportsMap, options }) => {
       map.once("load", syncMap);
       return () => map.off("load", syncMap);
     }
-  }, [mapData, options]);
+  }, [mapData, options, useFallbackMap]);
+
+  if (useFallbackMap) {
+    return <FlightMap data={data} airportsMap={airportsMap} embedded optionsOverride={options} />;
+  }
 
   return (
     <div className="apple-map-canvas-wrap apple-mapbox-wrap">
