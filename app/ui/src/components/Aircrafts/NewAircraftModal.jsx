@@ -3,10 +3,11 @@ import { useMutation } from '@tanstack/react-query';
 import { createAircraft } from '../../util/http/aircraft';
 import { queryClient } from '../../util/http/http';
 import { Field, Loading, Modal } from '../AppleExact/Primitives';
+import AircraftCategoryPicker from './AircraftCategoryPicker';
 
 const errorMessage = (error) => error?.info?.message || error?.message || 'Unknown error';
 
-export const NewAircraftModal = ({ open, onClose, onCreated, modelOptions = [] }) => {
+export const NewAircraftModal = ({ open, onClose, onCreated, modelOptions = [], categoryOptions = [] }) => {
   const [aircraft, setAircraft] = useState({ reg: '', model: '', custom_category: '' });
 
   const createMutation = useMutation({
@@ -56,11 +57,11 @@ export const NewAircraftModal = ({ open, onClose, onCreated, modelOptions = [] }
       <datalist id="new-aircraft-models">
         {modelOptions.map((model) => <option key={model} value={model} />)}
       </datalist>
-      <Field
-        label="Extra categories (optional)"
+      <AircraftCategoryPicker
+        label="Categories"
         value={aircraft.custom_category}
+        options={categoryOptions}
         onChange={(value) => setAircraft((current) => ({ ...current, custom_category: value }))}
-        placeholder="Tailwheel, Complex"
       />
       <div className="note" style={{ marginTop: 10 }}>The aircraft will be available immediately in flight records.</div>
       {createMutation.isError ? <div className="note exact-error-note">Unable to create aircraft: {errorMessage(createMutation.error)}</div> : null}

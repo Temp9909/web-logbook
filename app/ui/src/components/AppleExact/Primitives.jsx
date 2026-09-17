@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 export const PageHead = ({ title, subtitle, actions }) => (
   <div className="page-head">
@@ -66,8 +66,6 @@ export const SelectField = ({ label, value = '', onChange, options = [], disable
   </label>
 );
 
-const minuteOptions = Array.from({ length: 60 }, (_, value) => String(value).padStart(2, '0'));
-
 const parseTimeParts = (value) => {
   const raw = String(value ?? '').trim();
   if (!raw) return { hour: '', minute: '' };
@@ -82,9 +80,11 @@ export const TimeSelectField = ({
   value = '',
   onChange,
   mode = 'duration',
-  maxHours = 24,
   zeroAsEmpty = false,
   disabled = false,
+  readOnly = false,
+  quickFillValue = '',
+  quickFillLabel = '',
   className = '',
 }) => {
   const isZeroDuration = (candidate) => {
@@ -96,27 +96,17 @@ export const TimeSelectField = ({
     return Boolean(match) && Number(match[1]) === 0 && Number(match[2]) === 0;
   };
 
-  const externalParts = parseTimeParts(isZeroDuration(value) ? '' : value);
-  const [draft, setDraft] = useState(externalParts);
-  useEffect(() => {
-    setDraft(externalParts);
-  }, [value, mode, zeroAsEmpty]);
+  const parts = parseTimeParts(isZeroDuration(value) ? '' : value);
+  const nativeValue = parts.hour && Number(parts.hour) <= 23 ? `${parts.hour}:${parts.minute || '00'}` : '';
 
-  const hourLimit = mode === 'clock' ? 23 : Math.max(0, Number(maxHours) || 24);
-  const hourOptions = Array.from({ length: hourLimit + 1 }, (_, hour) => String(hour).padStart(2, '0'));
-
-  const emit = (nextHour, nextMinute, event) => {
-    const nextDraft = { hour: nextHour, minute: nextMinute };
-    setDraft(nextDraft);
-    if (!nextHour && !nextMinute) {
+  const emit = (nativeTime, event) => {
+    if (!nativeTime) {
       onChange?.('', event);
       return;
     }
-    const hour = nextHour || '00';
-    const minute = nextMinute || '00';
+    const [hour, minute] = nativeTime.split(':');
     const nextValue = mode === 'clock' ? `${hour}${minute}` : `${Number(hour)}:${minute}`;
     if (isZeroDuration(nextValue)) {
-      if (nextHour && nextMinute) setDraft({ hour: '', minute: '' });
       onChange?.('', event);
       return;
     }
@@ -124,32 +114,26 @@ export const TimeSelectField = ({
   };
 
   return (
-    <label className={`field exact-time-field ${className}`.trim()}>
+    <div className={`field exact-time-field ${className}`.trim()}>
       {label ? <span>{label}</span> : null}
-      <span className="exact-time-picker">
-        <select
-          className="select exact-time-part"
-          value={draft.hour}
-          onChange={(e) => emit(e.target.value, draft.minute, e)}
+      <div className="exact-native-time-row">
+        <input
+          className="input exact-native-time-input"
+          type="time"
+          step="60"
+          value={nativeValue}
+          onChange={(event) => emit(event.target.value, event)}
           disabled={disabled}
-          aria-label={`${label || 'Time'} hours`}
-        >
-          <option value="">--</option>
-          {hourOptions.map((hour) => <option key={hour} value={hour}>{hour}</option>)}
-        </select>
-        <span className="exact-time-colon" aria-hidden="true">:</span>
-        <select
-          className="select exact-time-part"
-          value={draft.minute}
-          onChange={(e) => emit(draft.hour, e.target.value, e)}
-          disabled={disabled}
-          aria-label={`${label || 'Time'} minutes`}
-        >
-          <option value="">--</option>
-          {minuteOptions.map((minute) => <option key={minute} value={minute}>{minute}</option>)}
-        </select>
-      </span>
-    </label>
+          readOnly={readOnly}
+          aria-label={label || 'Time'}
+        />
+        {quickFillValue && !value ? (
+          <button className="exact-time-quick-fill" type="button" onClick={() => onChange?.(quickFillValue)}>
+            {quickFillLabel}
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 };
 

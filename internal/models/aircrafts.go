@@ -246,7 +246,7 @@ func (m *DBModel) UpdateAircraftModelsCategories(category Category) (err error) 
 		WHERE model = ?`
 	_, err = m.DB.ExecContext(ctx, query, category.Category, autoFill, category.Model)
 
-	return nil
+	return err
 }
 
 func (m *DBModel) GetAircraft(reg string) (aircraft Aircraft, err error) {

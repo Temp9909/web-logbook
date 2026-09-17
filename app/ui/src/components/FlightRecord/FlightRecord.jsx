@@ -3,19 +3,23 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { FLIGHT_INITIAL_STATE } from '../../constants/constants';
 import { createFlightRecord, deleteFlightRecord, fetchFlightData, updateFlightRecord } from '../../util/http/logbook';
-import { fetchAircraftModels, fetchAircrafts } from '../../util/http/aircraft';
+import { fetchAircraftModels, fetchAircraftModelsCategories, fetchAircrafts } from '../../util/http/aircraft';
 import { fetchPersons } from '../../util/http/person';
 import { queryClient } from '../../util/http/http';
 import useCustomFields from '../../hooks/useCustomFields';
 import FlightMap from '../FlightMap/FlightMap';
 import { Card, Field, Loading, PageHead, SelectField, TextArea, TimeSelectField, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
+import { DEFAULT_CATEGORIES, splitCategories } from '../Aircrafts/aircraftCategories';
 import NewAircraftModal from '../Aircrafts/NewAircraftModal';
+import { applyAutomaticFlightTimes, calculateFlightDuration, durationToMinutes } from './flightTime';
 
 const timeFields = [
-  ['time.total_time','Total'],['time.se_time','SE'],['time.me_time','ME'],['time.mcc_time','Multi-pilot'],
+  ['time.se_time','SE'],['time.me_time','ME'],['time.mcc_time','Multi-pilot'],
   ['time.night_time','Night'],['time.ifr_time','IFR'],['time.pic_time','PIC'],['time.co_pilot_time','Co-pilot'],
-  ['time.dual_time','Dual'],['time.instructor_time','Instructor'],['sim.time','FSTD / Sim'],
+  ['time.dual_time','Dual'],['time.instructor_time','Instructor'],
 ];
+
+const normalizedTimeFields = [['time.total_time', 'Total'], ...timeFields, ['sim.time', 'FSTD / Sim']];
 
 const ROLE_FIELD = {
   PIC: 'pic_time',
@@ -33,7 +37,7 @@ const isZeroFlightDuration = (value) => {
 
 const normalizeFlightTimeZeroes = (record) => {
   let next = record;
-  timeFields.forEach(([key]) => {
+  normalizedTimeFields.forEach(([key]) => {
     const value = key.split('.').reduce((current, part) => current?.[part], next);
     if (isZeroFlightDuration(value)) next = setNested(next, key, '');
   });
@@ -53,6 +57,7 @@ export const FlightRecord = () => {
   const location = useLocation();
   const [flight, setFlight] = useState({ ...FLIGHT_INITIAL_STATE, uuid: id });
   const [newAircraftOpen, setNewAircraftOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('');
   const { customFields = [] } = useCustomFields();
 
   const { data, isLoading } = useQuery({
@@ -73,6 +78,14 @@ export const FlightRecord = () => {
   const { data: aircraftModelData = [] } = useQuery({
     queryKey: ['aircrafts', 'models'],
     queryFn: ({ signal }) => fetchAircraftModels({ signal }),
+    staleTime: 3600000,
+    gcTime: 3600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: aircraftModelCategories = [] } = useQuery({
+    queryKey: ['models-categories'],
+    queryFn: ({ signal }) => fetchAircraftModelsCategories({ signal }),
     staleTime: 3600000,
     gcTime: 3600000,
     refetchOnWindowFocus: false,
@@ -101,6 +114,12 @@ export const FlightRecord = () => {
     ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
   }, [aircraftModelData, aircrafts]);
 
+  const categoryOptions = useMemo(() => Array.from(new Set([
+    ...DEFAULT_CATEGORIES,
+    ...(Array.isArray(aircraftModelCategories) ? aircraftModelCategories.flatMap((row) => splitCategories(row?.category)) : []),
+    ...aircrafts.flatMap((aircraft) => splitCategories(aircraft?.category)),
+  ])).filter(Boolean).sort((a, b) => a.localeCompare(b)), [aircraftModelCategories, aircrafts]);
+
   const picNameOptions = useMemo(() => {
     const persons = Array.isArray(personsData) ? personsData : [];
     return [...new Set(persons
@@ -112,8 +131,16 @@ export const FlightRecord = () => {
 
   useEffect(() => {
     if (id === 'new') {
-      setFlight(normalizeFlightTimeZeroes({ ...FLIGHT_INITIAL_STATE, uuid: 'new', ...(location.state || {}) }));
-    } else if (data) setFlight(normalizeFlightTimeZeroes(data));
+      const initialFlight = normalizeFlightTimeZeroes({ ...FLIGHT_INITIAL_STATE, uuid: 'new', ...(location.state || {}) });
+      // Query/router data initializes the editable draft when the selected record changes.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFlight(initialFlight);
+      setSelectedRole(getFlightRole(initialFlight));
+    } else if (data) {
+      const loadedFlight = normalizeFlightTimeZeroes(data);
+      setFlight(loadedFlight);
+      setSelectedRole(getFlightRole(loadedFlight));
+    }
   }, [data, id, location.state]);
 
   const change = useCallback((key, value) => setFlight((prev) => setNested(prev, key, value)), []);
@@ -137,6 +164,7 @@ export const FlightRecord = () => {
   }, []);
 
   const handleRoleChange = useCallback((role) => {
+    setSelectedRole(role);
     setFlight((prev) => {
       const total = prev?.time?.total_time || '';
       const nextTime = {
@@ -151,23 +179,40 @@ export const FlightRecord = () => {
     });
   }, []);
 
-  const handleTimeChange = useCallback((key, value) => {
-    if (key !== 'time.total_time') {
-      change(key, value);
-      return;
-    }
+  const handleTimeChange = useCallback((key, value) => change(key, value), [change]);
 
-    setFlight((prev) => {
-      const role = getFlightRole(prev);
-      let next = setNested(prev, key, value);
-      const targetField = ROLE_FIELD[role];
-      if (targetField) next = setNested(next, `time.${targetField}`, value);
-      return next;
+  const computedTotalTime = useMemo(() => calculateFlightDuration(
+    flight.departure?.time,
+    flight.arrival?.time,
+  ), [flight.departure?.time, flight.arrival?.time]);
+
+  const activeAutoFill = useMemo(() => {
+    const model = String(flight.aircraft?.model || '').toUpperCase();
+    const row = (Array.isArray(aircraftModelCategories) ? aircraftModelCategories : [])
+      .find((item) => String(item?.model || '').toUpperCase() === model);
+    return row?.time_fields_auto_fill || {};
+  }, [aircraftModelCategories, flight.aircraft?.model]);
+
+  useEffect(() => {
+    // UTC clocks and aircraft rules are inputs to the persisted editable draft.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFlight((current) => {
+      const nextTime = applyAutomaticFlightTimes({
+        time: current.time,
+        totalTime: computedTotalTime,
+        role: selectedRole,
+        autoFill: activeAutoFill,
+      });
+
+      const keys = new Set([...Object.keys(current.time || {}), ...Object.keys(nextTime)]);
+      const changed = Array.from(keys).some((key) => (current.time?.[key] || '') !== (nextTime[key] || ''));
+      return changed ? { ...current, time: nextTime } : current;
     });
-  }, [change]);
+  }, [activeAutoFill, computedTotalTime, selectedRole]);
 
   const mapData = useMemo(() => flight?.departure?.place && flight?.arrival?.place ? [flight] : [], [flight]);
-  const flightRole = useMemo(() => getFlightRole(flight), [flight]);
+  const totalMinutes = useMemo(() => durationToMinutes(flight.time?.total_time), [flight.time?.total_time]);
+  const quickFillLabel = totalMinutes > 0 ? `+${totalMinutes}` : '';
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -203,9 +248,9 @@ export const FlightRecord = () => {
             <Field label="Date" type="date" value={toInputDate(flight.date)} onChange={(v) => change('date', fromInputDate(v))} />
             <Field label="Tags" value={flight.tags || ''} onChange={(v) => change('tags', v)} placeholder="training, IFR" />
             <Field label="Departure place" value={flight.departure?.place || ''} onChange={(v) => change('departure.place', v.toUpperCase())} />
-            <TimeSelectField label="Departure time" mode="clock" value={flight.departure?.time || ''} onChange={(v) => change('departure.time', v)} />
+            <TimeSelectField label="Departure time (UTC)" mode="clock" value={flight.departure?.time || ''} onChange={(v) => change('departure.time', v)} />
             <Field label="Arrival place" value={flight.arrival?.place || ''} onChange={(v) => change('arrival.place', v.toUpperCase())} />
-            <TimeSelectField label="Arrival time" mode="clock" value={flight.arrival?.time || ''} onChange={(v) => change('arrival.time', v)} />
+            <TimeSelectField label="Arrival time (UTC)" mode="clock" value={flight.arrival?.time || ''} onChange={(v) => change('arrival.time', v)} />
           </div>
         </Card>
 
@@ -244,7 +289,7 @@ export const FlightRecord = () => {
             />
             <SelectField
               label="Flight role"
-              value={flightRole}
+              value={selectedRole}
               onChange={handleRoleChange}
               options={[
                 { value: '', label: 'Select role' },
@@ -261,7 +306,8 @@ export const FlightRecord = () => {
 
         <Card title="Flight time" subtitle="Operational and pilot function time.">
           <div className="form-grid">
-            {timeFields.map(([key,label]) => <TimeSelectField key={key} label={label} zeroAsEmpty value={key.split('.').reduce((o,k)=>o?.[k], flight) || ''} onChange={(v)=>handleTimeChange(key,v)} />)}
+            <Field label="Total" value={flight.time?.total_time || ''} readOnly placeholder="Calculated from UTC times" />
+            {timeFields.map(([key,label]) => <TimeSelectField key={key} label={label} zeroAsEmpty value={key.split('.').reduce((o,k)=>o?.[k], flight) || ''} onChange={(v)=>handleTimeChange(key,v)} quickFillValue={flight.time?.total_time || ''} quickFillLabel={quickFillLabel} />)}
           </div>
         </Card>
 
@@ -270,7 +316,7 @@ export const FlightRecord = () => {
             <Field label="Day landings" type="number" min="0" value={flight.landings?.day ?? ''} onChange={(v)=>change('landings.day',v)} />
             <Field label="Night landings" type="number" min="0" value={flight.landings?.night ?? ''} onChange={(v)=>change('landings.night',v)} />
             <Field label="FSTD type" value={flight.sim?.type || ''} onChange={(v)=>change('sim.type',v)} />
-            <TimeSelectField label="FSTD time" value={flight.sim?.time || ''} onChange={(v)=>change('sim.time',v)} />
+            <TimeSelectField label="FSTD time" value={flight.sim?.time || ''} onChange={(v)=>change('sim.time',v)} quickFillValue={flight.time?.total_time || ''} quickFillLabel={quickFillLabel} />
           </div>
           <div style={{marginTop:11}}><TextArea label="Remarks and endorsements" value={flight.remarks || ''} onChange={(v)=>change('remarks',v)} /></div>
         </Card>
@@ -286,6 +332,7 @@ export const FlightRecord = () => {
         <NewAircraftModal
           open
           modelOptions={typeOptions}
+          categoryOptions={categoryOptions}
           onCreated={handleAircraftCreated}
           onClose={() => setNewAircraftOpen(false)}
         />
