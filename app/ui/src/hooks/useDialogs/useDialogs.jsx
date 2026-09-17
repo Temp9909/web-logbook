@@ -45,10 +45,26 @@ const AlertDialog = ({ open, onClose, payload }) => {
 const ConfirmDialog = ({ open, onClose, payload }) => {
   const { msg, title = 'Confirm', okText, cancelText, severity } = payload;
   const destructive = severity === 'error';
-  // Destructive actions deliberately use the same Apple-style Back / Done pair
-  // everywhere so a browser-native confirm is never shown for delete flows.
-  const backLabel = destructive ? 'Back' : (cancelText || 'Back');
-  const doneLabel = destructive ? 'Done' : (okText || 'Done');
+  const backLabel = cancelText || 'Back';
+  const doneLabel = okText || (destructive ? 'Yes' : 'Done');
+
+  if (destructive) {
+    if (!open) return null;
+    return (
+      <div className="apple-confirm-backdrop flight-delete-confirm-backdrop" role="presentation" onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose(false);
+      }}>
+        <div className="flight-delete-confirm-sheet" role="dialog" aria-modal="true" aria-label={title}>
+          <div className="flight-delete-confirm-title">{title}</div>
+          <div className="flight-delete-confirm-subtitle">{msg}</div>
+          <div className="flight-delete-confirm-actions">
+            <button type="button" className="flight-delete-confirm-button back" onClick={() => onClose(false)} autoFocus>{backLabel}</button>
+            <button type="button" className="flight-delete-confirm-button yes" onClick={() => onClose(true)}>{doneLabel}</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DialogFrame
@@ -57,7 +73,7 @@ const ConfirmDialog = ({ open, onClose, payload }) => {
       onBackdrop={() => onClose(false)}
       actions={<>
         <button type="button" className="apple-confirm-button back" onClick={() => onClose(false)} autoFocus>{backLabel}</button>
-        <button type="button" className={`apple-confirm-button primary${destructive ? ' destructive' : ''}`} onClick={() => onClose(true)}>{doneLabel}</button>
+        <button type="button" className="apple-confirm-button primary" onClick={() => onClose(true)}>{doneLabel}</button>
       </>}
     >
       {msg}

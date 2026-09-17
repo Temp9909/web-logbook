@@ -7,7 +7,6 @@ import AircraftCategoryPicker from './AircraftCategoryPicker';
 import { DEFAULT_CATEGORIES, splitCategories } from './aircraftCategories';
 import NewAircraftModal from './NewAircraftModal';
 import NewAircraftTypeModal from './NewAircraftTypeModal';
-import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 
 const modelCategoryFor = (categories, model) => {
   const item = (Array.isArray(categories) ? categories : []).find((category) => category?.model === model);
@@ -29,13 +28,13 @@ const onlyCategories = (value, allowedValue) => {
 };
 
 export const Aircrafts = () => {
-  const dialogs = useDialogs();
   const { data: aircrafts = [], isLoading: loadingAircrafts } = useQuery({queryKey:['aircrafts','build-list'],queryFn:({signal})=>fetchAircraftsBuildList({signal})});
   const { data: categories = [], isLoading: loadingCategories } = useQuery({queryKey:['models-categories'],queryFn:({signal})=>fetchAircraftModelsCategories({signal})});
   const [newAircraftOpen,setNewAircraftOpen]=useState(false);
   const [newTypeOpen,setNewTypeOpen]=useState(false);
   const [editAircraft,setEditAircraft]=useState(null);
   const [editCategory,setEditCategory]=useState(null);
+  const [deletePrompt,setDeletePrompt]=useState(null);
   const aircraftSaveQueue = useRef(Promise.resolve());
   const typeSaveQueue = useRef(Promise.resolve());
   const lastSavedReg = useRef('');
@@ -269,47 +268,70 @@ export const Aircrafts = () => {
     queueTypeSave(next);
   };
 
-  const handleDeleteAircraft = async () => {
+  const handleDeleteAircraft = () => {
     if (!editAircraft || deleteAircraftMutation.isPending) return;
     const reg = String(editAircraft.reg || '').trim().toUpperCase();
-    const confirmed = await dialogs.confirm(
-      `Would you like to continue? Historical flights using ${reg} will not be deleted.`,
-      { title: `You’re about to delete ${reg}.`, severity: 'error', cancelText: 'Back', okText: 'Done' },
-    );
-    if (!confirmed) return;
-    await aircraftSaveQueue.current.catch(() => undefined);
-    try {
-      await deleteAircraftMutation.mutateAsync(reg);
-    } catch {
-      // Mutation state is shown inside the editor.
-    }
+    setDeletePrompt({
+      title: 'You’re about to delete this aircraft.',
+      subtitle: `Would you like to continue? Historical flights using ${reg} will not be deleted.`,
+      onConfirm: async () => {
+        await aircraftSaveQueue.current.catch(() => undefined);
+        try {
+          await deleteAircraftMutation.mutateAsync(reg);
+        } catch {
+          // Mutation state is shown inside the editor.
+        }
+      },
+    });
   };
 
-  const handleDeleteType = async () => {
+  const handleDeleteType = () => {
     if (!editCategory || deleteTypeMutation.isPending) return;
     const model = String(editCategory.model || '').trim().toUpperCase();
     const aircraftUsingType = (Array.isArray(aircrafts) ? aircrafts : []).filter((row) => String(row?.model || '').trim().toUpperCase() === model).length;
     if (aircraftUsingType > 0) {
-      await dialogs.alert(
-        `This type is still used by ${aircraftUsingType} aircraft. Delete or change those aircraft first.`,
-        { title: 'Type is in use', okText: 'Done' },
-      );
+      setDeletePrompt({
+        title: 'Type is in use',
+        subtitle: `This type is still used by ${aircraftUsingType} aircraft. Delete or change those aircraft first.`,
+        okOnly: true,
+      });
       return;
     }
-    const confirmed = await dialogs.confirm(
-      'Would you like to continue?',
-      { title: `You’re about to delete ${model}.`, severity: 'error', cancelText: 'Back', okText: 'Done' },
-    );
-    if (!confirmed) return;
-    await typeSaveQueue.current.catch(() => undefined);
-    try {
-      await deleteTypeMutation.mutateAsync(model);
-    } catch {
-      // Mutation state is shown inside the editor.
-    }
+    setDeletePrompt({
+      title: 'You’re about to delete this aircraft type.',
+      subtitle: 'Would you like to continue?',
+      onConfirm: async () => {
+        await typeSaveQueue.current.catch(() => undefined);
+        try {
+          await deleteTypeMutation.mutateAsync(model);
+        } catch {
+          // Mutation state is shown inside the editor.
+        }
+      },
+    });
   };
 
   return <section className="exact-react-page">
+    {deletePrompt ? (
+      <div
+        className="apple-confirm-backdrop flight-delete-confirm-backdrop"
+        role="presentation"
+        onMouseDown={(event) => { if (event.target === event.currentTarget) setDeletePrompt(null); }}
+      >
+        <div className="flight-delete-confirm-sheet" role="dialog" aria-modal="true" aria-labelledby="aircraft-delete-confirm-title">
+          <div id="aircraft-delete-confirm-title" className="flight-delete-confirm-title">{deletePrompt.title}</div>
+          <div className="flight-delete-confirm-subtitle">{deletePrompt.subtitle}</div>
+          <div className="flight-delete-confirm-actions">
+            <button type="button" className="flight-delete-confirm-button back" onClick={() => setDeletePrompt(null)} autoFocus>Back</button>
+            {deletePrompt.okOnly ? (
+              <button type="button" className="flight-delete-confirm-button yes" onClick={() => setDeletePrompt(null)}>Done</button>
+            ) : (
+              <button type="button" className="flight-delete-confirm-button yes" onClick={async () => { const action = deletePrompt.onConfirm; setDeletePrompt(null); await action?.(); }}>Yes</button>
+            )}
+          </div>
+        </div>
+      </div>
+    ) : null}
     <PageHead
       title="Aircrafts"
       subtitle="Manage registrations, aircraft types and categories."

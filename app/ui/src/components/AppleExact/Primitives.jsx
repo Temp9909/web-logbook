@@ -205,7 +205,7 @@ export const TimeSelectField = ({
     <div className={`field exact-time-field ${className}`.trim()}>
       {label ? <span>{label}</span> : null}
       <div
-        className={`exact-native-time-row${mode === 'clock' ? ' clock' : ''}`}
+        className={`exact-native-time-row ${mode === 'clock' ? 'clock' : 'duration'}`}
         onClick={openPickerFromSurround}
         role="group"
         aria-label={label || 'Time'}
