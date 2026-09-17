@@ -60,6 +60,19 @@ function App() {
   }, [mode]);
 
   useEffect(() => {
+    // Keep iPhone/iPad switches at their existing iOS size, but use the
+    // more compact macOS System Settings proportions on a real Mac.
+    const nav = window.navigator;
+    const looksLikeMac = /Macintosh|Mac OS X/.test(nav.userAgent || '') || /Mac/.test(nav.platform || '');
+    const isTouchAppleDevice = Number(nav.maxTouchPoints || 0) > 1;
+    if (looksLikeMac && !isTouchAppleDevice) {
+      document.documentElement.dataset.platform = 'macos';
+    } else {
+      delete document.documentElement.dataset.platform;
+    }
+  }, []);
+
+  useEffect(() => {
     const onKeyDown = (event) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'j') {
         event.preventDefault();

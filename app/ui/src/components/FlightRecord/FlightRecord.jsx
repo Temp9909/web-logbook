@@ -7,8 +7,9 @@ import { fetchAircraftModels, fetchAircraftModelsCategories, fetchAircrafts } fr
 import { fetchPersons } from '../../util/http/person';
 import { queryClient } from '../../util/http/http';
 import useCustomFields from '../../hooks/useCustomFields';
-import FlightMap from '../FlightMap/FlightMap';
-import { Card, Field, Loading, PageHead, SelectField, TextArea, TimeSelectField, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
+import useSettings from '../../hooks/useSettings';
+import FlightAttachments from '../FlightRecordAttachment/Attachments';
+import { Card, ComboField, Field, Loading, PageHead, SelectField, TextArea, TimeSelectField, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
 import { DEFAULT_CATEGORIES, splitCategories } from '../Aircrafts/aircraftCategories';
 import NewAircraftModal from '../Aircrafts/NewAircraftModal';
 import { applyAutomaticFlightTimes, calculateFlightDuration, durationToMinutes } from './flightTime';
@@ -60,6 +61,7 @@ export const FlightRecord = () => {
   const [selectedRole, setSelectedRole] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const { customFields = [] } = useCustomFields();
+  const { settings } = useSettings();
 
   const { data, isLoading } = useQuery({
     queryKey: ['flight', id],
@@ -123,12 +125,15 @@ export const FlightRecord = () => {
 
   const picNameOptions = useMemo(() => {
     const persons = Array.isArray(personsData) ? personsData : [];
-    return [...new Set(persons
-      .filter(Boolean)
-      .map((person) => personName(person))
-      .filter((name) => name && name !== 'Person'))]
-      .sort((a, b) => a.localeCompare(b));
-  }, [personsData]);
+    const selfPicLabel = String(settings?.self_pic_label || 'Self').trim();
+    return [...new Set([
+      selfPicLabel,
+      ...persons
+        .filter(Boolean)
+        .map((person) => personName(person))
+        .filter((name) => name && name !== 'Person'),
+    ].filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  }, [personsData, settings?.self_pic_label]);
 
   useEffect(() => {
     if (id === 'new') {
@@ -179,9 +184,14 @@ export const FlightRecord = () => {
       };
       const targetField = ROLE_FIELD[role];
       if (targetField) nextTime[targetField] = total;
-      return { ...prev, time: nextTime };
+
+      const next = { ...prev, time: nextTime };
+      if (id === 'new' && role === 'PIC') {
+        next.pic_name = String(settings?.self_pic_label || 'Self').trim() || 'Self';
+      }
+      return next;
     });
-  }, []);
+  }, [id, settings?.self_pic_label]);
 
   const handleTimeChange = useCallback((key, value) => change(key, value), [change]);
 
@@ -214,7 +224,6 @@ export const FlightRecord = () => {
     });
   }, [activeAutoFill, computedTotalTime, selectedRole]);
 
-  const mapData = useMemo(() => flight?.departure?.place && flight?.arrival?.place ? [flight] : [], [flight]);
   const totalMinutes = useMemo(() => durationToMinutes(flight.time?.total_time), [flight.time?.total_time]);
   const quickFillLabel = totalMinutes > 0 ? `+${totalMinutes}` : '';
 
@@ -287,32 +296,26 @@ export const FlightRecord = () => {
           actions={<button className="btn small" type="button" onClick={() => setNewAircraftOpen(true)}>＋ New aircraft</button>}
         >
           <div className="form-grid two">
-            <SelectField
+            <ComboField
               label="Registration"
               value={flight.aircraft?.reg_name || ''}
               onChange={handleRegistrationChange}
-              options={[
-                { value:'', label:'Select registration' },
-                ...Array.from(new Set([flight.aircraft?.reg_name, ...registrationOptions].filter(Boolean))).map((value)=>({ value, label:value })),
-              ]}
+              options={Array.from(new Set([flight.aircraft?.reg_name, ...registrationOptions].filter(Boolean)))}
+              placeholder="Select or enter registration"
             />
-            <SelectField
+            <ComboField
               label="Type"
               value={flight.aircraft?.model || ''}
               onChange={(v) => change('aircraft.model', String(v || '').toUpperCase())}
-              options={[
-                { value:'', label:'Select aircraft type' },
-                ...Array.from(new Set([flight.aircraft?.model, ...typeOptions].filter(Boolean))).map((value)=>({ value, label:value })),
-              ]}
+              options={Array.from(new Set([flight.aircraft?.model, ...typeOptions].filter(Boolean)))}
+              placeholder="Select or enter aircraft type"
             />
-            <SelectField
+            <ComboField
               label="PIC name"
               value={flight.pic_name || ''}
               onChange={(v) => change('pic_name', v)}
-              options={[
-                { value:'', label:'Select PIC name' },
-                ...Array.from(new Set([flight.pic_name, ...picNameOptions].filter(Boolean))).map((value)=>({ value, label:value })),
-              ]}
+              options={Array.from(new Set([flight.pic_name, ...picNameOptions].filter(Boolean)))}
+              placeholder="Select or enter PIC name"
             />
             <SelectField
               label="Flight role"
@@ -354,7 +357,7 @@ export const FlightRecord = () => {
           </div>
         </Card> : null}
       </div>
-      {id !== 'new' && mapData.length ? <div className="exact-map-host" style={{marginTop:12}}><FlightMap data={mapData} title="Flight map" /></div> : null}
+      {id !== 'new' ? <div className="exact-flight-attachments-host"><FlightAttachments id={id} /></div> : null}
       {newAircraftOpen ? (
         <NewAircraftModal
           open

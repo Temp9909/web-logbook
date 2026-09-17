@@ -2061,6 +2061,16 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
   --ios-toggle-off: #C7C7CC;
 }
 
+/* macOS uses a visibly more compact switch than iPhone/iPad.
+   Scale the whole control, preserving the same capsule/knob proportions. */
+:root[data-platform="macos"] {
+  --ios-toggle-width: 46px;
+  --ios-toggle-height: 20px;
+  --ios-toggle-knob-width: 26px;
+  --ios-toggle-knob-height: 16px;
+  --ios-toggle-shift: 16px;
+}
+
 .MuiSwitch-root,
 .apple-legacy-page .MuiSwitch-root,
 body.apple-legacy-page .MuiSwitch-root {
@@ -2189,3 +2199,6 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 @media(max-width:620px){.flight-delete-confirm-sheet{width:min(520px,calc(100vw - 28px));padding:30px 20px 24px;border-radius:22px}.flight-delete-confirm-title{max-width:400px;font-size:clamp(16px,5.2vw,20px)}.flight-delete-confirm-subtitle{margin-top:16px;font-size:13px}.flight-delete-confirm-actions{gap:12px;margin-top:26px}.flight-delete-confirm-button{min-width:0;flex:1;max-width:170px;min-height:40px;padding:0 16px;font-size:13px}}
 
 .exact-aircraft-delete-row{justify-content:flex-end;margin-top:18px}
+
+/* Attachments now live directly inside each saved flight record. */
+.exact-flight-attachments-host{min-width:0;width:100%;margin-top:12px}.exact-flight-attachments-host .apple-panel{margin:0;width:100%;box-sizing:border-box}.exact-flight-attachments-host .apple-panel-body{min-width:0}
