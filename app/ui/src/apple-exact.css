@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap");
 
   :root {
     --blue: #007AFF;
@@ -2435,3 +2436,117 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .sidebar .sidebar-brand{
   border-bottom:0 !important;
 }
+
+
+/* Mapbox documentation reference — exact sidebar typography palette. */
+.sidebar .sidebar-brand-name,
+.sidebar .nav-item,
+.sidebar .nav-group-sub a,
+.settings-tabs button,
+.mini-tabs button {
+  font-family:"Open Sans","Helvetica Neue",Arial,Helvetica,sans-serif !important;
+}
+
+/* App brand mirrors the Mapbox GL JS heading: same slate, heavier face. */
+.sidebar .sidebar-brand,
+.sidebar .sidebar-brand-icon,
+.sidebar .sidebar-brand-name {
+  color:#586170 !important;
+}
+.sidebar .sidebar-brand-name {
+  font-size:18px !important;
+  line-height:1.3 !important;
+  font-weight:700 !important;
+  letter-spacing:0 !important;
+}
+
+/* Main navigation = Mapbox section-heading treatment. */
+.sidebar .nav-item {
+  font-size:16px !important;
+  line-height:1.35 !important;
+  font-weight:700 !important;
+  text-transform:uppercase !important;
+  letter-spacing:.035em !important;
+  color:#586170 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.sidebar .nav-item:hover {
+  color:#356FD0 !important;
+  background:transparent !important;
+}
+.sidebar .nav-item.selected {
+  color:#2961C3 !important;
+  font-weight:700 !important;
+  background:transparent !important;
+}
+.sidebar .nav-item svg,
+.sidebar .nav-caret,
+.sidebar .nav-caret svg {
+  color:currentColor !important;
+  opacity:1 !important;
+}
+
+/* Nested navigation = Mapbox API-link treatment. */
+.sidebar .nav-group-sub a {
+  font-size:16px !important;
+  line-height:1.45 !important;
+  font-weight:400 !important;
+  text-transform:none !important;
+  letter-spacing:0 !important;
+  color:#586170 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.sidebar .nav-group-sub a:hover {
+  color:#4A86F6 !important;
+  background:transparent !important;
+}
+.sidebar .nav-group-sub a.selected {
+  color:#3478F4 !important;
+  font-weight:400 !important;
+  background:transparent !important;
+}
+
+/* Settings entries are nested navigation too. */
+.settings-tabs button,
+.mini-tabs button {
+  font-size:16px !important;
+  line-height:1.45 !important;
+  font-weight:400 !important;
+  text-transform:none !important;
+  letter-spacing:0 !important;
+  color:#586170 !important;
+  background:transparent !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+.settings-tabs button:hover,
+.mini-tabs button:hover {
+  color:#4A86F6 !important;
+  background:transparent !important;
+}
+.settings-tabs button.on,
+.mini-tabs button.on {
+  color:#3478F4 !important;
+  font-weight:400 !important;
+  background:transparent !important;
+}
+
+[data-theme="dark"] .sidebar .sidebar-brand,
+[data-theme="dark"] .sidebar .sidebar-brand-icon,
+[data-theme="dark"] .sidebar .sidebar-brand-name,
+[data-theme="dark"] .sidebar .nav-item,
+[data-theme="dark"] .sidebar .nav-group-sub a,
+[data-theme="dark"] .settings-tabs button,
+[data-theme="dark"] .mini-tabs button {
+  color:#A8B0BE !important;
+}
+[data-theme="dark"] .sidebar .nav-item:hover { color:#76A7F2 !important; }
+[data-theme="dark"] .sidebar .nav-item.selected { color:#6D9EEB !important; }
+[data-theme="dark"] .sidebar .nav-group-sub a:hover,
+[data-theme="dark"] .settings-tabs button:hover,
+[data-theme="dark"] .mini-tabs button:hover { color:#74ACFF !important; }
+[data-theme="dark"] .sidebar .nav-group-sub a.selected,
+[data-theme="dark"] .settings-tabs button.on,
+[data-theme="dark"] .mini-tabs button.on { color:#5E9CFF !important; }
