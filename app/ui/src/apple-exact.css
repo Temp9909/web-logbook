@@ -2223,3 +2223,23 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 [data-theme="dark"] .exact-flight-role-select .select{
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%2398989D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
+
+
+/* Native chevron pickers for editable aircraft fields: text input remains free,
+   only the right-side chevron opens the OS select menu. */
+.exact-combo-control{position:relative;display:flex;align-items:center;min-width:0}
+.exact-combo-input{padding-right:42px!important}
+.exact-combo-picker-button{position:absolute;right:1px;top:1px;bottom:1px;width:38px;display:flex;align-items:center;justify-content:center;border:0;border-left:1px solid var(--separator);border-radius:0 8px 8px 0;background:transparent;color:var(--secondary);pointer-events:none;z-index:2}
+.exact-combo-chevron{display:block;width:16px;height:16px;flex:0 0 16px;transition:none!important;transform:none!important}
+.exact-combo-native-select{position:absolute;right:1px;top:1px;bottom:1px;width:38px;height:calc(100% - 2px);z-index:3;opacity:0;cursor:pointer;border:0;padding:0;margin:0;-webkit-appearance:auto;appearance:auto}
+.exact-combo-control:focus-within .exact-combo-picker-button{border-left-color:rgba(0,122,255,.25)}
+@media(max-width:620px){.exact-combo-picker-button,.exact-combo-native-select{width:40px}.exact-combo-input{padding-right:44px!important}}
+
+/* Stats / Export caret: same 16x16, 2px geometry; instant rotation only. */
+.sidebar .nav-caret{margin-left:auto;display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;opacity:.58;transition:none!important;transform:rotate(0deg)}
+.sidebar .nav-caret svg{width:16px!important;height:16px!important;opacity:1!important}
+.sidebar .nav-caret.open{opacity:.82;transform:rotate(180deg)}
+
+/* Slightly stronger submenu contrast for Stats and Export. */
+.sidebar .nav-group-sub a{color:color-mix(in srgb,var(--label) 58%,var(--secondary));}
+.sidebar .nav-group-sub a:hover,.sidebar .nav-group-sub a.selected{color:var(--label)}

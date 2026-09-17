@@ -271,11 +271,8 @@ export const TimeSelectField = ({
 
 export const ComboField = ({ label, value = '', onChange, options = [], disabled = false, className = '', placeholder = '', id }) => {
   const generatedId = useId();
-  const inputRef = useRef(null);
-  const controlRef = useRef(null);
-  const [open, setOpen] = useState(false);
   const current = String(value ?? '');
-  const menuId = `${id || generatedId}-menu`;
+  const selectId = `${id || generatedId}-native-select`;
 
   const normalized = useMemo(() => {
     const seen = new Set();
@@ -290,42 +287,13 @@ export const ComboField = ({ label, value = '', onChange, options = [], disabled
     });
   }, [options]);
 
-  useEffect(() => {
-    if (!open) return undefined;
-    const onPointerDown = (event) => {
-      if (!controlRef.current?.contains(event.target)) setOpen(false);
-    };
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        setOpen(false);
-        inputRef.current?.focus();
-      }
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [open]);
-
-  const toggleOptions = () => {
-    if (disabled) return;
-    setOpen((currentOpen) => !currentOpen);
-  };
-
-  const selectOption = (optionValue, event) => {
-    onChange?.(optionValue, event);
-    setOpen(false);
-    requestAnimationFrame(() => inputRef.current?.focus());
-  };
+  const nativeValue = normalized.some((option) => option.value === current) ? current : '';
 
   return (
     <label className={`field exact-combo-field ${className}`.trim()}>
       {label ? <span>{label}</span> : null}
-      <span ref={controlRef} className={`exact-combo-control${open ? ' open' : ''}`}>
+      <span className="exact-combo-control">
         <input
-          ref={inputRef}
           id={id}
           className="input exact-combo-input"
           value={current}
@@ -334,40 +302,26 @@ export const ComboField = ({ label, value = '', onChange, options = [], disabled
           disabled={disabled}
           autoComplete="off"
           aria-label={label || id || 'Selection'}
-          aria-expanded={open}
-          aria-controls={menuId}
-          aria-autocomplete="list"
         />
-        <button
-          className="exact-combo-picker-button"
-          type="button"
-          tabIndex={0}
-          disabled={disabled}
-          onClick={toggleOptions}
-          aria-label={label ? `Show ${label} options` : 'Show options'}
-          aria-expanded={open}
-          aria-controls={menuId}
-        >
-          <svg className="exact-combo-chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <span className="exact-combo-picker-button" aria-hidden="true">
+          <svg className="exact-combo-chevron" width="16" height="16" viewBox="0 0 16 16">
             <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-        </button>
-        {open ? (
-          <span id={menuId} className="exact-combo-menu" role="listbox" aria-label={label ? `${label} options` : 'Options'}>
-            {normalized.length ? normalized.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                className={`exact-combo-option${option.value === current ? ' selected' : ''}`}
-                role="option"
-                aria-selected={option.value === current}
-                onClick={(event) => selectOption(option.value, event)}
-              >
-                {option.label}
-              </button>
-            )) : <span className="exact-combo-empty">No saved options</span>}
-          </span>
-        ) : null}
+        </span>
+        <select
+          id={selectId}
+          className="exact-combo-native-select"
+          value={nativeValue}
+          disabled={disabled}
+          onChange={(event) => {
+            if (!event.target.value) return;
+            onChange?.(event.target.value, event);
+          }}
+          aria-label={label ? `Choose saved ${label}` : 'Choose saved option'}
+        >
+          <option value="" disabled hidden>Choose…</option>
+          {normalized.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </select>
       </span>
     </label>
   );
