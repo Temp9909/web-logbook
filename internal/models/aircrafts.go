@@ -183,11 +183,6 @@ func (m *DBModel) GetAircraftModelsCategories() (categories []Category, err erro
 
 	query := `SELECT model, categories, IFNULL(time_fields_auto_fill, '') AS time_fields_auto_fill
 		FROM aircraft_categories
-		WHERE model IN (
-			SELECT DISTINCT aircraft_model FROM logbook_view
-			UNION
-			SELECT DISTINCT aircraft_model FROM aircrafts
-		)
 		ORDER BY model`
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -245,6 +240,14 @@ func (m *DBModel) UpdateAircraftModelsCategories(category Category) (err error) 
 		SET categories = ?, time_fields_auto_fill = ?
 		WHERE model = ?`
 	_, err = m.DB.ExecContext(ctx, query, category.Category, autoFill, category.Model)
+	if err != nil {
+		return err
+	}
+
+	query = `INSERT INTO aircraft_categories (model, categories, time_fields_auto_fill)
+		SELECT ?, ?, ?
+		WHERE NOT EXISTS (SELECT 1 FROM aircraft_categories WHERE model = ?)`
+	_, err = m.DB.ExecContext(ctx, query, category.Model, category.Category, autoFill, category.Model)
 
 	return err
 }

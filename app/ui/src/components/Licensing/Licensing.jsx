@@ -6,6 +6,7 @@ import { fetchLicenses } from '../../util/http/licensing';
 import { useErrorNotification } from '../../hooks/useAppNotifications';
 import useSettings from '../../hooks/useSettings';
 import { calculateExpiry } from './helpers';
+import { effectiveValidUntil, validityRuleFor } from '../LicenseRecord/easaValidityRules';
 
 const classify = (item) => {
   const c = String(item?.category || '').toLowerCase();
@@ -17,11 +18,16 @@ const classify = (item) => {
 };
 
 const expiryMeta = (item, warningDays) => {
-  const exp = calculateExpiry(item?.valid_until || '');
-  if (!exp) return { status:'Valid', cls:'ok', detail: item?.number ? `${item.number} · no expiry` : 'No expiry' };
-  if (exp.diffDays < 0) return { status:'Expired', cls:'bad', detail:`Expired ${item.valid_until}` };
-  if (exp.diffDays < warningDays) return { status:'Expiring', cls:'warn', detail:`Expires ${item.valid_until} · in ${exp.diffDays} days` };
-  return { status:'Valid', cls:'ok', detail:`Expires ${item.valid_until}` };
+  const rule = validityRuleFor(item?.category, item?.name);
+  const validUntil = effectiveValidUntil(item);
+  const exp = calculateExpiry(validUntil);
+  if (!exp) {
+    const fallback = rule.kind === 'none' ? rule.label : 'No expiry date';
+    return { status:'Valid', cls:'ok', detail: item?.number ? `${item.number} · ${fallback}` : fallback };
+  }
+  if (exp.diffDays < 0) return { status:'Expired', cls:'bad', detail:`Expired ${validUntil}` };
+  if (exp.diffDays < warningDays) return { status:'Expiring', cls:'warn', detail:`Expires ${validUntil} · in ${exp.diffDays} days` };
+  return { status:'Valid', cls:'ok', detail:`Expires ${validUntil}` };
 };
 
 function Group({ title, rows, warningDays, onOpen }) {
@@ -61,7 +67,7 @@ export default function Licensing() {
     return out;
   }, [data]);
   const expiring = useMemo(() => (Array.isArray(data) ? data : []).filter(item => {
-    const exp = calculateExpiry(item.valid_until || '');
+    const exp = calculateExpiry(effectiveValidUntil(item));
     return exp && exp.diffDays >= 0 && exp.diffDays < warningDays;
   }).length, [data, warningDays]);
 

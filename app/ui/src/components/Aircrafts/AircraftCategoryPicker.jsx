@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { DEFAULT_CATEGORIES, splitCategories } from './aircraftCategories';
+import { DEFAULT_CATEGORIES, isAircraftCategoryAllowed, splitCategories } from './aircraftCategories';
 
 const joinCategories = (items) => Array.from(new Set(
   items.map((item) => String(item || '').trim()).filter(Boolean),
@@ -17,7 +17,7 @@ const AircraftCategoryPicker = ({ label = 'Category', value = '', options = [], 
     ...DEFAULT_CATEGORIES,
     ...options,
     ...splitCategories(value),
-  ])).filter((category) => category && !excluded.has(category)).sort((a, b) => a.localeCompare(b)), [excluded, options, value]);
+  ])).filter((category) => category && isAircraftCategoryAllowed(category) && !excluded.has(category)).sort((a, b) => a.localeCompare(b)), [excluded, options, value]);
 
   const toggle = (category) => {
     const next = new Set(selected);
@@ -28,7 +28,7 @@ const AircraftCategoryPicker = ({ label = 'Category', value = '', options = [], 
 
   const addCategory = () => {
     const nextCategory = newCategory.trim();
-    if (!nextCategory) return;
+    if (!nextCategory || !isAircraftCategoryAllowed(nextCategory)) return;
     const next = new Set(selected);
     next.add(nextCategory);
     onChange?.(joinCategories(Array.from(next)));

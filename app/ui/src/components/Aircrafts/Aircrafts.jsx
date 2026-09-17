@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchAircraftModelsCategories, fetchAircraftsBuildList, updateAircraft, updateAircraftModelsCategories } from '../../util/http/aircraft';
 import { queryClient } from '../../util/http/http';
@@ -6,6 +6,7 @@ import { Card, Field, Loading, Modal, NativeTable, PageHead, SelectField, Switch
 import AircraftCategoryPicker from './AircraftCategoryPicker';
 import { DEFAULT_CATEGORIES, splitCategories } from './aircraftCategories';
 import NewAircraftModal from './NewAircraftModal';
+import NewAircraftTypeModal from './NewAircraftTypeModal';
 
 const modelCategoryFor = (categories, model) => {
   const item = (Array.isArray(categories) ? categories : []).find((category) => category?.model === model);
@@ -25,8 +26,12 @@ export const Aircrafts = () => {
   const { data: aircrafts = [], isLoading: loadingAircrafts } = useQuery({queryKey:['aircrafts','build-list'],queryFn:({signal})=>fetchAircraftsBuildList({signal})});
   const { data: categories = [], isLoading: loadingCategories } = useQuery({queryKey:['models-categories'],queryFn:({signal})=>fetchAircraftModelsCategories({signal})});
   const [newAircraftOpen,setNewAircraftOpen]=useState(false);
+  const [newTypeOpen,setNewTypeOpen]=useState(false);
   const [editAircraft,setEditAircraft]=useState(null);
   const [editCategory,setEditCategory]=useState(null);
+  const aircraftSaveQueue = useRef(Promise.resolve());
+  const typeSaveQueue = useRef(Promise.resolve());
+  const lastSavedReg = useRef('');
 
   const categoryOptions = useMemo(() => {
     const values = [];
@@ -45,42 +50,67 @@ export const Aircrafts = () => {
   ].filter(Boolean))).sort((a,b)=>a.localeCompare(b)), [aircrafts,categories]);
 
   const saveAircraft=useMutation({
-    mutationFn:async()=>{
-      await updateAircraft({payload:editAircraft});
-      const typeRow = (Array.isArray(categories) ? categories : []).find((row) => row?.model === editAircraft?.model);
-      const savedTypeCategories = typeRow?.category || '';
-      if (joinCategories(splitCategories(savedTypeCategories)) !== joinCategories(splitCategories(editAircraft?.model_category))) {
-        await updateAircraftModelsCategories({
-          payload: {
-            ...(typeRow || {}),
-            model: editAircraft.model,
-            category: editAircraft.model_category || '',
-          },
-        });
-      }
-    },
+    mutationFn:(payload)=>updateAircraft({payload}),
     onSuccess:async()=>{
       await Promise.all([
         queryClient.invalidateQueries({queryKey:['aircrafts']}),
-        queryClient.invalidateQueries({queryKey:['models-categories']}),
         queryClient.invalidateQueries({queryKey:['logbook']}),
       ]);
-      setEditAircraft(null);
-    }
-  });
-  const saveCategory=useMutation({
-    mutationFn:()=>updateAircraftModelsCategories({payload:editCategory}),
-    onSuccess:async()=>{
-      await Promise.all([
-        queryClient.invalidateQueries({queryKey:['aircrafts']}),
-        queryClient.invalidateQueries({queryKey:['models-categories']}),
-      ]);
-      setEditCategory(null);
     }
   });
 
+  const saveCategory=useMutation({
+    mutationFn:(payload)=>updateAircraftModelsCategories({payload}),
+    onSuccess:async()=>{
+      await Promise.all([
+        queryClient.invalidateQueries({queryKey:['aircrafts']}),
+        queryClient.invalidateQueries({queryKey:['models-categories']}),
+      ]);
+    }
+  });
+
+  const queueAircraftSave = (snapshot) => {
+    const queued = { ...snapshot };
+    aircraftSaveQueue.current = aircraftSaveQueue.current
+      .catch(() => undefined)
+      .then(async () => {
+        const payload = {
+          ...queued,
+          original_reg: lastSavedReg.current || queued.original_reg || queued.reg,
+        };
+        try {
+          await saveAircraft.mutateAsync(payload);
+          lastSavedReg.current = payload.reg;
+          setEditAircraft((current) => current && current.reg === payload.reg
+            ? { ...current, original_reg: payload.reg }
+            : current);
+        } catch {
+          // Mutation state already exposes the save error in the modal.
+        }
+      });
+    return aircraftSaveQueue.current;
+  };
+
+  const queueTypeSave = (snapshot) => {
+    const queued = {
+      ...snapshot,
+      time_fields_auto_fill: { ...(snapshot?.time_fields_auto_fill || {}) },
+    };
+    typeSaveQueue.current = typeSaveQueue.current
+      .catch(() => undefined)
+      .then(async () => {
+        try {
+          await saveCategory.mutateAsync(queued);
+        } catch {
+          // Mutation state already exposes the save error in the modal.
+        }
+      });
+    return typeSaveQueue.current;
+  };
+
   const openAircraft = (row) => {
     const inherited = modelCategoryFor(categories, row.model) || row.model_category || '';
+    lastSavedReg.current = row.reg;
     setEditAircraft({
       ...row,
       original_reg: row.reg,
@@ -88,6 +118,7 @@ export const Aircrafts = () => {
       custom_category: withoutCategories(row.custom_category || '', inherited),
     });
   };
+
   const openCategory = (row) => setEditCategory({ ...row, time_fields_auto_fill: { ...(row?.time_fields_auto_fill || {}) } });
 
   const aircraftCols=useMemo(()=>[
@@ -105,24 +136,77 @@ export const Aircrafts = () => {
   const inheritedCategory = editAircraft?.model_category || '';
 
   const changeEditedAircraftType = (model) => {
+    if (!editAircraft) return;
     const nextInherited = modelCategoryFor(categories, model);
-    setEditAircraft((current) => ({
-      ...current,
+    const next = {
+      ...editAircraft,
       model,
       model_category: nextInherited,
-      custom_category: withoutCategories(current?.custom_category || '', nextInherited),
-    }));
+      custom_category: withoutCategories(editAircraft.custom_category || '', nextInherited),
+    };
+    setEditAircraft(next);
+    queueAircraftSave(next);
   };
 
-  const removeInheritedCategory = (category) => {
-    setEditAircraft((current) => ({
-      ...current,
-      model_category: joinCategories(splitCategories(current?.model_category).filter((item) => item !== category)),
-    }));
+  const changeInheritedCategories = (nextInherited) => {
+    if (!editAircraft) return;
+    const typeRow = (Array.isArray(categories) ? categories : []).find((row) => row?.model === editAircraft.model);
+    const nextCustom = withoutCategories(editAircraft.custom_category || '', nextInherited);
+    const nextAircraft = { ...editAircraft, model_category: nextInherited, custom_category: nextCustom };
+    setEditAircraft(nextAircraft);
+    queueTypeSave({
+      ...(typeRow || {}),
+      model: editAircraft.model,
+      category: nextInherited,
+    });
+    if (nextCustom !== editAircraft.custom_category) queueAircraftSave(nextAircraft);
+  };
+
+  const changeExtraCategories = (nextCustom) => {
+    if (!editAircraft) return;
+    const next = {
+      ...editAircraft,
+      custom_category: withoutCategories(nextCustom, editAircraft.model_category),
+    };
+    setEditAircraft(next);
+    queueAircraftSave(next);
+  };
+
+  const saveRegistrationOnBlur = (value) => {
+    if (!editAircraft) return;
+    const nextReg = String(value || '').trim().toUpperCase();
+    if (!nextReg || nextReg === lastSavedReg.current) return;
+    const next = { ...editAircraft, reg: nextReg };
+    setEditAircraft(next);
+    queueAircraftSave(next);
+  };
+
+  const changeEditedTypeCategories = (value) => {
+    if (!editCategory) return;
+    const next = { ...editCategory, category: value };
+    setEditCategory(next);
+    queueTypeSave(next);
+  };
+
+  const changeEditedTypeAutoFill = (key, checked) => {
+    if (!editCategory) return;
+    const next = {
+      ...editCategory,
+      time_fields_auto_fill: { ...(editCategory.time_fields_auto_fill || {}), [key]: checked },
+    };
+    setEditCategory(next);
+    queueTypeSave(next);
   };
 
   return <section className="exact-react-page">
-    <PageHead title="Aircrafts" subtitle="Manage registrations, aircraft types and categories." actions={<button className="btn primary" type="button" onClick={()=>setNewAircraftOpen(true)}>＋ New aircraft</button>} />
+    <PageHead
+      title="Aircrafts"
+      subtitle="Manage registrations, aircraft types and categories."
+      actions={<>
+        <button className="btn" type="button" onClick={()=>setNewTypeOpen(true)}>＋ New type</button>
+        <button className="btn primary" type="button" onClick={()=>setNewAircraftOpen(true)}>＋ New aircraft</button>
+      </>}
+    />
     <div className="grid two">
       <Card title="Aircrafts" subtitle="Registrations and aircraft types used by your logbook.">
         <NativeTable rows={aircrafts} columns={aircraftCols} rowKey={(r)=>r.reg} loading={loadingAircrafts} searchPlaceholder="Search aircraft…" onRowClick={openAircraft} />
@@ -133,36 +217,53 @@ export const Aircrafts = () => {
     </div>
 
     {newAircraftOpen ? <NewAircraftModal open modelOptions={modelOptions} categoryOptions={categoryOptions} onClose={()=>setNewAircraftOpen(false)} /> : null}
+    {newTypeOpen ? <NewAircraftTypeModal open modelOptions={modelOptions} categoryOptions={categoryOptions} onClose={()=>setNewTypeOpen(false)} /> : null}
 
-    <Modal open={!!editAircraft} title="Edit aircraft" onClose={()=>setEditAircraft(null)} actions={<><button className="btn" onClick={()=>setEditAircraft(null)}>Cancel</button><button className="btn primary" disabled={saveAircraft.isPending || !editAircraft?.reg?.trim()} onClick={()=>saveAircraft.mutate()}>Save aircraft</button></>}>
+    <Modal open={!!editAircraft} title="Edit aircraft" onClose={()=>setEditAircraft(null)} showCloseButton hideActions>
       {editAircraft ? <>
         <div className="form-grid two">
-          <Field label="Registration" value={editAircraft.reg || ''} onChange={(v)=>setEditAircraft(p=>({...p,reg:v.toUpperCase()}))}/>
+          <Field
+            label="Registration"
+            value={editAircraft.reg || ''}
+            onChange={(v)=>setEditAircraft((current)=>({...current,reg:v.toUpperCase()}))}
+            onBlur={saveRegistrationOnBlur}
+            onKeyDown={(event)=>{ if (event.key === 'Enter') event.currentTarget.blur(); }}
+          />
           <SelectField label="Type" value={editAircraft.model || ''} options={[
             { value:'', label:'Select aircraft type' },
             ...Array.from(new Set([editAircraft.model, ...modelOptions].filter(Boolean))).map((value)=>({ value, label:value })),
           ]} onChange={changeEditedAircraftType} />
         </div>
-        <div className="exact-inherited-category">
-          <div className="field"><span>Categories inherited from type</span><div className="exact-readonly-chips">{splitCategories(inheritedCategory).length ? splitCategories(inheritedCategory).map((category)=><span className="chip exact-removable-category-chip" key={category}>{category}<button type="button" onClick={()=>removeInheritedCategory(category)} aria-label={`Remove ${category} from inherited categories`}>×</button></span>) : <span className="muted">No type category set yet</span>}</div></div>
-        </div>
-        <AircraftCategoryPicker label="Extra categories for this registration" value={editAircraft.custom_category || ''} options={categoryOptions} excludeOptions={splitCategories(inheritedCategory)} onChange={(v)=>setEditAircraft(p=>({...p,custom_category:withoutCategories(v,p.model_category)}))}/>
-        {editAircraft.original_reg !== editAircraft.reg ? <div className="note">Changing the registration updates all logbook flights that use <strong>{editAircraft.original_reg}</strong>.</div> : null}
+        <AircraftCategoryPicker
+          label="Categories inherited from type"
+          value={inheritedCategory}
+          options={categoryOptions}
+          excludeOptions={splitCategories(editAircraft.custom_category || '')}
+          onChange={changeInheritedCategories}
+        />
+        <AircraftCategoryPicker
+          label="Extra categories for this registration"
+          value={editAircraft.custom_category || ''}
+          options={categoryOptions}
+          excludeOptions={splitCategories(inheritedCategory)}
+          onChange={changeExtraCategories}
+        />
         {saveAircraft.isError ? <div className="note exact-error-note">Unable to save aircraft: {saveAircraft.error?.info?.message || saveAircraft.error?.message || 'Unknown error'}</div> : null}
-        <Loading show={saveAircraft.isPending}/>
+        {saveCategory.isError ? <div className="note exact-error-note">Unable to save inherited categories: {saveCategory.error?.info?.message || saveCategory.error?.message || 'Unknown error'}</div> : null}
+        <Loading show={saveAircraft.isPending || saveCategory.isPending}/>
       </> : null}
     </Modal>
 
-    <Modal open={!!editCategory} title="Edit aircraft type" onClose={()=>setEditCategory(null)} actions={<><button className="btn" onClick={()=>setEditCategory(null)}>Cancel</button><button className="btn primary" disabled={saveCategory.isPending} onClick={()=>saveCategory.mutate()}>Save type</button></>}>
+    <Modal open={!!editCategory} title="Edit aircraft type" onClose={()=>setEditCategory(null)} showCloseButton hideActions>
       {editCategory ? <>
         <Field label="Type" value={editCategory.model || ''} readOnly/>
-        <AircraftCategoryPicker label="Categories" value={editCategory.category || ''} options={categoryOptions} onChange={(v)=>setEditCategory(p=>({...p,category:v}))}/>
+        <AircraftCategoryPicker label="Categories" value={editCategory.category || ''} options={categoryOptions} onChange={changeEditedTypeCategories}/>
         <div className="section-label exact-autofill-label">Auto-fill total flight time into</div>
         <div className="card rows exact-autofill-card">
           {[
             ['se_time','Single Engine'],['me_time','Multi Engine'],['mcc_time','Multi Pilot'],['ifr_time','IFR'],
             ['pic_time','PIC'],['co_pilot_time','Co-pilot'],['dual_time','Dual'],['instructor_time','Instructor'],
-          ].map(([key,label])=><SwitchRow key={key} label={label} checked={Boolean(editCategory.time_fields_auto_fill?.[key])} onChange={(checked)=>setEditCategory(p=>({...p,time_fields_auto_fill:{...(p.time_fields_auto_fill||{}),[key]:checked}}))}/>) }
+          ].map(([key,label])=><SwitchRow key={key} label={label} checked={Boolean(editCategory.time_fields_auto_fill?.[key])} onChange={(checked)=>changeEditedTypeAutoFill(key, checked)}/>) }
         </div>
         {saveCategory.isError ? <div className="note exact-error-note">Unable to save aircraft type: {saveCategory.error?.info?.message || saveCategory.error?.message || 'Unknown error'}</div> : null}
         <Loading show={saveCategory.isPending}/>

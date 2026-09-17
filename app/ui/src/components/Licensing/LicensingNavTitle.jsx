@@ -7,6 +7,7 @@ import Tooltip from "@mui/material/Tooltip";
 import useSettings from "../../hooks/useSettings";
 import { fetchLicenses } from "../../util/http/licensing";
 import { calculateExpiry } from "./helpers";
+import { effectiveValidUntil } from "../LicenseRecord/easaValidityRules";
 
 export const LicensingNavTitle = () => {
   const { settings } = useSettings();
@@ -30,7 +31,7 @@ export const LicensingNavTitle = () => {
 
     if (licenses) {
       for (const license of licenses) {
-        const expiration = calculateExpiry(license.valid_until || "");
+        const expiration = calculateExpiry(effectiveValidUntil(license));
         if (!expiration) continue;
 
         if (expiration.diffDays < 0) expired++;

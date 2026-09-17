@@ -6,6 +6,7 @@ import { createLicenseRecord, deleteLicenseRecord, fetchLicense, fetchLicenseCat
 import { queryClient } from '../../util/http/http';
 import { Card, Field, Loading, PageHead, SelectField, TextArea, fromInputDate, toInputDate } from '../AppleExact/Primitives';
 import { EASA_LICENSE_CATEGORIES, namesForLicenseCategory } from './easaLicenseOptions';
+import { normalizeValidity, validityRuleFor } from './easaValidityRules';
 
 const CUSTOM_NAME_VALUE = '__custom_name__';
 
@@ -25,11 +26,21 @@ export const LicenseRecord = () => {
   }, [data]);
   const change = useCallback((key,value)=>setLicense(prev=>({...prev,[key]:value})),[]);
 
+  useEffect(() => {
+    setLicense((current) => {
+      const normalized = normalizeValidity(current);
+      if (current.valid_from === normalized.valid_from && current.valid_until === normalized.valid_until) return current;
+      return { ...current, ...normalized };
+    });
+  }, [license.category, license.name, license.valid_from]);
+
   const save = useMutation({
     mutationFn: async () => {
       if (!license.category || !license.name) throw new Error('Category and name are required.');
+      const normalizedValidity = normalizeValidity(license);
+      const recordToSave = { ...license, ...normalizedValidity };
       const form = new FormData();
-      ['uuid','number','name','issued','valid_from','category','valid_until','document_name','remarks'].forEach((key)=>form.append(key, license[key] ?? ''));
+      ['uuid','number','name','issued','valid_from','category','valid_until','document_name','remarks'].forEach((key)=>form.append(key, recordToSave[key] ?? ''));
       if (license.document instanceof File) form.append('document', license.document);
       else if (license.document) form.append('document', license.document);
       return license.uuid === 'new' ? createLicenseRecord({ payload: form }) : updateLicenseRecord({ uuid: license.uuid, payload: form });
@@ -49,6 +60,9 @@ export const LicenseRecord = () => {
   if (license.category && !categoryOptions.includes(license.category)) categoryOptions.push(license.category);
   const prescribedNames = namesForLicenseCategory(license.category);
   const selectedNameIsCustom = customNameMode || (Boolean(license.name) && !prescribedNames.includes(license.name));
+  const validityRule = validityRuleFor(license.category, license.name);
+  const showValidityDates = validityRule.kind !== 'none';
+  const autoValidity = validityRule.kind === 'fixed';
   const nameOptions = [
     {value:'',label:license.category ? 'Select a name…' : 'Select a category first…'},
     ...prescribedNames,
@@ -83,8 +97,9 @@ export const LicenseRecord = () => {
           {selectedNameIsCustom ? <Field label="Custom name" value={license.name || ''} onChange={(v)=>change('name',v)} /> : null}
           <Field label="Number / reference" value={license.number || ''} onChange={(v)=>change('number',v)} />
           <Field label="Issued" type="date" value={toInputDate(license.issued)} onChange={(v)=>change('issued',fromInputDate(v))} />
-          <Field label="Valid from" type="date" value={toInputDate(license.valid_from)} onChange={(v)=>change('valid_from',fromInputDate(v))} />
-          <Field label="Valid until" type="date" value={toInputDate(license.valid_until)} onChange={(v)=>change('valid_until',fromInputDate(v))} />
+          {showValidityDates ? <Field label="Valid from" type="date" value={toInputDate(license.valid_from)} onChange={(v)=>change('valid_from',fromInputDate(v))} /> : null}
+          {showValidityDates ? <Field label="Valid until" type="date" value={toInputDate(license.valid_until)} onChange={(v)=>change('valid_until',fromInputDate(v))} readOnly={autoValidity} /> : null}
+          {license.name ? <div className="muted" style={{gridColumn:'1 / -1',fontSize:12,marginTop:-2}}>{autoValidity ? `Valid until is calculated automatically: ${validityRule.label}.` : `${validityRule.label}.`}</div> : null}
           <label className="field"><span>Attachment</span><input className="input" type="file" onChange={(e)=>{const file=e.target.files?.[0];if(file){change('document',file);change('document_name',file.name);}}}/></label>
           <Field label="Document name" value={license.document_name || ''} onChange={(v)=>change('document_name',v)} readOnly={license.document instanceof File} />
         </div>
@@ -97,7 +112,7 @@ export const LicenseRecord = () => {
           <div className="muted">{license.category || 'Category'}</div>
           <div style={{height:42}}/>
           <div className="exact-panel-section"><strong>Reference</strong><div>{license.number || '—'}</div></div>
-          <div className="exact-panel-section"><strong>Validity</strong><div>{license.valid_from || '—'} → {license.valid_until || '—'}</div></div>
+          <div className="exact-panel-section"><strong>Validity</strong><div>{validityRule.kind === 'none' ? validityRule.label : `${license.valid_from || '—'} → ${license.valid_until || '—'}`}</div></div>
           <div className="exact-panel-section"><strong>Attachment</strong><div>{license.document_name || 'No document'}</div></div>
           {license.remarks ? <div className="exact-panel-section"><strong>Notes</strong><div>{license.remarks}</div></div> : null}
         </div>

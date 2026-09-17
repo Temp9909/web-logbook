@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import ContactPageOutlinedIcon from '@mui/icons-material/ContactPageOutlined';
 // Custom
 import { calculateExpiry } from "./helpers";
+import { effectiveValidUntil } from "../LicenseRecord/easaValidityRules";
 import useSettings from "../../hooks/useSettings";
 import XDataGrid from "../UIElements/XDataGrid/XDataGrid";
 import CSVExportButton from "../UIElements/CSVExportButton";
@@ -100,7 +101,7 @@ export const LicensingTable = ({ data, isLoading }) => {
         headerAlign: "center",
         width: 150,
         renderCell: (params) => {
-          const expiry = calculateExpiry(params.row.valid_until);
+          const expiry = calculateExpiry(effectiveValidUntil(params.row));
           if (!expiry) return null;
 
           return (

@@ -1,22 +1,19 @@
 export const EASA_LICENSE_OPTIONS = Object.freeze({
   Licence: [
-    'LAPL(A)', 'LAPL(H)', 'PPL(A)', 'PPL(H)', 'CPL(A)', 'CPL(H)',
-    'MPL(A)', 'ATPL(A)', 'ATPL(H)', 'SPL', 'BPL',
+    'LAPL(A)', 'PPL(A)', 'CPL(A)', 'MPL(A)', 'ATPL(A)',
   ],
   Rating: [
-    'SEP(land)', 'SEP(sea)', 'TMG', 'MEP(land)', 'MEP(sea)',
-    'SET(land)', 'SET(sea)', 'Type Rating', 'IR(A)', 'IR(H)', 'BIR(A)',
-    'Night Rating', 'Aerobatic Rating', 'Sailplane Towing Rating',
+    'SEP(land)', 'SEP(sea)', 'MEP(land)', 'MEP(sea)',
+    'SET(land)', 'SET(sea)', 'Type Rating', 'IR(A)', 'BIR(A)',
+    'Night Rating', 'Aerobatic Rating',
     'Banner Towing Rating', 'Mountain Rating', 'Flight Test Rating',
   ],
   'Instructor Certificate': [
-    'FI(A)', 'FI(H)', 'FI(S)', 'FI(B)', 'CRI(A)', 'IRI(A)', 'IRI(H)',
-    'TRI(A)', 'TRI(H)', 'SFI(A)', 'SFI(H)', 'MCCI(A)', 'MCCI(H)',
-    'STI(A)', 'STI(H)', 'MI',
+    'FI(A)', 'CRI(A)', 'IRI(A)', 'TRI(A)', 'SFI(A)',
+    'MCCI(A)', 'STI(A)', 'MI',
   ],
   'Examiner Certificate': [
-    'FE(A)', 'FE(H)', 'FE(S)', 'FE(B)', 'FIE(A)', 'FIE(H)', 'CRE(A)',
-    'IRE(A)', 'IRE(H)', 'TRE(A)', 'TRE(H)', 'SFE(A)', 'SFE(H)',
+    'FE(A)', 'FIE(A)', 'CRE(A)', 'IRE(A)', 'TRE(A)', 'SFE(A)',
   ],
   Medical: ['Class 1', 'Class 2', 'LAPL Medical'],
   'Language Proficiency': [

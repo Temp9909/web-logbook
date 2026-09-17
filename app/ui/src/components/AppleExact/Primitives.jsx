@@ -26,7 +26,7 @@ export const Card = ({ title, subtitle, actions, children, className = '' }) => 
   </section>
 );
 
-export const Field = ({ label, value = '', onChange, type = 'text', placeholder = '', disabled = false, readOnly = false, min, max, step, className = '', list, name }) => (
+export const Field = ({ label, value = '', onChange, onBlur, onKeyDown, type = 'text', placeholder = '', disabled = false, readOnly = false, min, max, step, className = '', list, name }) => (
   <label className={`field ${className}`.trim()}>
     {label ? <span>{label}</span> : null}
     <input
@@ -35,6 +35,8 @@ export const Field = ({ label, value = '', onChange, type = 'text', placeholder 
       value={value ?? ''}
       name={name}
       onChange={(e) => onChange?.(e.target.value, e)}
+      onBlur={(e) => onBlur?.(e.target.value, e)}
+      onKeyDown={(e) => onKeyDown?.(e)}
       placeholder={placeholder}
       disabled={disabled}
       readOnly={readOnly}
@@ -237,14 +239,19 @@ export const Search = ({ value, onChange, placeholder = 'Search…' }) => (
   <div className="search"><span aria-hidden="true">⌕</span><input value={value} onChange={(e) => onChange?.(e.target.value)} placeholder={placeholder} /></div>
 );
 
-export const Modal = ({ open, title, children, onClose, actions, width = 680 }) => {
+export const Modal = ({ open, title, children, onClose, actions, width = 680, showCloseButton = false, hideActions = false }) => {
   if (!open) return null;
   return (
     <div className="modal-backdrop show" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose?.(); }}>
       <div className="modal" role="dialog" aria-modal="true" aria-label={title} style={{ maxWidth: width }}>
-        <div className="modal-head">{title}</div>
+        <div className="modal-head">
+          <span>{title}</span>
+          {showCloseButton ? (
+            <button className="modal-close-button" type="button" onClick={onClose} aria-label="Close">×</button>
+          ) : null}
+        </div>
         <div className="modal-body">{children}</div>
-        <div className="modal-actions">{actions || <button className="btn" onClick={onClose}>Close</button>}</div>
+        {!hideActions ? <div className="modal-actions">{actions || <button className="btn" onClick={onClose}>Close</button>}</div> : null}
       </div>
     </div>
   );

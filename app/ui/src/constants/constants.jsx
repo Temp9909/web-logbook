@@ -57,8 +57,8 @@ export const LICENSE_INITIAL_STATE = {
   name: "",
   number: "",
   issued: dayjs().format('DD/MM/YYYY'),
-  valid_from: dayjs().format('DD/MM/YYYY'),
-  valid_until: dayjs().format('DD/MM/YYYY'),
+  valid_from: '',
+  valid_until: '',
   document_name: "",
   document: "",
   remarks: ""
