@@ -24,6 +24,16 @@ export const durationToMinutes = (value) => {
   return (Number(match[1]) * 60) + Number(match[2]);
 };
 
+export const formatQuickFillLabel = (totalMinutes) => {
+  const minutes = Number(totalMinutes);
+  if (!Number.isFinite(minutes) || minutes <= 0) return '';
+  const rounded = Math.floor(minutes);
+  if (rounded < 60) return `+${rounded}`;
+  const hours = Math.floor(rounded / 60);
+  const remainder = rounded % 60;
+  return `+${String(hours).padStart(2, '0')}${String(remainder).padStart(2, '0')}`;
+};
+
 const ROLE_FIELD = {
   PIC: 'pic_time',
   Dual: 'dual_time',

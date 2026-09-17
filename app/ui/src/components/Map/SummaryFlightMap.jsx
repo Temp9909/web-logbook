@@ -55,7 +55,7 @@ export const SummaryFlightMap = () => {
             <SelectField label="Aircraft" value={aircraft} onChange={setAircraft} options={[{value:'all',label:'All aircraft'},...aircrafts.map(v=>({value:v,label:v}))]} />
           </div>
           <div className="card rows" style={{borderRadius:10,marginTop:12}}>
-            <SwitchRow label="Show airport IDs" checked={options?.airport?.ids !== false} onChange={(v)=>updateOption('airport',v)} />
+            <SwitchRow label="Show airport pins" checked={options?.airport?.ids !== false} onChange={(v)=>updateOption('airport',v)} />
             <SwitchRow label="Show route lines" checked={options?.routes?.enabled !== false} onChange={(v)=>updateOption('routes',v)} />
             <SwitchRow label="Show recorded tracks" checked={options?.tracks?.enabled !== false} onChange={(v)=>updateOption('tracks',v)} />
           </div>

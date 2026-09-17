@@ -141,6 +141,7 @@ const formatTimeTotals = (totals) => ({
 });
 
 export const getStats = (data, airportsMap) => {
+  data = Array.isArray(data) ? data.filter(Boolean) : [];
   const sets = {
     airports: new Set(),
     routes: new Set(),
@@ -188,6 +189,8 @@ export const getStats = (data, airportsMap) => {
 };
 
 export const getTotalsByMonthAndYear = (flights, customFields = []) => {
+  flights = Array.isArray(flights) ? flights.filter(Boolean) : [];
+  customFields = Array.isArray(customFields) ? customFields.filter(Boolean) : [];
   const totals = flights.reduce((acc, flight) => {
     const [, month, year] = flight.date.split('/');
     const key = `${year}-${month}`;
@@ -214,12 +217,18 @@ export const getTotalsByMonthAndYear = (flights, customFields = []) => {
 };
 
 export const getTotalsByAircraft = (flights, type, models, aircrafts, customFields, allCategories = []) => {
-  if (!customFields) customFields = [];
-  if (!flights) flights = [];
+  flights = Array.isArray(flights) ? flights : [];
+  models = Array.isArray(models) ? models : [];
+  aircrafts = Array.isArray(aircrafts) ? aircrafts : [];
+  customFields = Array.isArray(customFields) ? customFields : [];
+  allCategories = Array.isArray(allCategories) ? allCategories : [];
 
   const modelCategories = type === "category" ?
-    models.reduce((acc, { model, category }) => {
-      acc[model] = String(category || '').split(',').map(c => c.trim()).filter(Boolean);
+    models.reduce((acc, row) => {
+      if (!row) return acc;
+      const model = row.model;
+      const category = row.category;
+      if (model) acc[model] = String(category || '').split(',').map(c => c.trim()).filter(Boolean);
       return acc;
     }, {}) : {};
 
@@ -227,10 +236,10 @@ export const getTotalsByAircraft = (flights, type, models, aircrafts, customFiel
     ? new Set(Object.values(modelCategories).flat())
     : new Set();
 
-  const aircraftMap = aircrafts?.reduce((acc, a) => {
-    acc[a.reg] = a;
+  const aircraftMap = aircrafts.reduce((acc, a) => {
+    if (a?.reg) acc[a.reg] = a;
     return acc;
-  }, {}) ?? {};
+  }, {});
 
   const createGroupTotals = (key) => {
     const group = createInitialTotals({ model: key });
@@ -259,9 +268,10 @@ export const getTotalsByAircraft = (flights, type, models, aircrafts, customFiel
     });
   }
 
-  const totals = flights.reduce((acc, flight) => {
-    const aircraftType = flight.aircraft.model;
-    const aircraftReg = flight.aircraft.reg_name;
+  const totals = flights.filter(Boolean).reduce((acc, flight) => {
+    const flightAircraft = flight?.aircraft || {};
+    const aircraftType = flightAircraft.model;
+    const aircraftReg = flightAircraft.reg_name;
 
     let keys;
     const ac = aircraftMap[aircraftReg];
@@ -299,7 +309,8 @@ export const getTotalsByAircraft = (flights, type, models, aircrafts, customFiel
       }
     }
 
-    keys.forEach(key => {
+    const safeKeys = Array.isArray(keys) ? keys.filter(Boolean) : [];
+    safeKeys.forEach((key) => {
       if (!acc[key]) {
         acc[key] = createGroupTotals(key);
       }

@@ -12,7 +12,7 @@ import FlightAttachments from '../FlightRecordAttachment/Attachments';
 import { Card, ComboField, Field, Loading, PageHead, SelectField, TextArea, TimeSelectField, fromInputDate, personName, setNested, toInputDate } from '../AppleExact/Primitives';
 import { DEFAULT_CATEGORIES, splitCategories } from '../Aircrafts/aircraftCategories';
 import NewAircraftModal from '../Aircrafts/NewAircraftModal';
-import { applyAutomaticFlightTimes, calculateFlightDuration, durationToMinutes } from './flightTime';
+import { applyAutomaticFlightTimes, calculateFlightDuration, durationToMinutes, formatQuickFillLabel } from './flightTime';
 
 const timeFields = [
   ['time.se_time','SE'],['time.me_time','ME'],['time.mcc_time','Multi-pilot'],
@@ -225,7 +225,7 @@ export const FlightRecord = () => {
   }, [activeAutoFill, computedTotalTime, selectedRole]);
 
   const totalMinutes = useMemo(() => durationToMinutes(flight.time?.total_time), [flight.time?.total_time]);
-  const quickFillLabel = totalMinutes > 0 ? `+${totalMinutes}` : '';
+  const quickFillLabel = formatQuickFillLabel(totalMinutes);
 
   const saveMutation = useMutation({
     mutationFn: async () => {

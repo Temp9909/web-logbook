@@ -2,22 +2,17 @@ import Feature from 'ol/Feature';
 import Stroke from 'ol/style/Stroke';
 import Point from 'ol/geom/Point';
 import LineString from 'ol/geom/LineString';
-import { Style, Icon, Text, Fill } from 'ol/style';
+import { Style, Icon } from 'ol/style';
 import { transform } from 'ol/proj';
 import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
-
-import icon1 from "../../assets/favicon.ico";
-import icon2 from "../../assets/map-pin.png";
-import icon3 from "../../assets/map-pin2.png";
 import { XYZ } from 'ol/source';
 
 export const MAP_OPTIONS_NAME = "map-advanced-options";
-export const MAP_ICONS = [
-  { src: icon1, displacement: [0, 0], textOffsetY: -12, textOffsetX: 0 },
-  { src: icon2, displacement: [0, 14], textOffsetY: -32, textOffsetX: 0 },
-  { src: icon3, displacement: [0, 14], textOffsetY: -36, textOffsetX: 0 },
-];
+
+// Kept as a stable export for older callers/settings. The map now uses one
+// consistent blue airport pin so ICAO labels never clutter the basemap.
+export const MAP_ICONS = [];
 
 export const DEFAULT_MAP_OPTIONS = {
   routes: {
@@ -36,6 +31,13 @@ export const DEFAULT_MAP_OPTIONS = {
   },
   map_base: 0,
 }
+
+const AIRPORT_PIN_SRC = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+    <path d="M14 1.5C7.1 1.5 1.5 7.1 1.5 14c0 9.6 12.5 20.5 12.5 20.5S26.5 23.6 26.5 14C26.5 7.1 20.9 1.5 14 1.5Z" fill="#FF3B30" stroke="white" stroke-width="2"/>
+    <circle cx="14" cy="14" r="4.5" fill="white"/>
+  </svg>
+`)}`;
 
 const createGreatCircleLine = (start, end, segments = 64) => {
   const lon1 = start.lon * Math.PI / 180
@@ -80,44 +82,38 @@ export const drawTrackLog = (flightTrack, vectorSource, flightId, color, width) 
 }
 
 export const addMarker = (features, airport, options) => {
-  /**
-   * Code string for an airport based on its IATA and ICAO codes.
-   * If the airport has both IATA and ICAO codes and they are different, 
-   * the code will be in the format "ICAO/IATA". Otherwise, it will just be the ICAO code.
-   */
   const code = airport.icao || airport.iata;
+  if (!code) return;
 
-  const icon = options.airport.icon || 0;
-
-  // Check if marker already exists
+  // Check if marker already exists.
   const exists = features.find(f => f.get('code') === code);
   if (exists) return;
 
   const feature = new Feature({
     geometry: new Point([airport.lon, airport.lat]).transform('EPSG:4326', 'EPSG:3857'),
-    code: code,
+    code,
+    icao: airport.icao || '',
     name: airport.name,
     country: airport.country,
     city: airport.city,
     elevation: airport.elevation,
     coordinates: `${airport.lat}, ${airport.lon}`,
+    type: 'airport',
   });
 
-  feature.setStyle(
-    new Style({
-      image: options.airport.ids ? undefined : new Icon({ ...MAP_ICONS[icon] }),
-      text: options.airport.ids ? new Text({
-        text: `📍 ${code}`,
-        offsetY: -18,
-        offsetX: 0,
-        font: '700 13px -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif',
-        fill: new Fill({ color: '#111111' }),
-        backgroundFill: new Fill({ color: 'rgba(255,255,255,0.96)' }),
-        backgroundStroke: new Stroke({ color: 'rgba(0,0,0,0.10)', width: 1 }),
-        padding: [3, 7, 3, 7],
-      }) : null,
-    }),
-  );
+  if (options?.airport?.ids === false) {
+    feature.setStyle(new Style({}));
+  } else {
+    feature.setStyle(new Style({
+      image: new Icon({
+        src: AIRPORT_PIN_SRC,
+        anchor: [0.5, 1],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+        scale: 0.82,
+      }),
+    }));
+  }
 
   features.push(feature);
 }
@@ -144,9 +140,6 @@ const makeMapboxLayer = (styleId) => {
 };
 
 export const getMapBase = (index) => {
-  // Use the real Mapbox basemap whenever a public Vite token is configured.
-  // OpenLayers stays as the rendering engine, which avoids the previous
-  // mapbox-gl dependency/build issue while still using Mapbox map tiles.
   if (MAPBOX_TOKEN) {
     switch (index) {
       case 1:
@@ -159,7 +152,6 @@ export const getMapBase = (index) => {
     }
   }
 
-  // Safe fallback when no token is configured.
   switch (index) {
     case 1:
       return new TileLayer({
@@ -184,4 +176,3 @@ export const getMapBase = (index) => {
       return new TileLayer({ source: new OSM() });
   }
 };
-

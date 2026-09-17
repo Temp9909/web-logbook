@@ -195,6 +195,7 @@ export const Filters = ({ data, callbackFunction, quickSelect = defaultQuickSele
         value={filter.aircraft_category}
         disableClearable={false}
         options="all"
+        excludeOptions={["IFR"]}
       />
       <FlightTags
         gsize={{ xs: 6, sm: 6, md: 12, lg: 12, xl: 12 }}

@@ -31,6 +31,7 @@ export const AircraftCategories = ({
   options = "models",
   value,
   handleChange,
+  excludeOptions = [],
   ...props
 }) => {
 
@@ -51,16 +52,20 @@ export const AircraftCategories = ({
   });
 
   const selectOptions = useMemo(() => {
-    if (options === "models") return modelCategoriesOptions ?? [];
-    if (options === "custom") return aircraftCategoriesOptions ?? [];
-    if (options === "all")
-      return Array.from(new Set([
+    let values = [];
+    if (options === "models") values = modelCategoriesOptions ?? [];
+    else if (options === "custom") values = aircraftCategoriesOptions ?? [];
+    else if (options === "all")
+      values = Array.from(new Set([
         ...DEFAULT_CATEGORIES,
         ...(modelCategoriesOptions ?? []),
         ...(aircraftCategoriesOptions ?? [])
       ])).sort((a, b) => a.localeCompare(b));
-    return [];
-  }, [options, modelCategoriesOptions, aircraftCategoriesOptions]);
+
+    const excluded = new Set((Array.isArray(excludeOptions) ? excludeOptions : [])
+      .map((value) => String(value || '').trim().toLocaleUpperCase()));
+    return values.filter((value) => !excluded.has(String(value || '').trim().toLocaleUpperCase()));
+  }, [options, modelCategoriesOptions, aircraftCategoriesOptions, excludeOptions]);
 
   return (
     <Select gsize={gsize}

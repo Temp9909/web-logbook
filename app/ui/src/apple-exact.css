@@ -2978,3 +2978,23 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   color:#007AFC !important;
   stroke:#007AFC !important;
 }
+
+/* Airport map markers — pins only. ICAO appears only while hovering a pin. */
+.apple-map-airport-tooltip {
+  display:none;
+  pointer-events:none;
+  white-space:nowrap;
+  padding:4px 8px;
+  border-radius:999px;
+  background:rgba(27, 31, 39, .90);
+  color:#FFFFFF;
+  font-family:"Open Sans", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  font-size:12px;
+  line-height:16px;
+  font-weight:600;
+  letter-spacing:.02em;
+  box-shadow:0 3px 10px rgba(0,0,0,.20);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+}
+.apple-map-airport-tooltip.is-open { display:block; }

@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-// css
 import 'ol/ol.css';
-// openlayers
 import Map from 'ol/Map';
 import View from 'ol/View';
 import VectorLayer from 'ol/layer/Vector';
@@ -9,8 +7,6 @@ import VectorSource from 'ol/source/Vector';
 import FullScreen from 'ol/control/FullScreen';
 import Overlay from 'ol/Overlay';
 import { transform } from 'ol/proj';
-// MUI UI elements
-// Custom components and libraries
 import ApplePanel from '../UIElements/ApplePanel';
 import { queryClient } from '../../util/http/http';
 import { fetchAirport } from '../../util/http/airport';
@@ -23,26 +19,19 @@ import { CODEC_JSON, useLocalStorageState } from '../../hooks/useLocalStorageSta
 const getAirportData = async (id, airportsMap) => {
   if (airportsMap) {
     const airport = airportsMap.get(id);
-    if (airport) {
-      return airport;
-    }
+    if (airport) return airport;
   }
 
   try {
-    // Check cache first
     const cachedData = queryClient.getQueryData(["airports", id]);
-    if (cachedData) {
-      return cachedData;
-    }
+    if (cachedData) return cachedData;
 
-    const response = await queryClient.fetchQuery({
+    return await queryClient.fetchQuery({
       queryKey: ["airports", id],
       queryFn: ({ signal }) => fetchAirport({ signal, id }),
-      staleTime: 86400000, // 24 hours
-      gcTime: 86400000, // 24 hours
+      staleTime: 86400000,
+      gcTime: 86400000,
     });
-
-    return response;
   } catch {
     return null;
   }
@@ -53,25 +42,25 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedde
   const options = optionsOverride || storedOptions;
 
   const mapRef = useRef(null);
-  const containerRef = useRef(null);
-
-  // OpenLayers persistent objects
-  const mapRefInstance = useRef(null);
+  const hoverTooltipRef = useRef(null);
+  const hoverOverlayRef = useRef(null);
   const vectorSourceRef = useRef(new VectorSource());
-  const overlayRef = useRef(null);
 
   const customFieldsHook = useCustomFields() || {};
-
   const [map, setMap] = useState(null);
   const [distance, setDistance] = useState(0);
-  const [selectedFeature, setSelectedFeature] = useState(null);
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || !hoverTooltipRef.current) return;
 
-    overlayRef.current = new Overlay({ element: containerRef.current });
+    hoverOverlayRef.current = new Overlay({
+      element: hoverTooltipRef.current,
+      offset: [0, -29],
+      positioning: 'bottom-center',
+      stopEvent: false,
+    });
+
     const vectorLayer = new VectorLayer({ source: vectorSourceRef.current });
-
     const mapLayer = getMapBase(options.map_base);
 
     const mapInstance = new Map({
@@ -82,39 +71,63 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedde
         zoom: 4,
       }),
       controls: [new FullScreen()],
-      overlays: [overlayRef.current],
+      overlays: [hoverOverlayRef.current],
     });
 
-    mapInstance.on("singleclick", (evt) => {
-      const feature = mapInstance.forEachFeatureAtPixel(evt.pixel, (f) => f);
-
-      if (feature && feature.get("name")) {
-        setSelectedFeature({
-          coordinate: evt.coordinate,
-          code: feature.get("code"),
-          name: feature.get("name"),
-          country: feature.get("country"),
-          city: feature.get("city"),
-          elevation: feature.get("elevation"),
-          coordinates: feature.get("coordinates"),
-        });
-
-        overlayRef.current.setPosition(evt.coordinate);
-      } else {
-        setSelectedFeature(null);
-        overlayRef.current.setPosition(undefined);
+    const hideAirportTooltip = () => {
+      hoverOverlayRef.current?.setPosition(undefined);
+      if (hoverTooltipRef.current) {
+        hoverTooltipRef.current.textContent = '';
+        hoverTooltipRef.current.classList.remove('is-open');
       }
+      const target = mapInstance.getTargetElement();
+      if (target) target.style.cursor = '';
+    };
+
+    mapInstance.on('pointermove', (evt) => {
+      if (evt.dragging) {
+        hideAirportTooltip();
+        return;
+      }
+
+      const feature = mapInstance.forEachFeatureAtPixel(
+        evt.pixel,
+        (candidate) => candidate?.get('type') === 'airport' ? candidate : null,
+        { hitTolerance: 5 },
+      );
+
+      if (!feature || options?.airport?.ids === false) {
+        hideAirportTooltip();
+        return;
+      }
+
+      const code = feature.get('icao') || feature.get('code');
+      if (!code) {
+        hideAirportTooltip();
+        return;
+      }
+
+      if (hoverTooltipRef.current) {
+        hoverTooltipRef.current.textContent = code;
+        hoverTooltipRef.current.classList.add('is-open');
+      }
+      hoverOverlayRef.current?.setPosition(feature.getGeometry().getCoordinates());
+      const target = mapInstance.getTargetElement();
+      if (target) target.style.cursor = 'pointer';
     });
 
-    mapRefInstance.current = mapInstance;
+    const viewport = mapInstance.getViewport();
+    viewport.addEventListener('mouseleave', hideAirportTooltip);
+
     setMap(mapInstance);
 
     return () => {
+      viewport.removeEventListener('mouseleave', hideAirportTooltip);
       mapInstance.setTarget(null);
-      mapRefInstance.current = null;
+      hoverOverlayRef.current = null;
       setMap(null);
     };
-  }, [options.map_base]);
+  }, [options.map_base, options?.airport?.ids]);
 
   useEffect(() => {
     if (!map || !data) return;
@@ -127,7 +140,6 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedde
 
       const features = [];
       let totalDistance = 0;
-
       const getEnroute = customFieldsHook.getEnroute || (() => []);
 
       const airportPromises = data.map(async (flight) => {
@@ -171,7 +183,6 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedde
         }
 
         totalDistance += flight.distance;
-
         return { departure, arrival };
       });
 
@@ -192,49 +203,23 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedde
     };
 
     updateMapData();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [map, data, options, airportsMap, customFieldsHook.getEnroute]);
-
-  const handleClosePopup = (e) => {
-    e?.preventDefault();
-    setSelectedFeature(null);
-    overlayRef.current?.setPosition(undefined);
-  };
 
   if (!data) return null;
 
   const mapCanvas = (
     <div className="apple-map-canvas-wrap" style={sx}>
       <div ref={mapRef} className="apple-map-canvas" />
+      <div ref={hoverTooltipRef} className="apple-map-airport-tooltip" aria-hidden="true" />
       {distance > 0 && <div className="apple-map-distance">{`Distance: ${distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} NM / ${(distance * 1.852).toLocaleString(undefined, { maximumFractionDigits: 2 })} km`}</div>}
     </div>
   );
 
-  return (
-    <>
-      {embedded ? mapCanvas : (
-        <ApplePanel className="apple-map-panel" title={title} actions={<><DownloadMapButton map={map} /><MapOptionsButton /></>}>
-          {mapCanvas}
-        </ApplePanel>
-      )}
-
-      <div ref={containerRef} className={`apple-map-popup card${selectedFeature ? ' is-open' : ''}`}>
-        <a href="#" id="popup-closer" onClick={handleClosePopup} aria-label="Close airport details"></a>
-        {selectedFeature && (
-          <div id="popup-content" className="apple-map-popup-content">
-            <div className="apple-map-popup-title">{selectedFeature.code}</div>
-            <div><strong>Name:</strong> {selectedFeature.name}</div>
-            <div><strong>Country:</strong> {selectedFeature.country}</div>
-            <div><strong>City:</strong> {selectedFeature.city}</div>
-            <div><strong>Elevation:</strong> {selectedFeature.elevation}</div>
-            <div><strong>Lat/Lon:</strong> {selectedFeature.coordinates}</div>
-          </div>
-        )}
-      </div>
-    </>
+  return embedded ? mapCanvas : (
+    <ApplePanel className="apple-map-panel" title={title} actions={<><DownloadMapButton map={map} /><MapOptionsButton /></>}>
+      {mapCanvas}
+    </ApplePanel>
   );
 };
 

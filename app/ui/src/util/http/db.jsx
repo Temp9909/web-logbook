@@ -29,3 +29,12 @@ export const downloadDBFile = async () => {
   };
   return await handleFetch(url, options, 'Cannot download database', false);
 }
+
+export const deleteLogbookData = async () => {
+  const url = `${API_URL}/db/logbook-data`;
+  const options = {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${getAuthToken()}` },
+  };
+  return await handleFetch(url, options, 'Cannot delete logbook data');
+}

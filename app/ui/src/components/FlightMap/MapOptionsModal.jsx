@@ -16,7 +16,7 @@ import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
-import { DEFAULT_MAP_OPTIONS, MAP_ICONS, MAP_OPTIONS_NAME } from './helpers';
+import { DEFAULT_MAP_OPTIONS, MAP_OPTIONS_NAME } from './helpers';
 
 const CloseDialogButton = ({ onClose }) => {
   return (
@@ -97,7 +97,7 @@ export const MapOptionsModal = ({ open, onClose }) => {
     <Dialog fullWidth open={open} onClose={() => onClose()}>
       <AppleDialogPanel
         title="Map options"
-        subtitle="Routes, tracks, airport labels and map appearance."
+        subtitle="Routes, tracks, airport pins and map appearance."
         actions={<CloseDialogButton onClose={onClose} />}
       >
           <Grid container spacing={1} alignItems="center">
@@ -114,37 +114,15 @@ export const MapOptionsModal = ({ open, onClose }) => {
           </Grid>
           <Divider sx={{ m: 1 }} />
           <Grid container>
-            <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
+            <Grid size={{ xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }}>
               <FormControlLabel sx={{ m: 0 }}
-                label={"Airport Codes"}
+                label={"Airport Pins"}
                 control={
                   <Switch
-                    checked={options?.airport?.ids ?? false}
+                    checked={options?.airport?.ids !== false}
                     onChange={(event) => handleChange("airport.ids", event.target.checked)}
                   />
                 }
-                labelPlacement="start"
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}>
-              <FormControlLabel
-                sx={{ m: 0, width: '100%', display: 'flex', justifyContent: 'space-between' }}
-                control={
-                  <ToggleButtonGroup
-                    size="small"
-                    sx={{ ml: 1 }}
-                    value={parseInt(options?.airport?.icon) || 0}
-                    onChange={(_, value) => handleChange('airport.icon', parseInt(value))}
-                    exclusive
-                  >
-                    {MAP_ICONS.map((icon, index) => (
-                      <ToggleButton key={index} value={index}>
-                        <img src={icon.src} style={{ width: 20, height: 20 }} />
-                      </ToggleButton>
-                    ))}
-                  </ToggleButtonGroup>
-                }
-                label="Airport Icon"
                 labelPlacement="start"
               />
             </Grid>

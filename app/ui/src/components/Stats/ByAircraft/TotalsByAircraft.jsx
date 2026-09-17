@@ -36,9 +36,11 @@ export const TotalsByAircraft = ({ type }) => {
 
   const allCategories = useMemo(() => {
     if (type !== 'category') return [];
+    const safeModels = Array.isArray(models) ? models : [];
+    const safeAircrafts = Array.isArray(aircrafts) ? aircrafts : [];
     const values = [...DEFAULT_CATEGORIES];
-    models.forEach((row) => values.push(...splitCategories(row?.category)));
-    aircrafts.forEach((row) => {
+    safeModels.forEach((row) => values.push(...splitCategories(row?.category)));
+    safeAircrafts.forEach((row) => {
       values.push(...splitCategories(row?.category));
       values.push(...splitCategories(row?.model_category));
       values.push(...splitCategories(row?.custom_category));
@@ -47,7 +49,8 @@ export const TotalsByAircraft = ({ type }) => {
   }, [type, models, aircrafts]);
 
   const totalsData = useMemo(() => {
-    const rows = getTotalsByAircraft(flights, type, models, aircrafts, customFields, allCategories);
+    const result = getTotalsByAircraft(flights, type, models, aircrafts, customFields, allCategories);
+    const rows = Array.isArray(result) ? result : [];
     if (type !== 'category') return rows;
     return rows.filter((row) => String(row?.model || '').trim().toLocaleUpperCase() !== 'IFR');
   }, [flights, type, models, aircrafts, customFields, allCategories]);

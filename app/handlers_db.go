@@ -86,3 +86,11 @@ func (app *application) HandlerApiDownloadDB(w http.ResponseWriter, r *http.Requ
 		return
 	}
 }
+
+func (app *application) HandlerApiDeleteLogbookData(w http.ResponseWriter, r *http.Request) {
+	if err := app.db.DeleteLogbookData(); err != nil {
+		app.handleError(w, err)
+		return
+	}
+	app.writeJSON(w, http.StatusOK, "Logbook data deleted")
+}

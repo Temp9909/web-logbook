@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyAutomaticFlightTimes, calculateFlightDuration, durationToMinutes } from './flightTime';
+import { applyAutomaticFlightTimes, calculateFlightDuration, durationToMinutes, formatQuickFillLabel } from './flightTime';
 
 describe('flight time helpers', () => {
   it('calculates a same-day duration', () => {
@@ -20,6 +20,13 @@ describe('flight time helpers', () => {
 
   it('converts a duration to quick-fill minutes', () => {
     expect(durationToMinutes('1:26')).toBe(86);
+  });
+
+  it('formats quick-fill labels as minutes below one hour and HHMM at one hour or more', () => {
+    expect(formatQuickFillLabel(40)).toBe('+40');
+    expect(formatQuickFillLabel(60)).toBe('+0100');
+    expect(formatQuickFillLabel(72)).toBe('+0112');
+    expect(formatQuickFillLabel(125)).toBe('+0205');
   });
 
   it('fills the selected role and aircraft category rules', () => {

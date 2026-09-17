@@ -8,7 +8,7 @@ import { useDialogs } from '../../hooks/useDialogs/useDialogs';
 import { createCustomField, deleteCustomField, updateCustomField } from '../../util/http/fields';
 import { updateSettings, updateSignature } from '../../util/http/settings';
 import { queryClient } from '../../util/http/http';
-import { downloadDBFile, uploadDBFile } from '../../util/http/db';
+import { deleteLogbookData, downloadDBFile, uploadDBFile } from '../../util/http/db';
 import { CUSTOM_FIELD_INITIAL_STATE } from '../../constants/constants';
 import { Card, Field, Loading, Modal, NativeTable, PageHead, SelectField, SwitchRow, TextArea, setNested } from '../AppleExact/Primitives';
 import Airports from '../Airports/Airports';
@@ -155,6 +155,7 @@ export const Settings=()=>{
   const changeSwitchColor=useCallback((value)=>{change('switch_color',value);if(/^#[0-9a-f]{6}$/i.test(value))document.documentElement.style.setProperty('--switch-on-color',value);else document.documentElement.style.removeProperty('--switch-on-color')},[change]);
   const downloadDb=useMutation({mutationFn:downloadDBFile,onSuccess:(blob)=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='web-logbook.sql';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}});
   const uploadDb=useMutation({mutationFn:(form)=>uploadDBFile({payload:form}),onSuccess:()=>queryClient.invalidateQueries()});
+  const deleteLogbook=useMutation({mutationFn:deleteLogbookData,onSuccess:async()=>{queryClient.setQueryData(['logbook'],[]);await queryClient.invalidateQueries();}});
   const saveField=useMutation({mutationFn:()=>field.uuid==='new'?createCustomField({field}):updateCustomField({field}),onSuccess:async()=>{await queryClient.invalidateQueries({queryKey:['custom-fields']});setField(null)}});
   const removeField=useMutation({mutationFn:(uuid)=>deleteCustomField({uuid}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['custom-fields']})});
   const confirmDeleteField=useCallback(async(row)=>{
@@ -173,6 +174,10 @@ export const Settings=()=>{
     if(!confirmed)return;
     const form=new FormData();form.append('dbfile',file);uploadDb.mutate(form);
   },[dialogs,uploadDb]);
+  const confirmDeleteLogbook=useCallback(async()=>{
+    const confirmed=await dialogs.confirm('This permanently deletes all flight records and their attachments. Aircraft, persons, licences and settings are kept. Would you like to continue?',{title:'Delete logbook data',severity:'error'});
+    if(confirmed)deleteLogbook.mutate();
+  },[dialogs,deleteLogbook]);
   const tabs=[['general','General'],['previous','Previous flight experience'],['signature','Logbook signature'],['standard','Standard fields'],['custom','Custom fields'],['airports','Airports']];
   return <section className="exact-react-page">
     <PageHead title="Settings" subtitle="Configure your logbook, fields, signature, airports and previous experience." />
@@ -198,7 +203,7 @@ export const Settings=()=>{
         <div className="card rows" style={{borderRadius:10}}><SwitchRow label="Enable authentication" checked={Boolean(settings.auth_enabled)} onChange={v=>{change('auth_enabled',v);if(v&&!settings.secret_key){const a=new Uint8Array(32);crypto.getRandomValues(a);change('secret_key',btoa(String.fromCharCode.apply(null,a)))}}}/></div>
         <div className="form-grid two" style={{marginTop:12}}><Field label="Login" value={settings.login||''} disabled={!settings.auth_enabled} onChange={v=>change('login',v)}/><Field label="Password" type="password" value={settings.password||''} disabled={!settings.auth_enabled} onChange={v=>change('password',v)}/><Field label="Secret key" value={settings.secret_key||''} disabled={!settings.auth_enabled} onChange={v=>change('secret_key',v)}/><SelectField label="Time fields autoformat" value={String(settings.time_fields_auto_format??0)} onChange={v=>change('time_fields_auto_format',Number(v))} options={[{value:'0',label:'None'},{value:'1',label:'HH:MM'},{value:'2',label:'H:MM'}]}/><SelectField label="Logbook totals view" value={String(settings.logbook_totals_view??0)} onChange={v=>change('logbook_totals_view',Number(v))} options={[{value:'0',label:'Standard'},{value:'1',label:'Paper Logbook'}]}/></div>
         <div className="section-label" style={{marginTop:15}}>Data</div>
-        <div className="card rows" style={{borderRadius:10}}><div className="setting-row"><div><div className="lbl">Download database</div><div className="sub">Create a local backup of the current database.</div></div><span className="spacer"/><button className="btn small" disabled={downloadDb.isPending} onClick={()=>downloadDb.mutate()}>{downloadDb.isPending?'Preparing…':'Download'}</button></div><div className="setting-row"><div><div className="lbl">Upload database</div><div className="sub exact-warning">Replaces the current database. Make a backup first.</div></div><span className="spacer"/><input ref={dbFileRef} hidden type="file" onChange={handleDbUpload}/><button className="btn danger small" disabled={uploadDb.isPending} onClick={()=>dbFileRef.current?.click()}>{uploadDb.isPending?'Uploading…':'Upload'}</button></div></div>
+        <div className="card rows" style={{borderRadius:10}}><div className="setting-row"><div><div className="lbl">Download database</div><div className="sub">Create a local backup of the current database.</div></div><span className="spacer"/><button className="btn small" disabled={downloadDb.isPending} onClick={()=>downloadDb.mutate()}>{downloadDb.isPending?'Preparing…':'Download'}</button></div><div className="setting-row"><div><div className="lbl">Upload database</div><div className="sub exact-warning">Replaces the current database. Make a backup first.</div></div><span className="spacer"/><input ref={dbFileRef} hidden type="file" onChange={handleDbUpload}/><button className="btn danger small" disabled={uploadDb.isPending} onClick={()=>dbFileRef.current?.click()}>{uploadDb.isPending?'Uploading…':'Upload'}</button></div><div className="setting-row"><div><div className="lbl">Delete logbook data</div><div className="sub exact-warning">Permanently deletes all flight records and their attachments. Settings, aircraft, persons and licences are kept.</div></div><span className="spacer"/><button className="btn danger small" disabled={deleteLogbook.isPending} onClick={confirmDeleteLogbook}>{deleteLogbook.isPending?'Deleting…':'Delete'}</button></div></div>
       </Card>
     </div>:null}
 

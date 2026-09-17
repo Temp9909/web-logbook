@@ -164,6 +164,7 @@ func (app *application) routes() *chi.Mux {
 			r.Get("/filename", app.HandlerApiDBFile)
 			r.Post("/upload-db", app.HandlerApiUploadDB)
 			r.Get("/download-db", app.HandlerApiDownloadDB)
+			r.Delete("/logbook-data", app.HandlerApiDeleteLogbookData)
 		})
 
 		// logout
