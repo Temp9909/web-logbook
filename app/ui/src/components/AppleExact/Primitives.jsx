@@ -272,58 +272,103 @@ export const TimeSelectField = ({
 export const ComboField = ({ label, value = '', onChange, options = [], disabled = false, className = '', placeholder = '', id }) => {
   const generatedId = useId();
   const inputRef = useRef(null);
-  const normalized = Array.isArray(options) ? options : [];
+  const controlRef = useRef(null);
+  const [open, setOpen] = useState(false);
   const current = String(value ?? '');
-  const listId = `${id || generatedId}-options`;
+  const menuId = `${id || generatedId}-menu`;
 
-  const openOptions = () => {
-    if (disabled) return;
-    const input = inputRef.current;
-    if (!input) return;
-    input.focus();
-    if (typeof input.showPicker === 'function') {
-      try {
-        input.showPicker();
-      } catch {
-        // Browsers without a programmatic datalist picker still show suggestions while typing.
+  const normalized = useMemo(() => {
+    const seen = new Set();
+    return (Array.isArray(options) ? options : []).map((option) => {
+      const optionValue = String(typeof option === 'object' ? option.value : option);
+      const optionLabel = String(typeof option === 'object' ? (option.label ?? option.value) : option);
+      return { value: optionValue, label: optionLabel };
+    }).filter((option) => {
+      if (!option.value || seen.has(option.value)) return false;
+      seen.add(option.value);
+      return true;
+    });
+  }, [options]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onPointerDown = (event) => {
+      if (!controlRef.current?.contains(event.target)) setOpen(false);
+    };
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        inputRef.current?.focus();
       }
-    }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open]);
+
+  const toggleOptions = () => {
+    if (disabled) return;
+    setOpen((currentOpen) => !currentOpen);
+  };
+
+  const selectOption = (optionValue, event) => {
+    onChange?.(optionValue, event);
+    setOpen(false);
+    requestAnimationFrame(() => inputRef.current?.focus());
   };
 
   return (
     <label className={`field exact-combo-field ${className}`.trim()}>
       {label ? <span>{label}</span> : null}
-      <span className="exact-combo-control">
+      <span ref={controlRef} className={`exact-combo-control${open ? ' open' : ''}`}>
         <input
           ref={inputRef}
           id={id}
           className="input exact-combo-input"
-          list={listId}
           value={current}
           onChange={(event) => onChange?.(event.target.value, event)}
           placeholder={placeholder}
           disabled={disabled}
           autoComplete="off"
           aria-label={label || id || 'Selection'}
+          aria-expanded={open}
+          aria-controls={menuId}
+          aria-autocomplete="list"
         />
         <button
           className="exact-combo-picker-button"
           type="button"
-          tabIndex={-1}
+          tabIndex={0}
           disabled={disabled}
-          onClick={openOptions}
+          onClick={toggleOptions}
           aria-label={label ? `Show ${label} options` : 'Show options'}
+          aria-expanded={open}
+          aria-controls={menuId}
         >
-          <span aria-hidden="true">⌄</span>
+          <svg className="exact-combo-chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
+        {open ? (
+          <span id={menuId} className="exact-combo-menu" role="listbox" aria-label={label ? `${label} options` : 'Options'}>
+            {normalized.length ? normalized.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                className={`exact-combo-option${option.value === current ? ' selected' : ''}`}
+                role="option"
+                aria-selected={option.value === current}
+                onClick={(event) => selectOption(option.value, event)}
+              >
+                {option.label}
+              </button>
+            )) : <span className="exact-combo-empty">No saved options</span>}
+          </span>
+        ) : null}
       </span>
-      <datalist id={listId}>
-        {normalized.map((option, index) => {
-          const optionValue = String(typeof option === 'object' ? option.value : option);
-          const optionLabel = String(typeof option === 'object' ? (option.label ?? option.value) : option);
-          return <option key={`${optionValue}-${index}`} value={optionValue}>{optionLabel}</option>;
-        })}
-      </datalist>
     </label>
   );
 };

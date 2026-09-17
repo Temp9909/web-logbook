@@ -2167,12 +2167,19 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .exact-removable-category-chip button:hover{background:rgba(0,0,0,.14)}
 [data-theme="dark"] .exact-removable-category-chip button{background:rgba(255,255,255,.12)}
 [data-theme="dark"] .exact-removable-category-chip button:hover{background:rgba(255,255,255,.2)}
-.exact-combo-control{position:relative;display:flex;align-items:center}
-.exact-combo-input{padding-right:38px}
-.exact-combo-picker-button{position:absolute;right:1px;top:1px;bottom:1px;width:34px;border:0;border-left:1px solid var(--separator);border-radius:0 8px 8px 0;background:transparent;color:var(--secondary);font-size:16px;cursor:pointer}
+.exact-combo-control{position:relative;display:flex;align-items:center;min-width:0}
+.exact-combo-input{padding-right:42px!important}
+.exact-combo-picker-button{position:absolute;right:1px;top:1px;bottom:1px;width:38px;display:flex;align-items:center;justify-content:center;border:0;border-left:1px solid var(--separator);border-radius:0 8px 8px 0;background:transparent;color:var(--secondary);cursor:pointer;z-index:2}
+.exact-combo-chevron{display:block;width:16px;height:16px;flex:0 0 16px;transition:transform .14s ease}
+.exact-combo-control.open .exact-combo-chevron{transform:rotate(180deg)}
 .exact-combo-picker-button:hover:not(:disabled){background:var(--fill);color:var(--label)}
 .exact-combo-picker-button:disabled{cursor:not-allowed;opacity:.45}
 .exact-combo-control:focus-within .exact-combo-picker-button{border-left-color:rgba(0,122,255,.25)}
+.exact-combo-menu{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:2300;display:flex;flex-direction:column;max-height:240px;overflow:auto;padding:5px;background:color-mix(in srgb,var(--paper) 98%,transparent);border:1px solid var(--separator);border-radius:10px;box-shadow:0 12px 34px rgba(0,0,0,.16);-webkit-overflow-scrolling:touch}
+.exact-combo-option{appearance:none;width:100%;min-height:34px;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--label);font:400 14px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;text-align:left;cursor:pointer}
+.exact-combo-option:hover,.exact-combo-option.selected{background:var(--tint-soft);color:var(--blue)}
+.exact-combo-empty{padding:9px 10px;color:var(--secondary);font-size:13px}
+@media(max-width:620px){.exact-combo-picker-button{width:40px}.exact-combo-input{padding-right:44px!important}.exact-combo-menu{max-height:210px}}
 
 /* Apple in-app confirmations — replaces browser-native confirm()/alert() popups. */
 .apple-confirm-backdrop{position:fixed;inset:0;z-index:2200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.26);backdrop-filter:saturate(150%) blur(7px);-webkit-backdrop-filter:saturate(150%) blur(7px);animation:appleConfirmFade .16s ease-out}.apple-confirm-sheet{width:min(390px,calc(100vw - 32px));overflow:hidden;background:color-mix(in srgb,var(--paper) 93%,transparent);border:1px solid var(--separator);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.24);animation:appleConfirmPop .18s cubic-bezier(.2,.8,.2,1)}.apple-confirm-title{padding:20px 22px 7px;text-align:center;color:var(--label);font-size:17px;font-weight:700;letter-spacing:-.018em}.apple-confirm-content{padding:0 22px 20px;text-align:center;color:var(--secondary);font-size:13.5px;line-height:1.45;white-space:pre-line}.apple-confirm-actions{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--separator)}.apple-confirm-button{appearance:none;border:0;border-radius:0;min-height:48px;padding:11px 14px;background:transparent;color:var(--blue);font:600 14px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;cursor:pointer}.apple-confirm-button+.apple-confirm-button{border-left:1px solid var(--separator)}.apple-confirm-button:hover{background:var(--fill)}.apple-confirm-button:focus-visible{outline:2px solid var(--blue);outline-offset:-3px}.apple-confirm-button.primary{font-weight:700}.apple-confirm-button.destructive{color:var(--red)}@keyframes appleConfirmFade{from{opacity:0}to{opacity:1}}@keyframes appleConfirmPop{from{opacity:0;transform:scale(.965) translateY(5px)}to{opacity:1;transform:scale(1) translateY(0)}}@media(max-width:620px){.apple-confirm-backdrop{padding:16px}.apple-confirm-sheet{border-radius:18px}}
@@ -2202,3 +2209,17 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 
 /* Attachments now live directly inside each saved flight record. */
 .exact-flight-attachments-host{min-width:0;width:100%;margin-top:12px}.exact-flight-attachments-host .apple-panel{margin:0;width:100%;box-sizing:border-box}.exact-flight-attachments-host .apple-panel-body{min-width:0}
+
+/* Flight role: same 16x16 / 2px chevron geometry as editable combo fields, aligned without a left separator. */
+.exact-flight-role-select .select{
+  -webkit-appearance:none;
+  appearance:none;
+  padding-right:44px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%238A8A8E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-size:16px 16px;
+  background-position:right 11px center;
+}
+[data-theme="dark"] .exact-flight-role-select .select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%2398989D' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
