@@ -46,7 +46,7 @@ function LicensingCount() {
 
 const MainLink = ({ to, segment, label, Icon, count, onNavigate, location, showIcons = true, showRightChevron = false }) => {
   const selected = location.pathname === '/' ? segment === 'logbook' : location.pathname.startsWith(`/${segment}`);
-  return <Link to={to} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}>{showIcons ? <Icon /> : null}<span className="nav-item-label">{label}</span>{count}{showRightChevron ? <RightCaret /> : null}</Link>;
+  return <Link to={to} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}><span className={`nav-icon-slot${showIcons ? '' : ' is-hidden'}`} aria-hidden="true">{showIcons ? <Icon /> : null}</span><span className="nav-item-label">{label}</span>{count}{showRightChevron ? <RightCaret /> : null}</Link>;
 };
 
 const MainToggle = ({ segment, label, Icon, open, onToggle, location, showIcons = true }) => {
@@ -59,7 +59,7 @@ const MainToggle = ({ segment, label, Icon, open, onToggle, location, showIcons 
       aria-expanded={open}
       aria-controls={`${segment}-submenu`}
     >
-      {showIcons ? <Icon /> : null}<span className="nav-item-label">{label}</span><Caret open={open}/>
+      <span className={`nav-icon-slot${showIcons ? '' : ' is-hidden'}`} aria-hidden="true">{showIcons ? <Icon /> : null}</span><span className="nav-item-label">{label}</span><Caret open={open}/>
     </button>
   );
 };

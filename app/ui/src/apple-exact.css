@@ -2712,3 +2712,50 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 }
 .sidebar .nav-link-caret { margin-left:auto !important; flex:0 0 16px !important; }
 .sidebar .nav-caret.open { transition:none !important; }
+
+
+/* Sidebar spacing / alignment refinement. */
+:root{--sidebar:#F5F5F8;}
+.sidebar{
+  background:#F5F5F8 !important;
+}
+.sidebar .nav-item{
+  padding:0 10px 0 35px !important;
+  min-height:24px !important;
+  margin:0 0 13px 0 !important;
+  gap:10px !important;
+}
+.sidebar .nav-icon-slot{
+  width:17px !important;
+  min-width:17px !important;
+  height:17px !important;
+  flex:0 0 17px !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  color:currentColor !important;
+}
+.sidebar .nav-icon-slot svg{
+  width:17px !important;
+  height:17px !important;
+  color:currentColor !important;
+  stroke:currentColor !important;
+}
+.sidebar .nav-icon-slot.is-hidden{
+  visibility:hidden !important;
+}
+.sidebar .nav-item-label{
+  margin:0 !important;
+  padding:0 !important;
+}
+/* Keep nested items aligned under the main text column. */
+.sidebar .nav-group-sub{
+  padding-left:62px !important;
+}
+.sidebar .nav-group-sub a{
+  padding-left:0 !important;
+  padding-right:10px !important;
+}
+[data-theme="dark"] .sidebar{
+  background:var(--sidebar) !important;
+}
