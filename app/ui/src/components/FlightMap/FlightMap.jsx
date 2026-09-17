@@ -15,6 +15,7 @@ import useCustomFields from '../../hooks/useCustomFields';
 import { DEFAULT_MAP_OPTIONS, drawGreatCircleLine, drawTrackLog, addMarker, MAP_OPTIONS_NAME, getMapBase } from './helpers';
 import MapOptionsButton from './MapOptionsButton';
 import { CODEC_JSON, useLocalStorageState } from '../../hooks/useLocalStorageState';
+import { formatDistanceNM, sumDistanceNM } from '../../util/helpers';
 
 const getAirportData = async (id, airportsMap) => {
   if (airportsMap) {
@@ -139,7 +140,11 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedde
       vectorSourceRef.current.clear();
 
       const features = [];
-      let totalDistance = 0;
+      // Distance shown on the map must describe ALL visible flights, not only
+      // flights whose airport coordinates can be resolved for drawing.
+      // Previously the total was incremented only after both airports loaded,
+      // which made Map disagree with Stats/Summary when an airport was missing.
+      const totalDistance = sumDistanceNM(data);
       const getEnroute = customFieldsHook.getEnroute || (() => []);
 
       const airportPromises = data.map(async (flight) => {
@@ -182,7 +187,6 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedde
           drawTrackLog(flight.track, vectorSourceRef.current, flight.uuid || flight.id, options.tracks.color, options.tracks.thickness);
         }
 
-        totalDistance += flight.distance;
         return { departure, arrival };
       });
 
@@ -212,7 +216,7 @@ export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedde
     <div className="apple-map-canvas-wrap" style={sx}>
       <div ref={mapRef} className="apple-map-canvas" />
       <div ref={hoverTooltipRef} className="apple-map-airport-tooltip" aria-hidden="true" />
-      {distance > 0 && <div className="apple-map-distance">{`Distance: ${distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} NM / ${(distance * 1.852).toLocaleString(undefined, { maximumFractionDigits: 2 })} km`}</div>}
+      {distance > 0 && <div className="apple-map-distance">{`Distance: ${formatDistanceNM(distance)} NM`}</div>}
     </div>
   );
 

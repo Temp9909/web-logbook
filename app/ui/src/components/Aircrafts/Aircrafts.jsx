@@ -8,6 +8,12 @@ import { DEFAULT_CATEGORIES, splitCategories } from './aircraftCategories';
 import NewAircraftModal from './NewAircraftModal';
 import NewAircraftTypeModal from './NewAircraftTypeModal';
 
+const RowChevron = () => (
+  <svg className="exact-row-chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+    <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const modelCategoryFor = (categories, model) => {
   const item = (Array.isArray(categories) ? categories : []).find((category) => category?.model === model);
   return item?.category || '';
@@ -162,12 +168,12 @@ export const Aircrafts = () => {
       render:(row)=> <span className="exact-aircraft-category-value" title={row?.category || ''}>{row?.category || ''}</span>,
       searchValue:(row)=>row?.category || '',
     },
-    {key:'chevron',label:'',width:34,render:()=> <span className="exact-row-chevron" aria-hidden="true">›</span>,searchValue:()=>''}
+    {key:'chevron',label:'',width:34,render:()=> <RowChevron />,searchValue:()=>''}
   ],[]);
   const categoryCols=useMemo(()=>[
     {key:'model',label:'Type'},
     {key:'category',label:'Category'},
-    {key:'chevron',label:'',width:34,render:()=> <span className="exact-row-chevron" aria-hidden="true">›</span>,searchValue:()=>''}
+    {key:'chevron',label:'',width:34,render:()=> <RowChevron />,searchValue:()=>''}
   ],[]);
 
   const typeCategoriesForEditedAircraft = editAircraft

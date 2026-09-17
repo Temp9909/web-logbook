@@ -41,54 +41,25 @@ const MainLink = ({ to, segment, label, Icon, count, onNavigate, location, showI
   return <Link to={to} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}><span className={`nav-icon-slot${showIcons ? '' : ' is-hidden'}`} aria-hidden="true">{showIcons ? <Icon /> : null}</span><span className="nav-item-label">{label}</span>{count}</Link>;
 };
 
-const MainToggle = ({ segment, label, Icon, open, onToggle, location, showIcons = true }) => {
-  const selected = location.pathname.startsWith(`/${segment}`);
-  return (
-    <button
-      type="button"
-      className={`nav-item${selected ? ' selected' : ''}`}
-      onClick={onToggle}
-      aria-expanded={open}
-      aria-controls={`${segment}-submenu`}
-    >
-      <span className={`nav-icon-slot${showIcons ? '' : ' is-hidden'}`} aria-hidden="true">{showIcons ? <Icon /> : null}</span><span className="nav-item-label">{label}</span><Caret open={open}/>
-    </button>
-  );
-};
+
 
 export default function DashboardNavbar({ open, onNavigate }) {
   const location = useLocation();
   const { settings } = useSettings();
   const showIcons = !Boolean(settings?.hide_menu_icons);
   const statSelected = location.pathname.startsWith('/stats');
-  const exportSelected = location.pathname.startsWith('/export');
   const [statsOpen, setStatsOpen] = useState(statSelected);
-  const [exportOpen, setExportOpen] = useState(exportSelected);
   const subClass = (path) => location.pathname === path ? 'selected' : '';
 
-  // Stats/Export stay open while navigating inside their own submenu,
-  // then collapse as soon as the user moves to a different main section.
+  // Stats stays expanded while browsing Stats pages, but collapses when the
+  // user leaves the Stats section. The chevron itself remains a manual toggle.
   useEffect(() => {
-    setStatsOpen(statSelected);
+    if (!statSelected) setStatsOpen(false);
   }, [statSelected]);
 
-  useEffect(() => {
-    setExportOpen(exportSelected);
-  }, [exportSelected]);
-
-  const toggleStats = () => {
-    setStatsOpen((current) => {
-      const next = !current;
-      if (next) setExportOpen(false);
-      return next;
-    });
-  };
-  const toggleExport = () => {
-    setExportOpen((current) => {
-      const next = !current;
-      if (next) setStatsOpen(false);
-      return next;
-    });
+  const openStatsDashboard = (event) => {
+    setStatsOpen(true);
+    onNavigate?.(event);
   };
 
   return (
@@ -103,11 +74,29 @@ export default function DashboardNavbar({ open, onNavigate }) {
       <MainLink to="/aircrafts" segment="aircrafts" label="Aircrafts" Icon={AircraftIcon} showIcons={showIcons} onNavigate={onNavigate} location={location}/>
       <MainLink to="/persons" segment="persons" label="Persons" Icon={PersonIcon} showIcons={showIcons} onNavigate={onNavigate} location={location}/>
       <div className="nav-sep"/>
-      <MainToggle segment="stats" label="Stats" Icon={StatsIcon} showIcons={showIcons} open={statsOpen} onToggle={toggleStats} location={location}/>
-      {statsOpen ? <div id="stats-submenu" className="nav-group-sub"><Link className={subClass('/stats/dashboard')} to="/stats/dashboard" onClick={onNavigate}>Dashboard</Link><Link className={subClass('/stats/by-year')} to="/stats/by-year" onClick={onNavigate}>By year</Link><Link className={subClass('/stats/by-type')} to="/stats/by-type" onClick={onNavigate}>By type</Link><Link className={subClass('/stats/by-category')} to="/stats/by-category" onClick={onNavigate}>By category</Link></div> : null}
+      <div className="nav-split-entry">
+        <Link
+          to="/stats/dashboard"
+          className={`nav-item${statSelected ? ' selected' : ''}`}
+          onClick={openStatsDashboard}
+        >
+          <span className={`nav-icon-slot${showIcons ? '' : ' is-hidden'}`} aria-hidden="true">{showIcons ? <StatsIcon /> : null}</span>
+          <span className="nav-item-label">Stats</span>
+        </Link>
+        <button
+          type="button"
+          className={`nav-split-caret-button${statSelected ? ' selected' : ''}`}
+          onClick={() => setStatsOpen((current) => !current)}
+          aria-label={statsOpen ? 'Collapse Stats submenu' : 'Expand Stats submenu'}
+          aria-expanded={statsOpen}
+          aria-controls="stats-submenu"
+        >
+          <Caret open={statsOpen}/>
+        </button>
+      </div>
+      {statsOpen ? <div id="stats-submenu" className="nav-group-sub"><Link className={subClass('/stats/by-year')} to="/stats/by-year" onClick={onNavigate}>By year</Link><Link className={subClass('/stats/by-type')} to="/stats/by-type" onClick={onNavigate}>By type</Link><Link className={subClass('/stats/by-category')} to="/stats/by-category" onClick={onNavigate}>By category</Link></div> : null}
       <div className="nav-sep"/>
-      <MainToggle segment="export" label="Export" Icon={ExportIcon} showIcons={showIcons} open={exportOpen} onToggle={toggleExport} location={location}/>
-      {exportOpen ? <div id="export-submenu" className="nav-group-sub"><Link className={subClass('/export/a4')} to="/export/a4" onClick={onNavigate}>A4</Link><Link className={subClass('/export/a5')} to="/export/a5" onClick={onNavigate}>A5</Link></div> : null}
+      <MainLink to="/export" segment="export" label="Export" Icon={ExportIcon} showIcons={showIcons} onNavigate={onNavigate} location={location}/>
       <MainLink to="/import" segment="import" label="Import" Icon={ImportIcon} showIcons={showIcons} onNavigate={onNavigate} location={location}/>
       <div className="nav-sep"/>
       <MainLink to="/settings" segment="settings" label="Settings" Icon={SettingsIcon} showIcons={showIcons} onNavigate={onNavigate} location={location}/>

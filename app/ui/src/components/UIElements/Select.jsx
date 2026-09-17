@@ -130,7 +130,11 @@ export const Select = ({
           aria-label={typeof label === 'string' ? label : id}
           placeholder={props.placeholder}
         />
-        <span className="apple-select-caret" aria-hidden="true">⌄</span>
+        <span className="apple-select-caret" aria-hidden="true">
+          <svg width="16" height="16" viewBox="0 0 16 16">
+            <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
       </span>
       <datalist id={listId}>
         {normalized.map((option, index) => <option key={`${optionLabel(option)}-${index}`} value={optionLabel(option)} />)}

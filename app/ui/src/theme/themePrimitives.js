@@ -118,19 +118,7 @@ export const appleDark = {
 export const apple = (mode) => (mode === 'dark' ? appleDark : appleLight);
 
 // San Francisco first, then the usual platform fallbacks
-export const fontFamily = [
-  '-apple-system',
-  'BlinkMacSystemFont',
-  '"SF Pro Text"',
-  '"SF Pro Display"',
-  '"Helvetica Neue"',
-  '"Segoe UI"',
-  'Roboto',
-  'Arial',
-  'sans-serif',
-  '"Apple Color Emoji"',
-  '"Segoe UI Emoji"',
-].join(',');
+export const fontFamily = ['"Open Sans"', 'sans-serif'].join(',');
 
 // Soft, diffuse elevation - Apple never uses hard drop shadows
 const buildShadows = (mode) => {

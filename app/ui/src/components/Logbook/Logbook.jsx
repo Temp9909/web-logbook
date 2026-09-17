@@ -6,6 +6,12 @@ import { fetchLogbookData } from '../../util/http/logbook';
 import { useErrorNotification } from '../../hooks/useAppNotifications';
 import { SelectField } from '../AppleExact/Primitives';
 
+const PaginationChevron = ({ direction }) => (
+  <svg className="exact-pagination-chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+    <path d={direction === 'left' ? 'M10 4L6 8l4 4' : 'M6 4l4 4-4 4'} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const toMinutes = (value) => {
   if (!value || typeof value !== 'string') return 0;
   const [h='0',m='0'] = value.split(':');
@@ -283,11 +289,11 @@ export default function Logbook() {
           options={[10,25,50,100].map((value)=>({ value:String(value), label:String(value) }))}
         />
         <div className="exact-page-buttons" aria-label="Logbook pages">
-          <button type="button" className="exact-page-button" disabled={safePage <= 1} onClick={()=>setPage((value)=>Math.max(1,value-1))} aria-label="Previous page">‹</button>
+          <button type="button" className="exact-page-button" disabled={safePage <= 1} onClick={()=>setPage((value)=>Math.max(1,value-1))} aria-label="Previous page"><PaginationChevron direction="left" /></button>
           {pageItems.map((item,index)=>typeof item === 'number' ? (
             <button key={item} type="button" className={`exact-page-button${safePage===item?' on':''}`} onClick={()=>setPage(item)}>{item}</button>
           ) : <span key={`${item}-${index}`} className="exact-page-gap">…</span>)}
-          <button type="button" className="exact-page-button" disabled={safePage >= pageCount} onClick={()=>setPage((value)=>Math.min(pageCount,value+1))} aria-label="Next page">›</button>
+          <button type="button" className="exact-page-button" disabled={safePage >= pageCount} onClick={()=>setPage((value)=>Math.min(pageCount,value+1))} aria-label="Next page"><PaginationChevron direction="right" /></button>
         </div>
       </div>
     </section>

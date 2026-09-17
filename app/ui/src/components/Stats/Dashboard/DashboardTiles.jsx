@@ -7,7 +7,7 @@ import Divider from "@mui/material/Divider";
 // Custom
 import CardHeader from "../../UIElements/CardHeader";
 import Tile from "../../UIElements/Tile";
-import { getStats, getValue } from "../../../util/helpers";
+import { formatDistanceNM, getStats, getValue } from "../../../util/helpers";
 import useSettings from '../../../hooks/useSettings';
 
 const size = { xs: 6, sm: 3, md: 3, lg: 2, xl: 2 };
@@ -53,7 +53,7 @@ export const DashboardTiles = ({ data, dashboardOptions, airportsMap }) => {
           <Tile title="Countries" value={stats.countries} size={size} />
           <Tile title="Aircrafts" value={stats.aircraftRegs} size={size} />
           <Tile title="Aircraft Types" value={stats.aircraftModels} size={size} />
-          <Tile title="Distance (NM)" value={stats.totals.distance.toLocaleString(undefined, { maximumFractionDigits: 0 })} size={size} />
+          <Tile title="Distance (NM)" value={formatDistanceNM(stats.totals.distance)} size={size} />
         </Grid>
       </CardContent>
     </Card >

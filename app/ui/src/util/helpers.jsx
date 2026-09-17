@@ -53,6 +53,17 @@ export const dateFilterFn = (row, columnId, filterValue) => {
   return isAfterStart && isBeforeEnd;
 };
 
+export const distanceNM = (value) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+};
+
+export const sumDistanceNM = (flights) => (Array.isArray(flights) ? flights : [])
+  .reduce((total, flight) => total + distanceNM(flight?.distance), 0);
+
+export const formatDistanceNM = (value, maximumFractionDigits = 0) =>
+  distanceNM(value).toLocaleString(undefined, { maximumFractionDigits });
+
 const TIME_FIELDS = [
   'se_time', 'me_time', 'mcc_time', 'total_time', 'night_time',
   'ifr_time', 'pic_time', 'co_pilot_time', 'dual_time',
@@ -79,7 +90,7 @@ const updateTotals = (totals, flight) => {
   totals.landings.day += parseInt(landings.day) || 0;
   totals.landings.night += parseInt(landings.night) || 0;
   totals.sim.time += convertTimeToMinutes(sim.time);
-  totals.distance += parseFloat(distance) || 0;
+  totals.distance += distanceNM(distance);
 
   return totals;
 };

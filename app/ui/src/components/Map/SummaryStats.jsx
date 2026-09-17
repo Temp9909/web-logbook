@@ -1,7 +1,7 @@
 import Grid from "@mui/material/Grid";
 // Custom
 import Tile from "../UIElements/Tile";
-import { getStats } from "../../util/helpers";
+import { formatDistanceNM, getStats } from "../../util/helpers";
 
 const size = { xs: 6, sm: 4, md: 12, lg: 6, xl: 6 };
 
@@ -15,7 +15,7 @@ export const SummaryStats = ({ data, airportsMap }) => {
       <Tile title="Airports" value={stats.airports} size={size} />
       <Tile title="Routes" value={stats.routes} size={size} />
       <Tile title="Countries" value={stats.countries} size={size} />
-      <Tile title="Distance (NM)" value={stats.totals.distance.toLocaleString(undefined, { maximumFractionDigits: 2 })} size={size} />
+      <Tile title="Distance (NM)" value={formatDistanceNM(stats.totals.distance)} size={size} />
       <Tile title="Landings (D/N)" value={`${stats.totals.landings.day}/${stats.totals.landings.night}`} size={size} />
     </Grid>
   );

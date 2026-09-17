@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchLogbookMapData } from '../../util/http/logbook';
 import { fetchAirports } from '../../util/http/airport';
-import { getStats } from '../../util/helpers';
+import { formatDistanceNM, getStats } from '../../util/helpers';
 import FlightMap from '../FlightMap/FlightMap';
 import { DEFAULT_MAP_OPTIONS } from '../FlightMap/helpers';
 import { Card, Loading, PageHead, SelectField, SwitchRow } from '../AppleExact/Primitives';
@@ -64,7 +64,7 @@ export const SummaryFlightMap = () => {
           <div className="exact-stat-grid">
             <div><div className="muted" style={{fontSize:11}}>FLIGHTS</div><div className="exact-stat-number">{filtered.length}</div></div>
             <div><div className="muted" style={{fontSize:11}}>AIRPORTS</div><div className="exact-stat-number">{stats?.airports ?? 0}</div></div>
-            <div><div className="muted" style={{fontSize:11}}>DISTANCE (NM)</div><div className="exact-stat-number">{Math.round(stats?.totals?.distance || 0).toLocaleString()} NM</div></div>
+            <div><div className="muted" style={{fontSize:11}}>DISTANCE (NM)</div><div className="exact-stat-number">{formatDistanceNM(stats?.totals?.distance)} NM</div></div>
             <div><div className="muted" style={{fontSize:11}}>HOURS</div><div className="exact-stat-number">{stats?.totals?.time?.total_time || '0:00'}</div></div>
           </div>
         </Card>

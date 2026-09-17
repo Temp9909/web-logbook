@@ -7,8 +7,13 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
-// MUI Icons
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+
+
+const DashboardChevron = () => (
+  <svg className="exact-dashboard-chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+    <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 const STATS_FILTERS = [
   { id: 'total_time', label: 'Total Time' },
@@ -34,7 +39,7 @@ export const DashboardOptions = ({ dashboardOptions, setDashboardOptions }) => {
     <Grid container spacing={1} sx={{ mb: 1 }}>
       <Grid size={{ xs: 12, sm: 12, md: 12, lg: 12, xl: 12 }}>
         <Accordion variant="outlined" sx={{ width: '100%' }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <AccordionSummary expandIcon={<DashboardChevron />}>
             <Typography variant="overline">Dashboard Options</Typography>
           </AccordionSummary>
           <AccordionDetails>
