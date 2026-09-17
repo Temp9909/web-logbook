@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { createAircraft } from '../../util/http/aircraft';
 import { queryClient } from '../../util/http/http';
-import { Field, Loading, Modal } from '../AppleExact/Primitives';
+import { ComboField, Field, Loading, Modal } from '../AppleExact/Primitives';
 import AircraftCategoryPicker from './AircraftCategoryPicker';
 
 const errorMessage = (error) => error?.info?.message || error?.message || 'Unknown error';
@@ -46,17 +46,15 @@ export const NewAircraftModal = ({ open, onClose, onCreated, modelOptions = [], 
           onChange={(value) => setAircraft((current) => ({ ...current, reg: value.toUpperCase() }))}
           placeholder="F-GABC"
         />
-        <Field
+        <ComboField
+          id="new-aircraft-type"
           label="Type"
           value={aircraft.model}
           onChange={(value) => setAircraft((current) => ({ ...current, model: value.toUpperCase() }))}
           placeholder="C172"
-          list="new-aircraft-models"
+          options={modelOptions}
         />
       </div>
-      <datalist id="new-aircraft-models">
-        {modelOptions.map((model) => <option key={model} value={model} />)}
-      </datalist>
       <AircraftCategoryPicker
         label="Categories"
         value={aircraft.custom_category}

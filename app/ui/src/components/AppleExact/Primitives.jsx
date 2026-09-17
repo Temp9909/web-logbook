@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
 
 export const PageHead = ({ title, subtitle, actions }) => (
   <div className="page-head">
@@ -134,10 +134,10 @@ export const TimeSelectField = ({
   return (
     <div className={`field exact-time-field ${className}`.trim()}>
       {label ? <span>{label}</span> : null}
-      <div className="exact-native-time-row" onClick={openPickerFromSurround}>
+      <div className={`exact-native-time-row${mode === 'clock' ? ' clock' : ''}`} onClick={openPickerFromSurround}>
         <input
           ref={inputRef}
-          className="input exact-native-time-input"
+          className={`input exact-native-time-input${nativeValue ? '' : ' empty'}`}
           type="time"
           step="60"
           value={nativeValue}
@@ -146,6 +146,7 @@ export const TimeSelectField = ({
           readOnly={readOnly}
           aria-label={label || 'Time'}
         />
+        {!nativeValue ? <span className="exact-time-empty-placeholder" aria-hidden="true">--:--</span> : null}
         {quickFillValue && !value ? (
           <button className="exact-time-quick-fill" type="button" onClick={() => onChange?.(quickFillValue)}>
             {quickFillLabel}
@@ -156,16 +157,63 @@ export const TimeSelectField = ({
   );
 };
 
-export const ComboField = ({ label, value = '', onChange, options = [], disabled = false, className = '', placeholder = '' }) => {
+export const ComboField = ({ label, value = '', onChange, options = [], disabled = false, className = '', placeholder = '', id }) => {
+  const generatedId = useId();
+  const inputRef = useRef(null);
   const normalized = Array.isArray(options) ? options : [];
   const current = String(value ?? '');
-  const hasCurrent = normalized.some((option) => String(typeof option === 'object' ? option.value : option) === current);
-  const selectOptions = [
-    ...(placeholder ? [{ value:'', label:placeholder }] : []),
-    ...(!hasCurrent && current ? [{ value:current, label:current }] : []),
-    ...normalized,
-  ];
-  return <SelectField label={label} value={current} onChange={onChange} options={selectOptions} disabled={disabled} className={className} />;
+  const listId = `${id || generatedId}-options`;
+
+  const openOptions = () => {
+    if (disabled) return;
+    const input = inputRef.current;
+    if (!input) return;
+    input.focus();
+    if (typeof input.showPicker === 'function') {
+      try {
+        input.showPicker();
+      } catch {
+        // Browsers without a programmatic datalist picker still show suggestions while typing.
+      }
+    }
+  };
+
+  return (
+    <label className={`field exact-combo-field ${className}`.trim()}>
+      {label ? <span>{label}</span> : null}
+      <span className="exact-combo-control">
+        <input
+          ref={inputRef}
+          id={id}
+          className="input exact-combo-input"
+          list={listId}
+          value={current}
+          onChange={(event) => onChange?.(event.target.value, event)}
+          placeholder={placeholder}
+          disabled={disabled}
+          autoComplete="off"
+          aria-label={label || id || 'Selection'}
+        />
+        <button
+          className="exact-combo-picker-button"
+          type="button"
+          tabIndex={-1}
+          disabled={disabled}
+          onClick={openOptions}
+          aria-label={label ? `Show ${label} options` : 'Show options'}
+        >
+          <span aria-hidden="true">⌄</span>
+        </button>
+      </span>
+      <datalist id={listId}>
+        {normalized.map((option, index) => {
+          const optionValue = String(typeof option === 'object' ? option.value : option);
+          const optionLabel = String(typeof option === 'object' ? (option.label ?? option.value) : option);
+          return <option key={`${optionValue}-${index}`} value={optionValue}>{optionLabel}</option>;
+        })}
+      </datalist>
+    </label>
+  );
 };
 
 export const SwitchRow = ({ label, sub, checked = false, onChange, disabled = false }) => (

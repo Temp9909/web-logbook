@@ -5,14 +5,19 @@ const joinCategories = (items) => Array.from(new Set(
   items.map((item) => String(item || '').trim()).filter(Boolean),
 )).join(',');
 
-const AircraftCategoryPicker = ({ label = 'Category', value = '', options = [], onChange }) => {
+const AircraftCategoryPicker = ({ label = 'Category', value = '', options = [], excludeOptions = [], onChange }) => {
   const [newCategory, setNewCategory] = useState('');
   const selected = useMemo(() => new Set(splitCategories(value)), [value]);
+  const excluded = useMemo(() => new Set(
+    (Array.isArray(excludeOptions) ? excludeOptions : splitCategories(excludeOptions))
+      .map((item) => String(item || '').trim())
+      .filter(Boolean),
+  ), [excludeOptions]);
   const allOptions = useMemo(() => Array.from(new Set([
     ...DEFAULT_CATEGORIES,
     ...options,
     ...splitCategories(value),
-  ])).filter(Boolean).sort((a, b) => a.localeCompare(b)), [options, value]);
+  ])).filter((category) => category && !excluded.has(category)).sort((a, b) => a.localeCompare(b)), [excluded, options, value]);
 
   const toggle = (category) => {
     const next = new Set(selected);

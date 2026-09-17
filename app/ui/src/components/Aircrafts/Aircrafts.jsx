@@ -12,6 +12,15 @@ const modelCategoryFor = (categories, model) => {
   return item?.category || '';
 };
 
+const joinCategories = (categories) => Array.from(new Set(
+  categories.map((category) => String(category || '').trim()).filter(Boolean),
+)).join(',');
+
+const withoutCategories = (value, excludedValue) => {
+  const excluded = new Set(splitCategories(excludedValue));
+  return joinCategories(splitCategories(value).filter((category) => !excluded.has(category)));
+};
+
 export const Aircrafts = () => {
   const { data: aircrafts = [], isLoading: loadingAircrafts } = useQuery({queryKey:['aircrafts','build-list'],queryFn:({signal})=>fetchAircraftsBuildList({signal})});
   const { data: categories = [], isLoading: loadingCategories } = useQuery({queryKey:['models-categories'],queryFn:({signal})=>fetchAircraftModelsCategories({signal})});
@@ -36,7 +45,20 @@ export const Aircrafts = () => {
   ].filter(Boolean))).sort((a,b)=>a.localeCompare(b)), [aircrafts,categories]);
 
   const saveAircraft=useMutation({
-    mutationFn:()=>updateAircraft({payload:editAircraft}),
+    mutationFn:async()=>{
+      await updateAircraft({payload:editAircraft});
+      const typeRow = (Array.isArray(categories) ? categories : []).find((row) => row?.model === editAircraft?.model);
+      const savedTypeCategories = typeRow?.category || '';
+      if (joinCategories(splitCategories(savedTypeCategories)) !== joinCategories(splitCategories(editAircraft?.model_category))) {
+        await updateAircraftModelsCategories({
+          payload: {
+            ...(typeRow || {}),
+            model: editAircraft.model,
+            category: editAircraft.model_category || '',
+          },
+        });
+      }
+    },
     onSuccess:async()=>{
       await Promise.all([
         queryClient.invalidateQueries({queryKey:['aircrafts']}),
@@ -57,7 +79,15 @@ export const Aircrafts = () => {
     }
   });
 
-  const openAircraft = (row) => setEditAircraft({ ...row, original_reg: row.reg });
+  const openAircraft = (row) => {
+    const inherited = modelCategoryFor(categories, row.model) || row.model_category || '';
+    setEditAircraft({
+      ...row,
+      original_reg: row.reg,
+      model_category: inherited,
+      custom_category: withoutCategories(row.custom_category || '', inherited),
+    });
+  };
   const openCategory = (row) => setEditCategory({ ...row, time_fields_auto_fill: { ...(row?.time_fields_auto_fill || {}) } });
 
   const aircraftCols=useMemo(()=>[
@@ -72,7 +102,24 @@ export const Aircrafts = () => {
     {key:'chevron',label:'',width:34,render:()=> <span className="exact-row-chevron" aria-hidden="true">›</span>,searchValue:()=>''}
   ],[]);
 
-  const inheritedCategory = editAircraft ? modelCategoryFor(categories, editAircraft.model) : '';
+  const inheritedCategory = editAircraft?.model_category || '';
+
+  const changeEditedAircraftType = (model) => {
+    const nextInherited = modelCategoryFor(categories, model);
+    setEditAircraft((current) => ({
+      ...current,
+      model,
+      model_category: nextInherited,
+      custom_category: withoutCategories(current?.custom_category || '', nextInherited),
+    }));
+  };
+
+  const removeInheritedCategory = (category) => {
+    setEditAircraft((current) => ({
+      ...current,
+      model_category: joinCategories(splitCategories(current?.model_category).filter((item) => item !== category)),
+    }));
+  };
 
   return <section className="exact-react-page">
     <PageHead title="Aircrafts" subtitle="Manage registrations, aircraft types and categories." actions={<button className="btn primary" type="button" onClick={()=>setNewAircraftOpen(true)}>＋ New aircraft</button>} />
@@ -94,12 +141,12 @@ export const Aircrafts = () => {
           <SelectField label="Type" value={editAircraft.model || ''} options={[
             { value:'', label:'Select aircraft type' },
             ...Array.from(new Set([editAircraft.model, ...modelOptions].filter(Boolean))).map((value)=>({ value, label:value })),
-          ]} onChange={(v)=>setEditAircraft(p=>({...p,model:v}))} />
+          ]} onChange={changeEditedAircraftType} />
         </div>
         <div className="exact-inherited-category">
-          <div className="field"><span>Categories inherited from type</span><div className="exact-readonly-chips">{splitCategories(inheritedCategory || editAircraft.model_category).length ? splitCategories(inheritedCategory || editAircraft.model_category).map((category)=><span className="chip" key={category}>{category}</span>) : <span className="muted">No type category set yet</span>}</div></div>
+          <div className="field"><span>Categories inherited from type</span><div className="exact-readonly-chips">{splitCategories(inheritedCategory).length ? splitCategories(inheritedCategory).map((category)=><span className="chip exact-removable-category-chip" key={category}>{category}<button type="button" onClick={()=>removeInheritedCategory(category)} aria-label={`Remove ${category} from inherited categories`}>×</button></span>) : <span className="muted">No type category set yet</span>}</div></div>
         </div>
-        <AircraftCategoryPicker label="Extra categories for this registration" value={editAircraft.custom_category || ''} options={categoryOptions} onChange={(v)=>setEditAircraft(p=>({...p,custom_category:v}))}/>
+        <AircraftCategoryPicker label="Extra categories for this registration" value={editAircraft.custom_category || ''} options={categoryOptions} excludeOptions={splitCategories(inheritedCategory)} onChange={(v)=>setEditAircraft(p=>({...p,custom_category:withoutCategories(v,p.model_category)}))}/>
         {editAircraft.original_reg !== editAircraft.reg ? <div className="note">Changing the registration updates all logbook flights that use <strong>{editAircraft.original_reg}</strong>.</div> : null}
         {saveAircraft.isError ? <div className="note exact-error-note">Unable to save aircraft: {saveAircraft.error?.info?.message || saveAircraft.error?.message || 'Unknown error'}</div> : null}
         <Loading show={saveAircraft.isPending}/>

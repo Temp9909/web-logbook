@@ -2033,7 +2033,7 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 }
 
 /* V8.5 — Native operating-system time controls. */
-.exact-native-time-row{display:flex;align-items:center;gap:6px;width:calc(100% + 10px);margin:-5px;padding:5px;border-radius:13px;cursor:pointer}.exact-native-time-row:hover{background:var(--fill)}.exact-native-time-input{min-width:0;flex:1;font-variant-numeric:tabular-nums;cursor:text}.exact-native-time-input::-webkit-calendar-picker-indicator{cursor:pointer}.exact-time-quick-fill{flex:0 0 auto;min-width:42px;min-height:36px;padding:6px 9px;border:1px solid rgba(0,122,255,.24);border-radius:9px;background:var(--tint);color:var(--blue);font:600 12px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;cursor:pointer}.exact-time-quick-fill:hover{background:var(--tint-soft)}
+.exact-native-time-row{position:relative;display:flex;align-items:center;gap:6px;width:calc(100% + 10px);margin:-5px;padding:5px;border-radius:13px;cursor:pointer}.exact-native-time-row:hover{background:var(--fill)}.exact-native-time-input{min-width:0;flex:1;font-variant-numeric:tabular-nums;cursor:text}.exact-native-time-input.empty{color:transparent}.exact-native-time-input::-webkit-calendar-picker-indicator{cursor:pointer}.exact-time-empty-placeholder{position:absolute;left:16px;top:50%;transform:translateY(-50%);z-index:1;padding:0 2px;background:var(--paper);color:var(--label);font-size:13.5px;font-variant-numeric:tabular-nums;line-height:20px;pointer-events:none}.exact-native-time-row.clock{width:100%;margin:0;padding:0 8px;min-height:36px;border:1px solid var(--separator);border-radius:9px;background:var(--paper)}.exact-native-time-row.clock:hover{background:var(--paper)}.exact-native-time-row.clock:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.16)}.exact-native-time-row.clock .exact-native-time-input{flex:0 1 145px;width:145px;max-width:100%;border:0;padding:7px 2px;background:transparent;box-shadow:none}.exact-native-time-row.clock .exact-time-empty-placeholder{left:10px}.exact-time-quick-fill{flex:0 0 auto;min-width:42px;min-height:36px;padding:6px 9px;border:1px solid rgba(0,122,255,.24);border-radius:9px;background:var(--tint);color:var(--blue);font:600 12px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;cursor:pointer}.exact-time-quick-fill:hover{background:var(--tint-soft)}
 
 /* V8.5.2 — By type scrolls as one table; no pinned aircraft-type cell. */
 .exact-stats-book-table.exact-stats-no-sticky .exact-stats-group-cell,
@@ -2149,3 +2149,16 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .apple-switch-control.on .apple-switch-knob {
   transform: translateX(var(--ios-toggle-shift)) !important;
 }
+
+/* Aircraft type editable system dropdown + removable inherited categories */
+.exact-removable-category-chip{display:inline-flex;align-items:center;gap:5px;padding-right:5px}
+.exact-removable-category-chip button{width:18px;height:18px;display:inline-grid;place-items:center;border:0;border-radius:50%;padding:0;background:rgba(0,0,0,.08);color:inherit;font:700 14px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;cursor:pointer}
+.exact-removable-category-chip button:hover{background:rgba(0,0,0,.14)}
+[data-theme="dark"] .exact-removable-category-chip button{background:rgba(255,255,255,.12)}
+[data-theme="dark"] .exact-removable-category-chip button:hover{background:rgba(255,255,255,.2)}
+.exact-combo-control{position:relative;display:flex;align-items:center}
+.exact-combo-input{padding-right:38px}
+.exact-combo-picker-button{position:absolute;right:1px;top:1px;bottom:1px;width:34px;border:0;border-left:1px solid var(--separator);border-radius:0 8px 8px 0;background:transparent;color:var(--secondary);font-size:16px;cursor:pointer}
+.exact-combo-picker-button:hover:not(:disabled){background:var(--fill);color:var(--label)}
+.exact-combo-picker-button:disabled{cursor:not-allowed;opacity:.45}
+.exact-combo-control:focus-within .exact-combo-picker-button{border-left-color:rgba(0,122,255,.25)}
