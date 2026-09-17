@@ -2998,3 +2998,9 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   -webkit-backdrop-filter:blur(8px);
 }
 .apple-map-airport-tooltip.is-open { display:block; }
+
+/* Top-left Logbook brand — exact requested dimensions. */
+.sidebar .sidebar-brand-name {
+  font-size:20px !important;
+  line-height:30px !important;
+}
