@@ -3533,3 +3533,56 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
   animation:none !important;
   filter:none !important;
 }
+
+/* SF Pro Text: use the native Apple font when present; no web token or bundled font required. */
+@font-face {
+  font-family: "SF Pro Text";
+  src: local("SF Pro Text"), local("SFProText-Regular"), local(".SF NS Text");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+/* Final SF Pro enforcement for the requested primary/secondary/action buttons.
+   Keep every button's existing geometry unchanged. */
+.exact-primary-action,
+.exact-primary-action:hover,
+.exact-primary-action:focus-visible,
+.exact-primary-action:active,
+.exact-done-button,
+.exact-done-button:hover,
+.exact-done-button:focus-visible,
+.exact-done-button:active,
+.btn.primary,
+.btn.primary:hover,
+.btn.primary:focus-visible,
+.btn.primary:active,
+.exact-secondary-action,
+.exact-secondary-action:hover,
+.exact-secondary-action:focus-visible,
+.flight-delete-confirm-button.back,
+.flight-delete-confirm-button.back:hover,
+.flight-delete-confirm-button.back:focus-visible,
+.flight-delete-confirm-button.yes,
+.flight-delete-confirm-button.yes:hover,
+.flight-delete-confirm-button.yes:focus-visible {
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  line-height: 18px !important;
+}
+
+/* Aircraft > New type must use the same outlined secondary-button treatment
+   as Customize totals / Export / Back / Map fields / Import options / Restore defaults. */
+.btn.exact-secondary-action {
+  border:1px solid #0166CC !important;
+  color:#0166CC !important;
+  background:transparent !important;
+}
+.btn.exact-secondary-action:hover,
+.btn.exact-secondary-action:focus-visible {
+  border:1px solid #0171E3 !important;
+  background:#0171E3 !important;
+  color:#FFFFFF !important;
+}
