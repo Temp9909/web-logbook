@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap");
-
   :root {
     --blue: #007AFF;
     --green: #34C759;
@@ -36,7 +34,7 @@
   html, body { height: 100%; }
   body {
     margin: 0;
-    font-family: "Open Sans", sans-serif;
+    font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
     background: var(--bg);
     color: var(--label);
     -webkit-font-smoothing: antialiased;
@@ -323,7 +321,7 @@ button, input { font-family: inherit; }
 .MuiDialog-root,
 .MuiPopover-root,
 .MuiDrawer-root {
-  font-family: "Open Sans", sans-serif !important;
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   letter-spacing: -0.005em;
 }
 
@@ -588,13 +586,13 @@ button, input { font-family: inherit; }
 .apple-legacy-page textarea,
 .apple-legacy-page button,
 .apple-legacy-page select {
-  font-family: "Open Sans", sans-serif !important;
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   letter-spacing: -0.005em;
 }
 
 .apple-legacy-theme {
   color: var(--label);
-  font-family: "Open Sans", sans-serif;
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 /* Main surfaces / cards */
@@ -877,7 +875,7 @@ body[data-apple-page="settings"].apple-legacy-page canvas {
   border-radius: 8px !important;
   background: color-mix(in srgb, var(--paper) 88%, transparent) !important;
   color: var(--label) !important;
-  font: 600 17px/1 "Open Sans", sans-serif !important;
+  font: 600 17px/1 "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   box-shadow: 0 2px 8px rgba(0,0,0,.08) !important;
   backdrop-filter: blur(16px);
 }
@@ -916,7 +914,7 @@ body.apple-legacy-page .MuiDataGrid-root,
 body.apple-legacy-page input,
 body.apple-legacy-page textarea,
 body.apple-legacy-page button {
-  font-family: "Open Sans", sans-serif !important;
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
 
 body.apple-legacy-page .apple-main-content {
@@ -1683,7 +1681,7 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
   padding:7px 10px;
   background:var(--paper);
   color:var(--label);
-  font-family:"Open Sans",sans-serif;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size:13px;
   line-height:1.2;
   letter-spacing:-.004em;
@@ -1865,7 +1863,7 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 /* These classes are used by the real React screens, not as a MUI camouflage. */
 /* ========================================================================== */
 
-.page-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:19px}.page-head .page-title{font-size:27px;line-height:1.1;font-weight:700;letter-spacing:-.025em;margin:0 0 3px}.page-head .page-sub{font-size:13.5px;color:var(--secondary);margin:0;line-height:1.4}.exact-head-actions{justify-content:flex-end}.panel{padding:16px}.panel-title{font-size:15px;font-weight:650;letter-spacing:-.012em;margin-bottom:3px}.panel-sub{font-size:12.5px;color:var(--secondary);margin-bottom:14px}.exact-panel-head{margin-bottom:0}.exact-panel-head .panel-sub{margin-bottom:0}.exact-panel-actions{justify-content:flex-end}.grid{display:grid;gap:12px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.split{display:grid;grid-template-columns:minmax(260px,.85fr) minmax(0,1.65fr);gap:12px}.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.form-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.field>span,.field>label{font-size:11.5px;font-weight:600;color:var(--secondary)}.input,.select,.textarea{width:100%;border:1px solid var(--separator);border-radius:9px;background:var(--paper);color:var(--label);padding:8px 10px;outline:0;font-size:13.5px;min-height:36px}.textarea{min-height:84px;resize:vertical}.input:focus,.select:focus,.textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.16)}.select{appearance:auto}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.row.space{justify-content:space-between}.toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:13px}.btn{border:0;border-radius:980px;padding:7px 15px;font-size:13px;font-weight:600;background:var(--fill);color:var(--label);font-family:inherit}.btn:hover:not(:disabled){filter:brightness(.98)}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.primary{background:var(--blue);color:#fff}.btn.ghost{background:transparent;color:var(--blue);border:1px solid rgba(0,122,255,.34)}.btn.danger{background:rgba(255,59,48,.11);color:var(--red)}.btn.small{padding:5px 11px;font-size:12px}.search{display:flex;align-items:center;gap:7px;min-width:210px;max-width:320px;flex:1;background:var(--paper);border:1px solid var(--separator);border-radius:9px;padding:7px 10px}.search input{border:0;outline:0;background:transparent;width:100%;font-size:13px;color:var(--label)}.search:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.16)}.setting-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--separator)}.setting-row:last-child{border-bottom:0}.setting-row.disabled{opacity:.5}.setting-row .lbl{font-size:13.5px;font-weight:500}.setting-row .sub{font-size:12px;color:var(--secondary);margin-top:2px}.switch{width:63px;height:28px;border:0;padding:0;border-radius:999px;background:#D8D8DC;position:relative;flex:0 0 auto;transition:.2s}.switch:after{content:"";position:absolute;width:24px;height:24px;left:2px;top:2px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.18);transition:.2s}.switch.on{background:var(--green)}.switch.on:after{transform:translateX(35px)}[data-theme="dark"] .switch{background:#3A3A3E}.switch.on[data-theme="dark"], [data-theme="dark"] .switch.on{background:var(--green)}.exact-table-toolbar{margin-top:10px}.exact-native-table-wrap{border:1px solid var(--separator);border-radius:10px;background:var(--paper)}.exact-native-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px}.exact-native-table-wrap th{text-align:left;padding:9px 11px;font-size:10.5px;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--secondary);border-bottom:1px solid var(--separator);white-space:nowrap}.exact-native-table-wrap td{padding:10px 11px;border-bottom:1px solid var(--separator);white-space:nowrap}.exact-native-table-wrap tr:last-child td{border-bottom:0}.exact-native-table-wrap tbody tr:hover td{background:var(--fill)}.exact-native-table-wrap tr.clickable{cursor:pointer}.exact-empty{padding:22px;text-align:center;color:var(--secondary);font-size:12.5px}.exact-loading{height:3px;background:var(--fill);overflow:hidden;border-radius:999px;margin:8px 0}.exact-loading span{display:block;width:35%;height:100%;background:var(--blue);animation:exact-load 1s ease-in-out infinite alternate}@keyframes exact-load{from{transform:translateX(-10%)}to{transform:translateX(220%)}}.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.28);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}.modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:var(--paper);border:1px solid var(--separator);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.22)}.modal-head{padding:14px 14px 9px 19px;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px}.modal-close-button{width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--secondary);font:400 24px/1 "Open Sans",sans-serif;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.modal-close-button:hover{background:var(--fill);color:var(--label)}.modal-body{padding:10px 19px 18px}.modal-actions{padding:10px 19px 17px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--separator)}.upload{border:1.5px dashed var(--separator);border-radius:14px;padding:34px;text-align:center;background:var(--paper)}.upload strong{display:block;font-size:15px;margin-bottom:4px}.upload span{color:var(--secondary);font-size:12.5px}.signature{height:160px;border:1px dashed var(--separator);border-radius:12px;background:linear-gradient(transparent 78%,rgba(0,0,0,.04) 79%,transparent 80%)}.settings-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}.settings-tabs button{border:0;background:var(--fill);border-radius:999px;padding:6px 12px;color:var(--secondary);font-size:12.5px}.settings-tabs button.on{background:var(--tint);color:var(--blue);font-weight:600}.settings-pane{display:none}.settings-pane.active{display:block}.mini-tabs{display:flex;gap:4px;margin-bottom:12px}.mini-tabs button{border:0;background:transparent;padding:6px 10px;border-radius:7px;color:var(--secondary);font-size:12.5px}.mini-tabs button.on{background:var(--tint);color:var(--blue);font-weight:600}.note{font-size:12px;color:var(--secondary);padding:10px 12px;border-radius:9px;background:var(--fill)}.exact-map-host{height:520px;min-height:420px;overflow:hidden;border-radius:14px;border:1px solid var(--separator);background:var(--paper)}.exact-map-host .apple-panel{border:0!important;border-radius:0!important;height:100%;padding:0!important}.exact-map-host .apple-panel-head{display:none!important}.exact-map-host .apple-panel-body{height:100%;padding:0!important}.exact-map-host .apple-map-canvas-wrap,.exact-map-host .apple-map-canvas{height:100%!important;min-height:420px!important}.exact-document-preview{min-height:420px}.exact-document-preview iframe{min-height:520px}.exact-preview-sheet{background:#fff;color:#111;border-radius:8px;box-shadow:0 12px 36px rgba(0,0,0,.12);padding:28px;min-height:430px;max-width:650px;margin:auto}.exact-preview-line{height:8px;background:#eee;border-radius:4px;margin:8px 0}.exact-preview-line.short{width:45%}.exact-preview-line.med{width:72%}.section-label{font-size:10.5px;font-weight:650;text-transform:uppercase;letter-spacing:.07em;color:var(--secondary);padding:0 4px 7px;margin-top:2px}.exact-chip-button{border:0;background:transparent;padding:0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.exact-actions-cell{display:flex;gap:5px}.exact-inline-danger{color:var(--red)}.exact-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.exact-stat-number{font-size:24px;font-weight:700;letter-spacing:-.02em}.exact-map-sidebar{display:grid;gap:12px;align-content:start}.exact-panel-section+.exact-panel-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--separator)}.exact-warning{color:var(--orange)}
+.page-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:19px}.page-head .page-title{font-size:27px;line-height:1.1;font-weight:700;letter-spacing:-.025em;margin:0 0 3px}.page-head .page-sub{font-size:13.5px;color:var(--secondary);margin:0;line-height:1.4}.exact-head-actions{justify-content:flex-end}.panel{padding:16px}.panel-title{font-size:15px;font-weight:650;letter-spacing:-.012em;margin-bottom:3px}.panel-sub{font-size:12.5px;color:var(--secondary);margin-bottom:14px}.exact-panel-head{margin-bottom:0}.exact-panel-head .panel-sub{margin-bottom:0}.exact-panel-actions{justify-content:flex-end}.grid{display:grid;gap:12px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.four{grid-template-columns:repeat(4,minmax(0,1fr))}.split{display:grid;grid-template-columns:minmax(260px,.85fr) minmax(0,1.65fr);gap:12px}.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}.form-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.field>span,.field>label{font-size:11.5px;font-weight:600;color:var(--secondary)}.input,.select,.textarea{width:100%;border:1px solid var(--separator);border-radius:9px;background:var(--paper);color:var(--label);padding:8px 10px;outline:0;font-size:13.5px;min-height:36px}.textarea{min-height:84px;resize:vertical}.input:focus,.select:focus,.textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.16)}.select{appearance:auto}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.row.space{justify-content:space-between}.toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:13px}.btn{border:0;border-radius:980px;padding:7px 15px;font-size:13px;font-weight:600;background:var(--fill);color:var(--label);font-family:inherit}.btn:hover:not(:disabled){filter:brightness(.98)}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.primary{background:var(--blue);color:#fff}.btn.ghost{background:transparent;color:var(--blue);border:1px solid rgba(0,122,255,.34)}.btn.danger{background:rgba(255,59,48,.11);color:var(--red)}.btn.small{padding:5px 11px;font-size:12px}.search{display:flex;align-items:center;gap:7px;min-width:210px;max-width:320px;flex:1;background:var(--paper);border:1px solid var(--separator);border-radius:9px;padding:7px 10px}.search input{border:0;outline:0;background:transparent;width:100%;font-size:13px;color:var(--label)}.search:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.16)}.setting-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--separator)}.setting-row:last-child{border-bottom:0}.setting-row.disabled{opacity:.5}.setting-row .lbl{font-size:13.5px;font-weight:500}.setting-row .sub{font-size:12px;color:var(--secondary);margin-top:2px}.switch{width:63px;height:28px;border:0;padding:0;border-radius:999px;background:#D8D8DC;position:relative;flex:0 0 auto;transition:.2s}.switch:after{content:"";position:absolute;width:24px;height:24px;left:2px;top:2px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.18);transition:.2s}.switch.on{background:var(--green)}.switch.on:after{transform:translateX(35px)}[data-theme="dark"] .switch{background:#3A3A3E}.switch.on[data-theme="dark"], [data-theme="dark"] .switch.on{background:var(--green)}.exact-table-toolbar{margin-top:10px}.exact-native-table-wrap{border:1px solid var(--separator);border-radius:10px;background:var(--paper)}.exact-native-table-wrap table{width:100%;border-collapse:collapse;font-size:12.5px}.exact-native-table-wrap th{text-align:left;padding:9px 11px;font-size:10.5px;font-weight:650;text-transform:uppercase;letter-spacing:.05em;color:var(--secondary);border-bottom:1px solid var(--separator);white-space:nowrap}.exact-native-table-wrap td{padding:10px 11px;border-bottom:1px solid var(--separator);white-space:nowrap}.exact-native-table-wrap tr:last-child td{border-bottom:0}.exact-native-table-wrap tbody tr:hover td{background:var(--fill)}.exact-native-table-wrap tr.clickable{cursor:pointer}.exact-empty{padding:22px;text-align:center;color:var(--secondary);font-size:12.5px}.exact-loading{height:3px;background:var(--fill);overflow:hidden;border-radius:999px;margin:8px 0}.exact-loading span{display:block;width:35%;height:100%;background:var(--blue);animation:exact-load 1s ease-in-out infinite alternate}@keyframes exact-load{from{transform:translateX(-10%)}to{transform:translateX(220%)}}.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.28);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}.modal{width:min(680px,100%);max-height:90vh;overflow:auto;background:var(--paper);border:1px solid var(--separator);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.22)}.modal-head{padding:14px 14px 9px 19px;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px}.modal-close-button{width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--secondary);font:400 24px/1 "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.modal-close-button:hover{background:var(--fill);color:var(--label)}.modal-body{padding:10px 19px 18px}.modal-actions{padding:10px 19px 17px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--separator)}.upload{border:1.5px dashed var(--separator);border-radius:14px;padding:34px;text-align:center;background:var(--paper)}.upload strong{display:block;font-size:15px;margin-bottom:4px}.upload span{color:var(--secondary);font-size:12.5px}.signature{height:160px;border:1px dashed var(--separator);border-radius:12px;background:linear-gradient(transparent 78%,rgba(0,0,0,.04) 79%,transparent 80%)}.settings-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}.settings-tabs button{border:0;background:var(--fill);border-radius:999px;padding:6px 12px;color:var(--secondary);font-size:12.5px}.settings-tabs button.on{background:var(--tint);color:var(--blue);font-weight:600}.settings-pane{display:none}.settings-pane.active{display:block}.mini-tabs{display:flex;gap:4px;margin-bottom:12px}.mini-tabs button{border:0;background:transparent;padding:6px 10px;border-radius:7px;color:var(--secondary);font-size:12.5px}.mini-tabs button.on{background:var(--tint);color:var(--blue);font-weight:600}.note{font-size:12px;color:var(--secondary);padding:10px 12px;border-radius:9px;background:var(--fill)}.exact-map-host{height:520px;min-height:420px;overflow:hidden;border-radius:14px;border:1px solid var(--separator);background:var(--paper)}.exact-map-host .apple-panel{border:0!important;border-radius:0!important;height:100%;padding:0!important}.exact-map-host .apple-panel-head{display:none!important}.exact-map-host .apple-panel-body{height:100%;padding:0!important}.exact-map-host .apple-map-canvas-wrap,.exact-map-host .apple-map-canvas{height:100%!important;min-height:420px!important}.exact-document-preview{min-height:420px}.exact-document-preview iframe{min-height:520px}.exact-preview-sheet{background:#fff;color:#111;border-radius:8px;box-shadow:0 12px 36px rgba(0,0,0,.12);padding:28px;min-height:430px;max-width:650px;margin:auto}.exact-preview-line{height:8px;background:#eee;border-radius:4px;margin:8px 0}.exact-preview-line.short{width:45%}.exact-preview-line.med{width:72%}.section-label{font-size:10.5px;font-weight:650;text-transform:uppercase;letter-spacing:.07em;color:var(--secondary);padding:0 4px 7px;margin-top:2px}.exact-chip-button{border:0;background:transparent;padding:0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.exact-actions-cell{display:flex;gap:5px}.exact-inline-danger{color:var(--red)}.exact-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.exact-stat-number{font-size:24px;font-weight:700;letter-spacing:-.02em}.exact-map-sidebar{display:grid;gap:12px;align-content:start}.exact-panel-section+.exact-panel-section{margin-top:14px;padding-top:14px;border-top:1px solid var(--separator)}.exact-warning{color:var(--orange)}
 
 /* Expanded real sidebar submenus */
 .sidebar .nav-group-sub{padding:2px 0 3px 28px}.sidebar .nav-group-sub a{display:block;color:var(--secondary);text-decoration:none;padding:6px 10px;border-radius:7px;font-size:12.5px}.sidebar .nav-group-sub a:hover,.sidebar .nav-group-sub a.selected{background:var(--fill);color:var(--label)}
@@ -2034,7 +2032,7 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 }
 
 /* V8.5 — Native operating-system time controls. */
-.exact-native-time-row{position:relative;display:flex;align-items:center;gap:5px;width:100%;max-width:100%;min-width:0;min-height:36px;margin:0;padding:0 6px;box-sizing:border-box;overflow:hidden;border:1px solid var(--separator);border-radius:9px;background:var(--paper);cursor:pointer;flex-wrap:nowrap}.exact-native-time-row:hover{background:var(--paper)}.exact-native-time-row:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.16)}.exact-time-edit-zone{position:relative;display:inline-flex;align-items:center;justify-content:flex-start;flex:0 0 auto;width:4.75ch;min-width:4.75ch;max-width:4.75ch;height:22px;overflow:hidden;cursor:text}.exact-manual-time-input{display:block;width:4.75ch!important;min-width:4.75ch!important;max-width:4.75ch!important;height:22px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:var(--label);font:400 13.5px/22px "Open Sans",sans-serif;font-variant-numeric:tabular-nums;letter-spacing:0;cursor:text;text-align:left}.exact-manual-time-input::placeholder{color:var(--secondary);opacity:1}.exact-manual-time-input:focus{outline:none}.exact-native-picker-input{position:absolute;left:0;top:0;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;border:0!important;padding:0!important}.exact-native-picker-input::-webkit-calendar-picker-indicator{display:none!important;width:0!important;height:0!important;margin:0!important;padding:0!important}.exact-time-picker-space{align-self:stretch;flex:1 1 auto;min-width:8px}.exact-time-picker-hint{flex:0 0 auto;width:18px;min-width:18px;text-align:center;color:var(--secondary);font-size:16px;line-height:1;pointer-events:none;user-select:none}.exact-time-quick-fill{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:36px;min-width:36px;max-width:36px;height:26px;min-height:26px;padding:0;border:1px solid rgba(0,122,255,.24);border-radius:8px;background:var(--tint);color:var(--blue);font:600 10px/1 "Open Sans",sans-serif;cursor:pointer;overflow:hidden}.exact-native-time-row.duration .exact-time-quick-fill{flex:0 0 30px;width:30px;min-width:30px;max-width:30px;height:24px;min-height:24px;padding:0 3px;box-sizing:border-box;font-size:9px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:clip}.exact-time-quick-fill:hover{background:var(--tint-soft)}
+.exact-native-time-row{position:relative;display:flex;align-items:center;gap:5px;width:100%;max-width:100%;min-width:0;min-height:36px;margin:0;padding:0 6px;box-sizing:border-box;overflow:hidden;border:1px solid var(--separator);border-radius:9px;background:var(--paper);cursor:pointer;flex-wrap:nowrap}.exact-native-time-row:hover{background:var(--paper)}.exact-native-time-row:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,122,255,.16)}.exact-time-edit-zone{position:relative;display:inline-flex;align-items:center;justify-content:flex-start;flex:0 0 auto;width:4.75ch;min-width:4.75ch;max-width:4.75ch;height:22px;overflow:hidden;cursor:text}.exact-manual-time-input{display:block;width:4.75ch!important;min-width:4.75ch!important;max-width:4.75ch!important;height:22px!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;color:var(--label);font:400 13.5px/22px "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;font-variant-numeric:tabular-nums;letter-spacing:0;cursor:text;text-align:left}.exact-manual-time-input::placeholder{color:var(--secondary);opacity:1}.exact-manual-time-input:focus{outline:none}.exact-native-picker-input{position:absolute;left:0;top:0;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;border:0!important;padding:0!important}.exact-native-picker-input::-webkit-calendar-picker-indicator{display:none!important;width:0!important;height:0!important;margin:0!important;padding:0!important}.exact-time-picker-space{align-self:stretch;flex:1 1 auto;min-width:8px}.exact-time-picker-hint{flex:0 0 auto;width:18px;min-width:18px;text-align:center;color:var(--secondary);font-size:16px;line-height:1;pointer-events:none;user-select:none}.exact-time-quick-fill{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:36px;min-width:36px;max-width:36px;height:26px;min-height:26px;padding:0;border:1px solid rgba(0,122,255,.24);border-radius:8px;background:var(--tint);color:var(--blue);font:600 10px/1 "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;cursor:pointer;overflow:hidden}.exact-native-time-row.duration .exact-time-quick-fill{flex:0 0 30px;width:30px;min-width:30px;max-width:30px;height:24px;min-height:24px;padding:0 3px;box-sizing:border-box;font-size:9px;border-radius:7px;white-space:nowrap;overflow:hidden;text-overflow:clip}.exact-time-quick-fill:hover{background:var(--tint-soft)}
 @media(max-width:620px){.exact-native-time-row{width:100%;min-width:0}.exact-time-quick-fill{display:inline-flex!important;visibility:visible!important;opacity:1!important;flex-shrink:0;max-width:36px}.exact-native-time-row.duration .exact-time-quick-fill{display:inline-flex!important;visibility:visible!important;opacity:1!important;flex:0 0 30px;max-width:30px}.exact-time-picker-space{min-width:0}}
 
 /* V8.5.2 — By type scrolls as one table; no pinned aircraft-type cell. */
@@ -2164,7 +2162,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 
 /* Aircraft type editable system dropdown + removable inherited categories */
 .exact-removable-category-chip{display:inline-flex;align-items:center;gap:5px;padding-right:5px}
-.exact-removable-category-chip button{width:18px;height:18px;display:inline-grid;place-items:center;border:0;border-radius:50%;padding:0;background:rgba(0,0,0,.08);color:inherit;font:700 14px/1 "Open Sans",sans-serif;cursor:pointer}
+.exact-removable-category-chip button{width:18px;height:18px;display:inline-grid;place-items:center;border:0;border-radius:50%;padding:0;background:rgba(0,0,0,.08);color:inherit;font:700 14px/1 "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;cursor:pointer}
 .exact-removable-category-chip button:hover{background:rgba(0,0,0,.14)}
 [data-theme="dark"] .exact-removable-category-chip button{background:rgba(255,255,255,.12)}
 [data-theme="dark"] .exact-removable-category-chip button:hover{background:rgba(255,255,255,.2)}
@@ -2177,13 +2175,13 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .exact-combo-picker-button:disabled{cursor:not-allowed;opacity:.45}
 .exact-combo-control:focus-within .exact-combo-picker-button{border-left-color:rgba(0,122,255,.25)}
 .exact-combo-menu{position:absolute;left:0;right:0;top:calc(100% + 5px);z-index:2300;display:flex;flex-direction:column;max-height:240px;overflow:auto;padding:5px;background:color-mix(in srgb,var(--paper) 98%,transparent);border:1px solid var(--separator);border-radius:10px;box-shadow:0 12px 34px rgba(0,0,0,.16);-webkit-overflow-scrolling:touch}
-.exact-combo-option{appearance:none;width:100%;min-height:34px;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--label);font:400 14px/1.25 "Open Sans",sans-serif;text-align:left;cursor:pointer}
+.exact-combo-option{appearance:none;width:100%;min-height:34px;padding:7px 10px;border:0;border-radius:7px;background:transparent;color:var(--label);font:400 14px/1.25 "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;text-align:left;cursor:pointer}
 .exact-combo-option:hover,.exact-combo-option.selected{background:var(--tint-soft);color:var(--blue)}
 .exact-combo-empty{padding:9px 10px;color:var(--secondary);font-size:13px}
 @media(max-width:620px){.exact-combo-picker-button{width:40px}.exact-combo-input{padding-right:44px!important}.exact-combo-menu{max-height:210px}}
 
 /* Apple in-app confirmations — replaces browser-native confirm()/alert() popups. */
-.apple-confirm-backdrop{position:fixed;inset:0;z-index:2200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.26);backdrop-filter:saturate(150%) blur(7px);-webkit-backdrop-filter:saturate(150%) blur(7px);animation:appleConfirmFade .16s ease-out}.apple-confirm-sheet{width:min(390px,calc(100vw - 32px));overflow:hidden;background:color-mix(in srgb,var(--paper) 93%,transparent);border:1px solid var(--separator);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.24);animation:appleConfirmPop .18s cubic-bezier(.2,.8,.2,1)}.apple-confirm-title{padding:20px 22px 7px;text-align:center;color:var(--label);font-size:17px;font-weight:700;letter-spacing:-.018em}.apple-confirm-content{padding:0 22px 20px;text-align:center;color:var(--secondary);font-size:13.5px;line-height:1.45;white-space:pre-line}.apple-confirm-actions{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--separator)}.apple-confirm-button{appearance:none;border:0;border-radius:0;min-height:48px;padding:11px 14px;background:transparent;color:var(--blue);font:600 14px/1 "Open Sans",sans-serif;cursor:pointer}.apple-confirm-button+.apple-confirm-button{border-left:1px solid var(--separator)}.apple-confirm-button:hover{background:var(--fill)}.apple-confirm-button:focus-visible{outline:2px solid var(--blue);outline-offset:-3px}.apple-confirm-button.primary{font-weight:700}.apple-confirm-button.destructive{color:var(--red)}@keyframes appleConfirmFade{from{opacity:0}to{opacity:1}}@keyframes appleConfirmPop{from{opacity:0;transform:scale(.965) translateY(5px)}to{opacity:1;transform:scale(1) translateY(0)}}@media(max-width:620px){.apple-confirm-backdrop{padding:16px}.apple-confirm-sheet{border-radius:18px}}
+.apple-confirm-backdrop{position:fixed;inset:0;z-index:2200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.26);backdrop-filter:saturate(150%) blur(7px);-webkit-backdrop-filter:saturate(150%) blur(7px);animation:appleConfirmFade .16s ease-out}.apple-confirm-sheet{width:min(390px,calc(100vw - 32px));overflow:hidden;background:color-mix(in srgb,var(--paper) 93%,transparent);border:1px solid var(--separator);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.24);animation:appleConfirmPop .18s cubic-bezier(.2,.8,.2,1)}.apple-confirm-title{padding:20px 22px 7px;text-align:center;color:var(--label);font-size:17px;font-weight:700;letter-spacing:-.018em}.apple-confirm-content{padding:0 22px 20px;text-align:center;color:var(--secondary);font-size:13.5px;line-height:1.45;white-space:pre-line}.apple-confirm-actions{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--separator)}.apple-confirm-button{appearance:none;border:0;border-radius:0;min-height:48px;padding:11px 14px;background:transparent;color:var(--blue);font:600 14px/1 "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;cursor:pointer}.apple-confirm-button+.apple-confirm-button{border-left:1px solid var(--separator)}.apple-confirm-button:hover{background:var(--fill)}.apple-confirm-button:focus-visible{outline:2px solid var(--blue);outline-offset:-3px}.apple-confirm-button.primary{font-weight:700}.apple-confirm-button.destructive{color:var(--red)}@keyframes appleConfirmFade{from{opacity:0}to{opacity:1}}@keyframes appleConfirmPop{from{opacity:0;transform:scale(.965) translateY(5px)}to{opacity:1;transform:scale(1) translateY(0)}}@media(max-width:620px){.apple-confirm-backdrop{padding:16px}.apple-confirm-sheet{border-radius:18px}}
 
 /* Aircraft list: live category accumulation without column reflow. */
 .exact-aircraft-list-table .exact-native-table-wrap table{table-layout:fixed}
@@ -2195,10 +2193,10 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 /* Flight delete confirmation — large Apple-style destructive prompt. */
 .flight-delete-confirm-backdrop{background:rgba(0,0,0,.38);backdrop-filter:saturate(130%) blur(5px);-webkit-backdrop-filter:saturate(130%) blur(5px)}
 .flight-delete-confirm-sheet{width:min(590px,calc(100vw - 56px));padding:40px 32px 32px;background:color-mix(in srgb,var(--paper) 97%,transparent);border:1px solid color-mix(in srgb,var(--separator) 72%,transparent);border-radius:24px;box-shadow:0 22px 70px rgba(0,0,0,.24);text-align:center;animation:appleConfirmPop .18s cubic-bezier(.2,.8,.2,1)}
-.flight-delete-confirm-title{max-width:520px;margin:0 auto;color:var(--label);font:750 clamp(16px,1.85vw,22px)/1.12 "Open Sans",sans-serif;letter-spacing:-.02em}
-.flight-delete-confirm-subtitle{margin:22px auto 0;color:var(--label);font:400 clamp(13px,1.1vw,16px)/1.32 "Open Sans",sans-serif;letter-spacing:-.008em}
+.flight-delete-confirm-title{max-width:520px;margin:0 auto;color:var(--label);font:750 clamp(16px,1.85vw,22px)/1.12 "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;letter-spacing:-.02em}
+.flight-delete-confirm-subtitle{margin:22px auto 0;color:var(--label);font:400 clamp(13px,1.1vw,16px)/1.32 "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;letter-spacing:-.008em}
 .flight-delete-confirm-actions{display:flex;justify-content:center;gap:16px;margin-top:30px}
-.flight-delete-confirm-button{appearance:none;min-width:132px;min-height:40px;padding:0 22px;border-radius:999px;font:500 13px/1 "Open Sans",sans-serif;cursor:pointer;transition:transform .12s ease,filter .12s ease,background .12s ease}
+.flight-delete-confirm-button{appearance:none;min-width:132px;min-height:40px;padding:0 22px;border-radius:999px;font:500 13px/1 "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;cursor:pointer;transition:transform .12s ease,filter .12s ease,background .12s ease}
 .flight-delete-confirm-button:hover{filter:brightness(.97)}
 .flight-delete-confirm-button:active{transform:scale(.985)}
 .flight-delete-confirm-button:focus-visible{outline:3px solid color-mix(in srgb,var(--blue) 40%,transparent);outline-offset:3px}
@@ -2311,7 +2309,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .sidebar .nav-group-sub a,
 .settings-tabs button,
 .mini-tabs button {
-  font-family:"Open Sans",sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-size:16px !important;
   line-height:1.35 !important;
   letter-spacing:0 !important;
@@ -2419,7 +2417,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   stroke:currentColor !important;
 }
 .sidebar .sidebar-brand-name {
-  font-family:"Open Sans",sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-size:16px !important;
   line-height:1.35 !important;
   letter-spacing:0 !important;
@@ -2444,7 +2442,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .sidebar .nav-group-sub a,
 .settings-tabs button,
 .mini-tabs button {
-  font-family:"Open Sans","Helvetica Neue",Arial,Helvetica,sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
 
 /* App brand mirrors the Mapbox GL JS heading: same slate, heavier face. */
@@ -2554,7 +2552,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 
 /* Exact left navigation typography/colors from reference. */
 .sidebar .nav-item {
-  font-family:Cera,"Open Sans",sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:700 !important;
   font-size:16px !important;
@@ -2578,7 +2576,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 }
 
 .sidebar .nav-group-sub a {
-  font-family:"Open Sans",sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:400 !important;
   font-size:16px !important;
@@ -2598,7 +2596,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 /* Keep Settings subsections visually aligned with sidebar submenus. */
 .settings-tabs button,
 .mini-tabs button {
-  font-family:"Open Sans",sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:400 !important;
   font-size:16px !important;
@@ -2654,7 +2652,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .sidebar .nav-item,
 .sidebar .nav-item:hover,
 .sidebar .nav-item.selected {
-  font-family:Cera,"Open Sans",sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:700 !important;
   font-size:16px !important;
@@ -2679,7 +2677,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .mini-tabs button,
 .mini-tabs button:hover,
 .mini-tabs button.on {
-  font-family:"Open Sans",sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:400 !important;
   font-size:16px !important;
@@ -2882,7 +2880,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .sidebar .nav-item,
 .sidebar .nav-item:hover,
 .sidebar .nav-item.selected {
-  font-family:Cera,"Open Sans",sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:700 !important;
   font-size:16px !important;
@@ -2918,7 +2916,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
 .mini-tabs button,
 .mini-tabs button:hover,
 .mini-tabs button.on {
-  font-family:"Open Sans",sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:400 !important;
   font-size:16px !important;
@@ -2988,7 +2986,7 @@ body.apple-legacy-page .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
   border-radius:999px;
   background:rgba(27, 31, 39, .90);
   color:#FFFFFF;
-  font-family:"Open Sans", sans-serif;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size:12px;
   line-height:16px;
   font-weight:600;
@@ -3265,7 +3263,7 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
   border-color: #DE061D !important;
   background: #DE061D !important;
   color: #FFFFFF !important;
-  font-family: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style: normal !important;
   font-weight: 400 !important;
 }
@@ -3273,7 +3271,7 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
 
 /* Done actions — SF Pro typography only; preserve each button's existing dimensions. */
 .exact-done-button {
-  font-family: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style: normal !important;
   font-weight: 400 !important;
   color: #FFFFFF !important;
@@ -3341,7 +3339,7 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
   background: #0171E3 !important;
   border-color: #0171E3 !important;
   color: #FFFFFF !important;
-  font-family: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style: normal !important;
   font-weight: 400 !important;
   font-size: 17px !important;
@@ -3370,20 +3368,20 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
   background:#0171E3 !important;
   border-color:#0171E3 !important;
   color:#FFFFFF !important;
-  font-family:"SF Pro Text","SF Pro Icons","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:400 !important;
   font-size:14px !important;
   line-height:18px !important;
 }
 
-/* Final left-sidebar typography — system-ui 14/20.
+/* Final left-sidebar typography — SF Pro Text 14/20.
    Inactive/hovered rows stay 400; only the current/selected row is 600. */
 .sidebar .nav-item,
 .sidebar .nav-item:hover,
 .sidebar .nav-group-sub a,
 .sidebar .nav-group-sub a:hover {
-  font-family:system-ui,sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:400 !important;
   font-size:14px !important;
@@ -3396,7 +3394,7 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
 .sidebar .nav-item.selected:hover,
 .sidebar .nav-group-sub a.selected,
 .sidebar .nav-group-sub a.selected:hover {
-  font-family:system-ui,sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:600 !important;
   font-size:14px !important;
@@ -3482,7 +3480,7 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
 /* Secondary outlined actions requested by name: Customize totals, Export, Back,
    Map fields, Import options, Restore defaults and Aircraft > New type. */
 .exact-secondary-action {
-  font-family:"SF Pro Text","SF Pro Icons","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:400 !important;
   font-size:14px !important;
@@ -3496,7 +3494,7 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
 }
 .exact-secondary-action:hover,
 .exact-secondary-action:focus-visible {
-  font-family:"SF Pro Text","SF Pro Icons","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:400 !important;
   font-size:14px !important;
@@ -3512,7 +3510,7 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
 /* Confirmation Back uses the same requested secondary hover treatment,
    while preserving its existing compact 36px geometry. */
 .flight-delete-confirm-button.back {
-  font-family:"SF Pro Text","SF Pro Icons","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  font-family:"SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
   font-style:normal !important;
   font-weight:400 !important;
   font-size:14px !important;
@@ -3589,7 +3587,7 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
 
 /* FINAL: requested Apple SF Pro button typography.
    On Apple platforms, -apple-system/BlinkMacSystemFont resolves to the native SF Pro Text face.
-   This authoritative block intentionally comes last so Open Sans/system-ui rules cannot override it. */
+   This authoritative block intentionally comes last so legacy font rules cannot override it. */
 .exact-primary-action,
 .exact-primary-action:hover,
 .exact-primary-action:focus-visible,
@@ -3626,4 +3624,47 @@ button.btn.exact-secondary-action {
   font-weight: 400 !important;
   font-size: 14px !important;
   line-height: 18px !important;
+}
+
+/* Requested sidebar main-menu idle color — submenus intentionally unchanged. */
+.sidebar .nav-item {
+  color:#040404 !important;
+}
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected,
+.sidebar .nav-item.selected:hover {
+  color:#007AFC !important;
+}
+
+/* FINAL: requested secondary/action buttons are blue by default, not only on hover. */
+.exact-secondary-action,
+.exact-secondary-action:hover,
+.exact-secondary-action:focus-visible,
+.exact-secondary-action:active,
+.btn.exact-secondary-action,
+.btn.exact-secondary-action:hover,
+.btn.exact-secondary-action:focus-visible,
+.btn.exact-secondary-action:active,
+.flight-delete-confirm-button.back,
+.flight-delete-confirm-button.back:hover,
+.flight-delete-confirm-button.back:focus-visible,
+.flight-delete-confirm-button.back:active {
+  background:#0171E3 !important;
+  border-color:#0171E3 !important;
+  color:#FFFFFF !important;
+  transition:none !important;
+  animation:none !important;
+  filter:none !important;
+}
+
+
+/* FINAL GLOBAL TYPOGRAPHY — SF Pro everywhere in the app.
+   Preserve every existing size, weight, line-height, color and spacing; only the family changes. */
+html,
+body,
+#root,
+#root *,
+body > div:not(#root),
+body > div:not(#root) * {
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
