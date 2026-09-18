@@ -251,7 +251,7 @@ export const FlightRecord = () => {
   };
 
   const actions = <>
-    <button className="btn ghost" onClick={() => navigate('/logbook')}>Back</button>
+    <button className="btn ghost exact-secondary-action" onClick={() => navigate('/logbook')}>Back</button>
     {id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button> : null}
     <button className="btn primary exact-done-button" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? 'Saving…' : 'Done'}</button>
   </>;
@@ -292,7 +292,7 @@ export const FlightRecord = () => {
         <Card
           title="Aircraft"
           subtitle="Registration, type, pilot in command and flight role."
-          actions={<button className="btn small" type="button" onClick={() => setNewAircraftOpen(true)}>＋ New aircraft</button>}
+          actions={<button className="btn small exact-primary-action" type="button" onClick={() => setNewAircraftOpen(true)}>＋ New aircraft</button>}
         >
           <div className="form-grid two">
             <ComboField

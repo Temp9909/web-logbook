@@ -342,8 +342,8 @@ export const Aircrafts = () => {
       title="Aircrafts"
       subtitle="Manage registrations, aircraft types and categories."
       actions={<>
-        <button className="btn" type="button" onClick={()=>setNewTypeOpen(true)}>＋ New type</button>
-        <button className="btn primary" type="button" onClick={()=>setNewAircraftOpen(true)}>＋ New aircraft</button>
+        <button className="btn exact-secondary-action" type="button" onClick={()=>setNewTypeOpen(true)}>＋ New type</button>
+        <button className="btn primary exact-primary-action" type="button" onClick={()=>setNewAircraftOpen(true)}>＋ New aircraft</button>
       </>}
     />
     <div className="grid two">

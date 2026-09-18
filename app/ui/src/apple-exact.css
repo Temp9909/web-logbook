@@ -3416,3 +3416,120 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
 .sidebar .nav-group-sub a.selected:hover {
   color:#007AFC !important;
 }
+
+/* Left sidebar casing — normal title case, no forced uppercase. */
+.sidebar .nav-item,
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected,
+.sidebar .nav-item.selected:hover {
+  text-transform:none !important;
+}
+
+/* Secondary outline actions — exact requested outline color. */
+.btn.ghost {
+  border-color: #0166CC !important;
+}
+
+/* "You're about to…" Back action — compact like the other secondary actions. */
+.flight-delete-confirm-button.back {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 9px 16px !important;
+  box-sizing: border-box !important;
+  border: 1px solid #0166CC !important;
+  border-radius: 18px !important;
+  color: #0166CC !important;
+  background: transparent !important;
+}
+@media(max-width:620px){
+  .flight-delete-confirm-button.back {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+}
+
+/* Final action-button typography and interaction treatment.
+   Geometry is intentionally untouched: no height, width, padding or radius overrides. */
+.exact-primary-action,
+.exact-primary-action:hover,
+.exact-primary-action:focus-visible,
+.exact-primary-action:active,
+.exact-done-button,
+.exact-done-button:hover,
+.exact-done-button:focus-visible,
+.exact-done-button:active,
+.btn.primary.exact-primary-action,
+.btn.primary.exact-done-button {
+  font-family:"SF Pro Text" !important;
+  font-style:normal !important;
+  font-weight:400 !important;
+  font-size:14px !important;
+  line-height:18px !important;
+  color:#FFFFFF !important;
+  background:#0171E3 !important;
+  border-color:#0171E3 !important;
+  transition:none !important;
+  animation:none !important;
+  filter:none !important;
+}
+
+/* Secondary outlined actions requested by name: Customize totals, Export, Back,
+   Map fields, Import options, Restore defaults and Aircraft > New type. */
+.exact-secondary-action {
+  font-family:"SF Pro Text","SF Pro Icons","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  font-style:normal !important;
+  font-weight:400 !important;
+  font-size:14px !important;
+  line-height:18px !important;
+  color:#0166CC !important;
+  background:transparent !important;
+  border-color:#0166CC !important;
+  transition:none !important;
+  animation:none !important;
+  filter:none !important;
+}
+.exact-secondary-action:hover,
+.exact-secondary-action:focus-visible {
+  font-family:"SF Pro Text","SF Pro Icons","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  font-style:normal !important;
+  font-weight:400 !important;
+  font-size:14px !important;
+  line-height:18px !important;
+  color:#FFFFFF !important;
+  background:#0171E3 !important;
+  border-color:#0171E3 !important;
+  transition:none !important;
+  animation:none !important;
+  filter:none !important;
+}
+
+/* Confirmation Back uses the same requested secondary hover treatment,
+   while preserving its existing compact 36px geometry. */
+.flight-delete-confirm-button.back {
+  font-family:"SF Pro Text","SF Pro Icons","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  font-style:normal !important;
+  font-weight:400 !important;
+  font-size:14px !important;
+  line-height:18px !important;
+  color:#0166CC !important;
+  border-color:#0166CC !important;
+  background:transparent !important;
+  transition:none !important;
+  animation:none !important;
+  filter:none !important;
+}
+.flight-delete-confirm-button.back:hover,
+.flight-delete-confirm-button.back:focus-visible {
+  color:#FFFFFF !important;
+  border-color:#0171E3 !important;
+  background:#0171E3 !important;
+  transition:none !important;
+  animation:none !important;
+  filter:none !important;
+}

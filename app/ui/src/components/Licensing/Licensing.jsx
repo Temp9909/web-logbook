@@ -80,7 +80,7 @@ export default function Licensing() {
       <Group title="Ratings" rows={groups.Ratings} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />
       <Group title="Medical" rows={groups.Medical} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />
       <Group title="Certificates & qualifications" rows={groups['Certificates & qualifications']} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />
-      <button className="btn primary" onClick={()=>navigate('/licensing/new')}>＋ Add a record</button>
+      <button className="btn primary exact-primary-action" onClick={()=>navigate('/licensing/new')}>＋ Add a record</button>
     </section>
   );
 }

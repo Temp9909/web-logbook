@@ -56,7 +56,7 @@ export const PersonView = () => {
       title={title}
       subtitle="Person details and associated flights."
       actions={<>
-        <button className="btn ghost" onClick={()=>navigate('/persons')}>Back</button>
+        <button className="btn ghost exact-secondary-action" onClick={()=>navigate('/persons')}>Back</button>
         <button className="btn primary exact-done-button" disabled={save.isPending || !person.uuid} onClick={()=>save.mutate()}>Done</button>
       </>}
     />

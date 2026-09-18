@@ -59,7 +59,7 @@ export const PdfExport=({format})=>{
   const change=(key,val)=>setSettings(p=>({...p,[key]:val}));
 
   return <section className="exact-react-page">
-    <PageHead title="Export" subtitle={`Configure and preview your ${format} PDF logbook.`} actions={<><button className="btn ghost" disabled={restore.isPending} onClick={()=>restore.mutate()}>Restore defaults</button><button className="btn" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save settings'}</button><button className="btn primary" disabled={exp.isPending} onClick={()=>exp.mutate()}>{exp.isPending?'Preparing…':'Export PDF'}</button></>} />
+    <PageHead title="Export" subtitle={`Configure and preview your ${format} PDF logbook.`} actions={<><button className="btn ghost exact-secondary-action" disabled={restore.isPending} onClick={()=>restore.mutate()}>Restore defaults</button><button className="btn" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Save settings'}</button><button className="btn primary" disabled={exp.isPending} onClick={()=>exp.mutate()}>{exp.isPending?'Preparing…':'Export PDF'}</button></>} />
     <Loading show={isLoading||save.isPending||restore.isPending||exp.isPending||preview.isPending}/>
     <div className="mini-tabs"><button className={format==='A4'?'on':''} type="button" onClick={()=>navigate('/export/a4')}>A4</button><button className={format==='A5'?'on':''} type="button" onClick={()=>navigate('/export/a5')}>A5</button></div>
     <div className="split">

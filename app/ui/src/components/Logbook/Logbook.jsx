@@ -237,7 +237,7 @@ export default function Logbook() {
           <h1 className="page-title">Flight records</h1>
           <p className="page-sub">{formatMinutes(total).split(':')[0]} hours flown · {allSummaries.landings.toLocaleString()} landings{last ? ` · last entry on ${last}` : ''}</p>
         </div>
-        <button className="btn ghost apple-customize-button" onClick={()=>setCustomizeOpen(v=>!v)}>Customize totals</button>
+        <button className="btn ghost apple-customize-button exact-secondary-action" onClick={()=>setCustomizeOpen(v=>!v)}>Customize totals</button>
       </div>
       {customizeOpen && (
         <div className="card apple-metrics-panel">
@@ -273,8 +273,8 @@ export default function Logbook() {
           {['all','pic','ifr','night'].map(k => <button key={k} className={segment===k?'on':''} onClick={()=>setSegment(k)}>{k==='all'?'All':k.toUpperCase()}</button>)}
         </div>
         <span className="spacer" />
-        <button className="btn ghost" onClick={()=>navigate('/export')}>Export</button>
-        <button className="btn primary" onClick={()=>navigate('/logbook/new')}>＋ New flight</button>
+        <button className="btn ghost exact-secondary-action" onClick={()=>navigate('/export')}>Export</button>
+        <button className="btn primary exact-primary-action" onClick={()=>navigate('/logbook/new')}>＋ New flight</button>
       </div>
       <EasaTable rows={pagedRows} onOpen={(uuid)=>navigate(`/logbook/${uuid}`)} />
       <div className="exact-logbook-pagination">

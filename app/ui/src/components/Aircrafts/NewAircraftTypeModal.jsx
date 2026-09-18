@@ -41,7 +41,7 @@ export const NewAircraftTypeModal = ({ open, onClose, modelOptions = [], categor
       title="New aircraft type"
       onClose={onClose}
       actions={<>
-        <button className="btn" type="button" onClick={onClose}>Back</button>
+        <button className="btn exact-secondary-action" type="button" onClick={onClose}>Back</button>
         <button
           className="btn primary"
           type="button"
