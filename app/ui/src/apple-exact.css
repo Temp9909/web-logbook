@@ -3347,3 +3347,72 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
   font-size: 17px !important;
   line-height: 20px !important;
 }
+
+/* Final Done typography — requested SF Pro Text 400 / 14px / 18px. Keep existing geometry. */
+.exact-done-button,
+.apple-confirm-button.primary.exact-done-button,
+.flight-delete-confirm-button.yes.exact-done-button {
+  background: #0171E3 !important;
+  border-color: #0171E3 !important;
+  color: #FFFFFF !important;
+  font-family: "SF Pro Text" !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  line-height: 18px !important;
+}
+
+/* Primary CTA buttons (New Flight, Add Person, Import, new records, etc.) — exact SF Pro Text treatment. */
+.btn.primary,
+.btn.primary:hover,
+.btn.primary:focus-visible,
+.btn.primary:active {
+  background:#0171E3 !important;
+  border-color:#0171E3 !important;
+  color:#FFFFFF !important;
+  font-family:"SF Pro Text","SF Pro Icons","Helvetica Neue",Helvetica,Arial,sans-serif !important;
+  font-style:normal !important;
+  font-weight:400 !important;
+  font-size:14px !important;
+  line-height:18px !important;
+}
+
+/* Final left-sidebar typography — system-ui 14/20.
+   Inactive/hovered rows stay 400; only the current/selected row is 600. */
+.sidebar .nav-item,
+.sidebar .nav-item:hover,
+.sidebar .nav-group-sub a,
+.sidebar .nav-group-sub a:hover {
+  font-family:system-ui,sans-serif !important;
+  font-style:normal !important;
+  font-weight:400 !important;
+  font-size:14px !important;
+  line-height:20px !important;
+  letter-spacing:0 !important;
+  transition:none !important;
+  animation:none !important;
+}
+.sidebar .nav-item.selected,
+.sidebar .nav-item.selected:hover,
+.sidebar .nav-group-sub a.selected,
+.sidebar .nav-group-sub a.selected:hover {
+  font-family:system-ui,sans-serif !important;
+  font-style:normal !important;
+  font-weight:600 !important;
+  font-size:14px !important;
+  line-height:20px !important;
+  letter-spacing:0 !important;
+}
+/* Preserve the established sidebar colors exactly. */
+.sidebar .nav-item,
+.sidebar .nav-group-sub a {
+  color:#566171 !important;
+}
+.sidebar .nav-item:hover,
+.sidebar .nav-item.selected,
+.sidebar .nav-item.selected:hover,
+.sidebar .nav-group-sub a:hover,
+.sidebar .nav-group-sub a.selected,
+.sidebar .nav-group-sub a.selected:hover {
+  color:#007AFC !important;
+}
