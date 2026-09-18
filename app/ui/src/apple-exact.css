@@ -3725,7 +3725,9 @@ body > div:not(#root) * {
   filter:none !important;
 }
 
-/* FINAL: active/current submenu text is black; hover styling stays unchanged. */
-.sidebar .nav-group-sub a.selected:not(:hover) {
+/* FINAL: active/current submenu text stays black, including hover/focus. */
+.sidebar .nav-group-sub a.selected,
+.sidebar .nav-group-sub a.selected:hover,
+.sidebar .nav-group-sub a.selected:focus-visible {
   color:#000000 !important;
 }
