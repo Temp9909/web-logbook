@@ -3724,3 +3724,8 @@ body > div:not(#root) * {
   animation:none !important;
   filter:none !important;
 }
+
+/* FINAL: active/current submenu text is black; hover styling stays unchanged. */
+.sidebar .nav-group-sub a.selected:not(:hover) {
+  color:#000000 !important;
+}
