@@ -3668,3 +3668,33 @@ body > div:not(#root),
 body > div:not(#root) * {
   font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
+
+/* FINAL sidebar colors requested: neutral gray rail + neutral active pill.
+   Submenu colors are intentionally left untouched. */
+.sidebar {
+  background:#F2F2F2 !important;
+}
+.sidebar .nav-item.selected,
+.sidebar .nav-item.selected:hover,
+.sidebar .nav-item.selected:focus-visible {
+  background:#EAEAEA !important;
+  color:#000000 !important;
+}
+.sidebar .nav-item.selected .nav-item-label,
+.sidebar .nav-item.selected:hover .nav-item-label,
+.sidebar .nav-item.selected:focus-visible .nav-item-label,
+.sidebar .nav-item.selected .nav-icon-slot,
+.sidebar .nav-item.selected:hover .nav-icon-slot,
+.sidebar .nav-item.selected:focus-visible .nav-icon-slot,
+.sidebar .nav-item.selected .nav-caret,
+.sidebar .nav-item.selected:hover .nav-caret,
+.sidebar .nav-item.selected:focus-visible .nav-caret,
+.sidebar .nav-item.selected .nav-caret svg,
+.sidebar .nav-item.selected:hover .nav-caret svg,
+.sidebar .nav-item.selected:focus-visible .nav-caret svg,
+.sidebar .nav-item.selected .nav-caret path,
+.sidebar .nav-item.selected:hover .nav-caret path,
+.sidebar .nav-item.selected:focus-visible .nav-caret path {
+  color:#000000 !important;
+  stroke:#000000 !important;
+}
