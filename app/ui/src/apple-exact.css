@@ -3586,3 +3586,44 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
   background:#0171E3 !important;
   color:#FFFFFF !important;
 }
+
+/* FINAL: requested Apple SF Pro button typography.
+   On Apple platforms, -apple-system/BlinkMacSystemFont resolves to the native SF Pro Text face.
+   This authoritative block intentionally comes last so Open Sans/system-ui rules cannot override it. */
+.exact-primary-action,
+.exact-primary-action:hover,
+.exact-primary-action:focus-visible,
+.exact-primary-action:active,
+.exact-done-button,
+.exact-done-button:hover,
+.exact-done-button:focus-visible,
+.exact-done-button:active,
+.btn.primary.exact-primary-action,
+.btn.primary.exact-done-button,
+.exact-secondary-action,
+.exact-secondary-action:hover,
+.exact-secondary-action:focus-visible,
+.btn.exact-secondary-action,
+.btn.exact-secondary-action:hover,
+.btn.exact-secondary-action:focus-visible,
+.flight-delete-confirm-button.back,
+.flight-delete-confirm-button.back:hover,
+.flight-delete-confirm-button.back:focus-visible,
+.flight-delete-confirm-button.yes,
+.flight-delete-confirm-button.yes:hover,
+.flight-delete-confirm-button.yes:focus-visible {
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  line-height: 18px !important;
+}
+
+/* Aircraft > New type: explicit final selector so the generic .btn rule can never win. */
+button.btn.exact-secondary-action {
+  font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  line-height: 18px !important;
+}
