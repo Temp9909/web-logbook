@@ -35,7 +35,7 @@ const AlertDialog = ({ open, onClose, payload }) => {
       open={open}
       title={title}
       onBackdrop={() => onClose()}
-      actions={<button type="button" className={`apple-confirm-button primary${dialogToneClass(severity)}`} onClick={() => onClose()} autoFocus>{okText}</button>}
+      actions={<button type="button" className={`apple-confirm-button primary${dialogToneClass(severity)}${okText === 'Done' ? ' exact-done-button' : ''}`} onClick={() => onClose()} autoFocus>{okText}</button>}
     >
       {msg}
     </DialogFrame>
@@ -59,7 +59,7 @@ const ConfirmDialog = ({ open, onClose, payload }) => {
           <div className="flight-delete-confirm-subtitle">{msg}</div>
           <div className="flight-delete-confirm-actions">
             <button type="button" className="flight-delete-confirm-button back" onClick={() => onClose(false)} autoFocus>{backLabel}</button>
-            <button type="button" className="flight-delete-confirm-button yes" onClick={() => onClose(true)}>{doneLabel}</button>
+            <button type="button" className={`flight-delete-confirm-button yes${doneLabel === 'Done' ? ' exact-done-button' : ''}`} onClick={() => onClose(true)}>{doneLabel}</button>
           </div>
         </div>
       </div>
@@ -73,7 +73,7 @@ const ConfirmDialog = ({ open, onClose, payload }) => {
       onBackdrop={() => onClose(false)}
       actions={<>
         <button type="button" className="apple-confirm-button back" onClick={() => onClose(false)} autoFocus>{backLabel}</button>
-        <button type="button" className="apple-confirm-button primary" onClick={() => onClose(true)}>{doneLabel}</button>
+        <button type="button" className={`apple-confirm-button primary${doneLabel === 'Done' ? ' exact-done-button' : ''}`} onClick={() => onClose(true)}>{doneLabel}</button>
       </>}
     >
       {msg}

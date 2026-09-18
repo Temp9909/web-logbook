@@ -45,13 +45,13 @@ export const Import=()=>{
       <div className="toolbar" style={{marginTop:14}}><button className="btn ghost" disabled={!headers.length} onClick={()=>setMapOpen(true)}>Map fields</button><button className="btn ghost" onClick={()=>setOptionsOpen(true)}>Import options</button><span className="spacer"/><button className="btn danger" disabled={!data.length} onClick={()=>setData([])}>Clear table</button><button className="btn primary" disabled={!data.length||progress.status==='running'} onClick={runImport}>Run import</button></div>
       <NativeTable rows={data} columns={columns} rowKey={(r,i)=>r.uuid||i} searchable={false} empty="Open a CSV file to preview import rows." />
     </Card>
-    <Modal open={mapOpen} title="Map fields" onClose={()=>setMapOpen(false)} width={900} actions={<><button className="btn" onClick={()=>setMapOpen(false)}>Back</button><button className="btn primary" disabled={!mapping.date} onClick={applyMapping}>Done</button></>}>
+    <Modal open={mapOpen} title="Map fields" onClose={()=>setMapOpen(false)} width={900} actions={<><button className="btn" onClick={()=>setMapOpen(false)}>Back</button><button className="btn primary exact-done-button" disabled={!mapping.date} onClick={applyMapping}>Done</button></>}>
       <div className="form-grid three">{FIELDS.map(([id,label])=><SelectField key={id} label={label} value={mapping[id]||''} onChange={v=>setMapping(p=>({...p,[id]:v}))} options={[{value:'',label:'— Not mapped —'},...headers.map(h=>({value:h,label:h}))]}/>)}</div>
     </Modal>
-    <Modal open={optionsOpen} title="Import options" onClose={()=>setOptionsOpen(false)} actions={<button className="btn primary" onClick={()=>setOptionsOpen(false)}>Done</button>}>
+    <Modal open={optionsOpen} title="Import options" onClose={()=>setOptionsOpen(false)} actions={<button className="btn primary exact-done-button" onClick={()=>setOptionsOpen(false)}>Done</button>}>
       <div className="card rows" style={{borderRadius:10}}><SwitchRow label="Create persons" sub="Create persons from imported PIC Name values." checked={options.create_persons} onChange={v=>setOptions(p=>({...p,create_persons:v,create_person_from:{pic:true}}))}/></div>
     </Modal>
-    <Modal open={progressOpen} title="Importing flight records" onClose={()=>progress.status==='running'?null:setProgressOpen(false)} actions={<button className="btn primary" disabled={progress.status==='running'} onClick={()=>setProgressOpen(false)}>Done</button>}>
+    <Modal open={progressOpen} title="Importing flight records" onClose={()=>progress.status==='running'?null:setProgressOpen(false)} actions={<button className="btn primary exact-done-button" disabled={progress.status==='running'} onClick={()=>setProgressOpen(false)}>Done</button>}>
       <div className="note">{progress.status==='running'?`Processing ${progress.current} of ${progress.total}`:progress.message||progress.status}</div>
     </Modal>
   </section>;

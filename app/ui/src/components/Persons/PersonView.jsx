@@ -36,6 +36,7 @@ export const PersonView = () => {
     onSuccess:async()=>{
       await queryClient.invalidateQueries({queryKey:['persons']});
       await queryClient.invalidateQueries({queryKey:['persons','person',uuid]});
+      navigate(-1);
     },
   });
 
@@ -56,7 +57,7 @@ export const PersonView = () => {
       subtitle="Person details and associated flights."
       actions={<>
         <button className="btn ghost" onClick={()=>navigate('/persons')}>Back</button>
-        <button className="btn primary" disabled={save.isPending || !person.uuid} onClick={()=>save.mutate()}>Save person</button>
+        <button className="btn primary exact-done-button" disabled={save.isPending || !person.uuid} onClick={()=>save.mutate()}>Done</button>
       </>}
     />
     <Loading show={isLoading || save.isPending}/>

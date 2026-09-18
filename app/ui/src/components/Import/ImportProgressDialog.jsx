@@ -129,6 +129,7 @@ const ImportProgressDialog = ({ open, onClose, payload }) => {
         subtitle="Import progress."
         actions={(
           <Button
+            className={status === 'running' ? undefined : 'exact-done-button'}
             onClick={() => onClose(status === 'success')}
             disabled={status === 'running'}
             variant="contained"

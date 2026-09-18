@@ -330,7 +330,7 @@ export const Aircrafts = () => {
           <div className="flight-delete-confirm-actions">
             <button type="button" className="flight-delete-confirm-button back" onClick={() => setDeletePrompt(null)} autoFocus>Back</button>
             {deletePrompt.okOnly ? (
-              <button type="button" className="flight-delete-confirm-button yes" onClick={() => setDeletePrompt(null)}>Done</button>
+              <button type="button" className="flight-delete-confirm-button yes exact-done-button" onClick={() => setDeletePrompt(null)}>Done</button>
             ) : (
               <button type="button" className="flight-delete-confirm-button yes" onClick={async () => { const action = deletePrompt.onConfirm; setDeletePrompt(null); await action?.(); }}>Yes</button>
             )}

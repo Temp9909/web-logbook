@@ -3259,3 +3259,91 @@ body.apple-legacy-page .apple-native-select-control:focus:not(:disabled) {
 .exact-logbook-flight-filter button:focus-visible {
   color:#007AFC !important;
 }
+
+/* Destructive confirmation action — exact requested SF Pro treatment. */
+.flight-delete-confirm-button.yes {
+  border-color: #DE061D !important;
+  background: #DE061D !important;
+  color: #FFFFFF !important;
+  font-family: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+}
+
+
+/* Done actions — SF Pro typography only; preserve each button's existing dimensions. */
+.exact-done-button {
+  font-family: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  color: #FFFFFF !important;
+}
+
+/* Destructive Yes action — Apple reference geometry from supplied measurements. */
+.flight-delete-confirm-button.yes {
+  min-width: 0 !important;
+  width: auto !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 9px 16px !important;
+  border-radius: 18px !important;
+  line-height: 18px !important;
+  box-sizing: border-box !important;
+}
+
+/* "You're about to…" confirmation actions — reference geometry for both Back and Yes. */
+.flight-delete-confirm-button.back,
+.flight-delete-confirm-button.yes {
+  min-width: 0 !important;
+  width: auto !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 9px 16px !important;
+  border-radius: 18px !important;
+  box-sizing: border-box !important;
+}
+.flight-delete-confirm-button.back {
+  background: transparent !important;
+  border: 2px solid #007AFC !important;
+  color: #007AFC !important;
+}
+.flight-delete-confirm-button.yes {
+  background: #DE061D !important;
+  border: 2px solid #DE061D !important;
+  color: #FFFFFF !important;
+}
+
+/* Final sidebar vertical rhythm: 24px main rows + 6px gap. */
+.sidebar .nav-item {
+  height:24px !important;
+  min-height:24px !important;
+  line-height:24px !important;
+  margin-top:0 !important;
+  margin-bottom:6px !important;
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+}
+.sidebar .nav-split-entry > .nav-item {
+  height:24px !important;
+  min-height:24px !important;
+}
+.sidebar .nav-split-caret-button {
+  width:24px !important;
+  height:24px !important;
+  min-width:24px !important;
+  min-height:24px !important;
+}
+
+/* All Done actions — exact requested Apple blue + SF Pro Text metrics. */
+.exact-done-button,
+.apple-confirm-button.primary.exact-done-button,
+.flight-delete-confirm-button.yes.exact-done-button {
+  background: #0171E3 !important;
+  border-color: #0171E3 !important;
+  color: #FFFFFF !important;
+  font-family: "SF Pro Text", "SF Pro Icons", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  font-size: 17px !important;
+  line-height: 20px !important;
+}

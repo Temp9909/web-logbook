@@ -22,7 +22,7 @@ export const Persons=()=>{
   const cols=useMemo(()=>[
     {key:'name',label:'Name',render:r=>personName(r),searchValue:r=>personName(r)},
     {key:'phone',label:'Phone'},{key:'email',label:'Email'},{key:'remarks',label:'Remarks'},
-    {key:'actions',label:'',render:r=><div className="exact-actions-cell"><button className="btn small" onClick={e=>{e.stopPropagation();navigate(`/persons/${r.uuid}`)}}>View</button><button className="btn small" onClick={e=>{e.stopPropagation();setPerson({...r,isNew:false})}}>Edit</button><button className="btn danger small" onClick={e=>{e.stopPropagation();confirmDeletePerson(r)}}>Delete</button></div>,searchValue:()=>''}
+    {key:'actions',label:'',render:r=><div className="exact-actions-cell"><button className="btn small" onClick={e=>{e.stopPropagation();navigate(`/persons/${r.uuid}`)}}>View</button><button className="btn danger small" onClick={e=>{e.stopPropagation();confirmDeletePerson(r)}}>Delete</button></div>,searchValue:()=>''}
   ],[navigate,remove,dialogs]);
   return <section className="exact-react-page">
     <PageHead title="Persons" subtitle="Manage pilots, crew and other people in your logbook." actions={<button className="btn primary" onClick={()=>setPerson({...blank})}>＋ Add person</button>} />
