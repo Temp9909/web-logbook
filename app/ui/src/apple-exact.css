@@ -3698,3 +3698,29 @@ body > div:not(#root) * {
   color:#000000 !important;
   stroke:#000000 !important;
 }
+
+/* FINAL: requested secondary buttons — outlined blue on white, filled blue on hover.
+   Geometry and typography stay unchanged. */
+.exact-secondary-action,
+.btn.exact-secondary-action,
+.flight-delete-confirm-button.back {
+  color:#0166CC !important;
+  background:#FFFFFF !important;
+  border-color:#0166CC !important;
+  transition:none !important;
+  animation:none !important;
+  filter:none !important;
+}
+.exact-secondary-action:hover,
+.exact-secondary-action:focus-visible,
+.btn.exact-secondary-action:hover,
+.btn.exact-secondary-action:focus-visible,
+.flight-delete-confirm-button.back:hover,
+.flight-delete-confirm-button.back:focus-visible {
+  color:#FFFFFF !important;
+  background:#0171E3 !important;
+  border-color:#0171E3 !important;
+  transition:none !important;
+  animation:none !important;
+  filter:none !important;
+}
