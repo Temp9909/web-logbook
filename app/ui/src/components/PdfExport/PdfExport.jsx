@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchSettings } from '../../util/http/settings';
 import { fetchExport, fetchExportPreview } from '../../util/http/export';
@@ -8,14 +8,6 @@ import { Card, PageHead } from '../AppleExact/Primitives';
 
 const PDF_FORMAT = 'A4';
 const EASA_ROWS_PER_PAGE = 12;
-const PdfCanvasPreview = lazy(() => import('./PdfCanvasPreview'));
-
-const usesDesktopSafariPdfViewer = () => {
-  const ua = navigator.userAgent;
-  const safari = /Safari/i.test(ua) && !/(Chrome|Chromium|CriOS|Edg|OPR|Vivaldi|FxiOS)/i.test(ua);
-  const ios = /iPad|iPhone|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
-  return safari && !ios;
-};
 
 const downloadBlob = (blob, name) => {
   const url = URL.createObjectURL(blob);
@@ -37,7 +29,6 @@ const normalizePdfSettings = (source) => ({
 export const PdfExport = () => {
   const [previewUrl, setPreviewUrl] = useState('');
   const [previewError, setPreviewError] = useState('');
-  const useNativePreview = usesDesktopSafariPdfViewer();
   const { data, isLoading } = useQuery({
     queryKey: ['settings'],
     queryFn: ({ signal }) => fetchSettings({ signal }),
@@ -113,9 +104,23 @@ export const PdfExport = () => {
       <Card title="Preview" subtitle="A4 landscape · EASA AMC1 FCL.050 · 12 entries · exact page-94/page-95 geometry joined on one page · columns 1–8 + 9–12.">
         {previewError ? <div className="note exact-preview-error">{previewError}</div> : null}
         {!previewError && previewUrl ? (
-          useNativePreview
-            ? <iframe className="exact-pdf-preview-frame" src={`${previewUrl}#page=2&zoom=page-fit`} title="A4 PDF preview" />
-            : <Suspense fallback={<div className="exact-preview-loading">Preparing PDF viewer…</div>}><PdfCanvasPreview key={previewUrl} src={previewUrl} /></Suspense>
+          <>
+            <div className="exact-pdf-mobile-preview">
+              <div>
+                <strong>PDF preview</strong>
+                <span>Open it in the iPhone PDF viewer to scroll through every page.</span>
+              </div>
+              <a
+                className="btn primary exact-primary-action"
+                href={`${previewUrl}#page=2&zoom=page-fit`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open preview
+              </a>
+            </div>
+            <iframe className="exact-pdf-preview-frame" src={`${previewUrl}#page=2&zoom=page-fit`} title="A4 PDF preview" />
+          </>
         ) : null}
         {!previewError && !previewUrl && !isLoading ? (
           <div className="exact-preview-loading">Generating PDF preview…</div>
