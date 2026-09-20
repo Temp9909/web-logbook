@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { fetchSettings } from '../../util/http/settings';
 import { fetchExport, fetchExportPreview } from '../../util/http/export';
+import { fetchLogbookData } from '../../util/http/logbook';
+import { exportRowsToCsv } from '../UIElements/CSVExportButton';
 import { Card, PageHead } from '../AppleExact/Primitives';
 
 const PDF_FORMAT = 'A4';
@@ -31,6 +33,16 @@ export const PdfExport = () => {
     queryKey: ['settings'],
     queryFn: ({ signal }) => fetchSettings({ signal }),
   });
+  const { data: logbookData = [], isLoading: isLogbookLoading } = useQuery({
+    queryKey: ['logbook'],
+    queryFn: ({ signal }) => fetchLogbookData({ signal }),
+    staleTime: 3600000,
+    gcTime: 3600000,
+  });
+
+  const csvRows = Array.isArray(logbookData)
+    ? logbookData.filter((row) => row?.uuid !== 'previous-experience-artificial-uuid')
+    : [];
 
   const replacePreview = (blob) => {
     const next = URL.createObjectURL(blob);
@@ -74,9 +86,18 @@ export const PdfExport = () => {
         title="Export"
         subtitle="Preview your EASA logbook in A4 landscape format — the exact EASA 1–8 and 9–12 tables are joined on the same page."
         actions={(
-          <button className="btn primary" disabled={exp.isPending} onClick={() => exp.mutate()}>
-            {exp.isPending ? 'Preparing…' : 'Export PDF'}
-          </button>
+          <>
+            <button
+              className="btn ghost exact-secondary-action"
+              disabled={isLogbookLoading || csvRows.length === 0}
+              onClick={() => exportRowsToCsv(csvRows, 'logbook')}
+            >
+              Export CSV
+            </button>
+            <button className="btn primary" disabled={exp.isPending} onClick={() => exp.mutate()}>
+              {exp.isPending ? 'Preparing…' : 'Export PDF'}
+            </button>
+          </>
         )}
       />
 

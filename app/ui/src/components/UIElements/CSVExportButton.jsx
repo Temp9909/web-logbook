@@ -147,7 +147,7 @@ const exportMappers = {
   })),
 };
 
-const handleExportRows = (rows, type) => {
+export const exportRowsToCsv = (rows, type) => {
   if (!rows || rows.length === 0) return;
 
   const mapper = exportMappers[type];
@@ -172,7 +172,7 @@ export const CSVExportButton = ({ type, apiRef }) => {
       // get rows by visible ids
       const rows = visibleRows.map((id) => apiRef.current.getRow(id));
 
-      handleExportRows(rows, type);
+      exportRowsToCsv(rows, type);
     }
   }, [type, apiRef]);
 
