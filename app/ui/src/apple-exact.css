@@ -2057,6 +2057,15 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 
 /* V8.6.5 — real PDF export preview */
 .exact-pdf-preview-frame{width:100%;height:min(74vh,860px);min-height:560px;border:1px solid var(--separator);border-radius:10px;background:#fff;display:block}
+.exact-pdf-mobile-preview{display:none}
+@media(max-width:720px){
+  .exact-pdf-preview-frame{display:none}
+  .exact-pdf-mobile-preview{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px;border:1px solid var(--separator);border-radius:10px;background:var(--fill)}
+  .exact-pdf-mobile-preview>div{display:grid;gap:4px;min-width:0}
+  .exact-pdf-mobile-preview strong{font-size:14px;color:var(--label)}
+  .exact-pdf-mobile-preview span{font-size:12px;line-height:1.4;color:var(--secondary)}
+  .exact-pdf-mobile-preview a{flex:0 0 auto;text-decoration:none;white-space:nowrap}
+}
 .exact-preview-loading{min-height:560px;display:grid;place-items:center;color:var(--secondary);font-size:13px;border:1px solid var(--separator);border-radius:10px;background:var(--fill)}
 .exact-preview-error{margin-bottom:10px;color:var(--red)}
 

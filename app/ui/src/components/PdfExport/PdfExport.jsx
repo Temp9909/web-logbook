@@ -104,7 +104,23 @@ export const PdfExport = () => {
       <Card title="Preview" subtitle="A4 landscape · EASA AMC1 FCL.050 · 12 entries · exact page-94/page-95 geometry joined on one page · columns 1–8 + 9–12.">
         {previewError ? <div className="note exact-preview-error">{previewError}</div> : null}
         {!previewError && previewUrl ? (
-          <iframe className="exact-pdf-preview-frame" src={`${previewUrl}#page=2&zoom=page-fit`} title="A4 PDF preview" />
+          <>
+            <div className="exact-pdf-mobile-preview">
+              <div>
+                <strong>PDF preview</strong>
+                <span>Open it in the iPhone PDF viewer to scroll through every page.</span>
+              </div>
+              <a
+                className="btn primary exact-primary-action"
+                href={`${previewUrl}#page=2&zoom=page-fit`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open preview
+              </a>
+            </div>
+            <iframe className="exact-pdf-preview-frame" src={`${previewUrl}#page=2&zoom=page-fit`} title="A4 PDF preview" />
+          </>
         ) : null}
         {!previewError && !previewUrl && !isLoading ? (
           <div className="exact-preview-loading">Generating PDF preview…</div>

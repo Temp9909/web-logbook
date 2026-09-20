@@ -153,8 +153,8 @@ function EasaTable({ rows, onOpen }) {
                 <td>{dash(r.departure?.place)}</td><td className="mono">{dash(r.departure?.time)}</td>
                 <td>{dash(r.arrival?.place)}</td><td className="mono">{dash(r.arrival?.time)}</td>
                 <td>{dash(r.aircraft?.model)}</td><td>{dash(r.aircraft?.reg_name)}</td>
-                <td className={rowTime(r,'se_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'se_time'))}</td>
-                <td className={rowTime(r,'me_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'me_time'))}</td>
+                <td className={toMinutes(rowTime(r,'se_time')) > 0 ? 'mono' : 'mono muted'}>{toMinutes(rowTime(r,'se_time')) > 0 ? '✓' : '—'}</td>
+                <td className={toMinutes(rowTime(r,'me_time')) > 0 ? 'mono' : 'mono muted'}>{toMinutes(rowTime(r,'me_time')) > 0 ? '✓' : '—'}</td>
                 <td className={rowTime(r,'mcc_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'mcc_time'))}</td>
                 <td className={rowTime(r,'total_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'total_time'))}</td>
                 <td>{dash(r.pic_name)}</td>
