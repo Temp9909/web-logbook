@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
+	"math"
 	"strings"
 
 	"github.com/vsimakhin/web-logbook/internal/models"
@@ -216,6 +217,10 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	p.drawCompositeRightTotals(rx, y, layout.scale)
 	p.drawCompositeCertification(rx, y)
 	p.drawCompositePilotSignature(rx, y)
+	// Redraw the 12-row 1-8 / 9-12 flight grid as one vector layer. This
+	// removes tiny raster colour/position differences at the centre seam in
+	// browser PDF previews without changing any EASA cell dimensions.
+	p.drawCompositeFlightGrid(lx, rx, y)
 	p.drawCompositeCertificationGrid(rx, y)
 }
 
@@ -490,6 +495,42 @@ func (p *PDFExporter) drawCompositeRightTotals(x, y []float64, scale float64) {
 		p.overlaySplitTime(x[8], x[9], x[10], y0, y1, t.Time.Dual, font)
 		p.overlaySplitTime(x[10], x[11], x[12], y0, y1, t.Time.Instructor, font)
 		p.overlaySplitTime(x[14], x[15], x[16], y0, y1, t.SIM.Time, font)
+	}
+}
+
+// drawCompositeFlightGrid redraws the flight-entry grid (the 12 data rows)
+// over the raster template using one common set of horizontal coordinates.
+// The source artwork remains unchanged for the headers and totals, but every
+// visible row/column line in the 1-8 and 9-12 entry area gets the same solid
+// black vector stroke and is exactly aligned across the centre seam.
+func (p *PDFExporter) drawCompositeFlightGrid(lx, rx, y []float64) {
+	if len(lx) < 17 || len(rx) < 18 || len(y) < 16 {
+		return
+	}
+	p.pdf.SetDrawColor(0, 0, 0)
+	p.pdf.SetLineWidth(0.14)
+
+	top := y[3]
+	bottom := y[15]
+
+	// Shared horizontal row boundaries: one continuous line from column 1 to
+	// column 12 guarantees that the two EASA halves meet at exactly the same Y.
+	for i := 3; i <= 15; i++ {
+		p.pdf.Line(lx[0], y[i], rx[len(rx)-1], y[i])
+	}
+
+	// Left half (columns 1-8).
+	for _, x := range lx {
+		p.pdf.Line(x, top, x, bottom)
+	}
+
+	// Right half (columns 9-12). Avoid double-stroking the centre seam when
+	// the first right boundary lands on the final left boundary.
+	for i, x := range rx {
+		if i == 0 && math.Abs(x-lx[len(lx)-1]) < 0.05 {
+			continue
+		}
+		p.pdf.Line(x, top, x, bottom)
 	}
 }
 

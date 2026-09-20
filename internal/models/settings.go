@@ -24,6 +24,28 @@ func (m *DBModel) GetSettings() (settings Settings, err error) {
 		return settings, err
 	}
 
+	// License alerts default to enabled. Probe the raw JSON so an explicit
+	// false chosen by the user is preserved, while older databases that do not
+	// contain these keys get the new default automatically.
+	type licenseExpirationPresence struct {
+		ShowExpired *bool `json:"show_expired"`
+		ShowWarning *bool `json:"show_warning"`
+	}
+	var presence struct {
+		LicensesExpiration *licenseExpirationPresence `json:"licenses_expiration"`
+	}
+	if probeErr := json.Unmarshal([]byte(raw), &presence); probeErr == nil {
+		if presence.LicensesExpiration == nil || presence.LicensesExpiration.ShowWarning == nil {
+			settings.LicensesExpiration.ShowWarning = true
+		}
+		if presence.LicensesExpiration == nil || presence.LicensesExpiration.ShowExpired == nil {
+			settings.LicensesExpiration.ShowExpired = true
+		}
+	}
+	if settings.LicensesExpiration.WarningPeriod <= 0 {
+		settings.LicensesExpiration.WarningPeriod = 90
+	}
+
 	return settings, nil
 }
 

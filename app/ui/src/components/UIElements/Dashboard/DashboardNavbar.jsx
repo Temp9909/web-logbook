@@ -36,9 +36,9 @@ function LicensingCount() {
   return count > 0 ? <span className="chip warn licensing-count">{count}</span> : null;
 }
 
-const MainLink = ({ to, segment, label, Icon, count, onNavigate, location, showIcons = true }) => {
+const MainLink = ({ to, segment, label, Icon, count, onNavigate, location, showIcons = true, state }) => {
   const selected = location.pathname === '/' ? segment === 'logbook' : location.pathname.startsWith(`/${segment}`);
-  return <Link to={to} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}><span className={`nav-icon-slot${showIcons ? '' : ' is-hidden'}`} aria-hidden="true">{showIcons ? <Icon /> : null}</span><span className="nav-item-label">{label}</span>{count}</Link>;
+  return <Link to={to} state={state} className={`nav-item${selected ? ' selected' : ''}`} onClick={onNavigate}><span className={`nav-icon-slot${showIcons ? '' : ' is-hidden'}`} aria-hidden="true">{showIcons ? <Icon /> : null}</span><span className="nav-item-label">{label}</span>{count}</Link>;
 };
 
 
@@ -68,7 +68,7 @@ export default function DashboardNavbar({ open, onNavigate }) {
         <span className="sidebar-brand-icon"><AppLogo /></span>
         <span className="sidebar-brand-name">Logbook</span>
       </div>
-      <MainLink to="/logbook" segment="logbook" label="Logbook" Icon={BookIcon} showIcons={showIcons} onNavigate={onNavigate} location={location}/>
+      <MainLink to="/logbook" segment="logbook" label="Logbook" Icon={BookIcon} showIcons={showIcons} onNavigate={onNavigate} location={location} state={{ __resetLogbookPage: true }}/>
       <MainLink to="/licensing" segment="licensing" label="Licensing" Icon={LicenseIcon} showIcons={showIcons} count={<LicensingCount/>} onNavigate={onNavigate} location={location}/>
       <MainLink to="/map" segment="map" label="Map" Icon={MapIcon} showIcons={showIcons} onNavigate={onNavigate} location={location}/>
       <MainLink to="/aircrafts" segment="aircrafts" label="Aircrafts" Icon={AircraftIcon} showIcons={showIcons} onNavigate={onNavigate} location={location}/>

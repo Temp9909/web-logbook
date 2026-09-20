@@ -183,7 +183,8 @@ function EasaTable({ rows, onOpen }) {
 export default function Logbook() {
   const navigate = useNavigate();
   const location = useLocation();
-  const restoreState = location.state?.__restoreLogbook || null;
+  const menuReset = Boolean(location.state?.__resetLogbookPage);
+  const restoreState = menuReset ? null : (location.state?.__restoreLogbook || null);
   const { settings } = useSettings();
   const [search, setSearch] = useState(() => restoreState?.search || '');
   const [segment, setSegment] = useState(() => ['all','pic','ifr','night'].includes(restoreState?.segment) ? restoreState.segment : 'all');
@@ -196,6 +197,21 @@ export default function Logbook() {
     queryKey:['logbook'], queryFn:({signal})=>fetchLogbookData({signal}), staleTime:3600000, gcTime:3600000
   });
   useErrorNotification({ isError, error, fallbackMessage:'Failed to load logbook' });
+
+  useEffect(() => {
+    if (!menuReset) return;
+
+    // An explicit click on the Logbook sidebar item always returns the list to
+    // page 1. This is intentionally separate from the Done/Back restoration
+    // flow, which carries __restoreLogbook and must keep the exact page/scroll.
+    setPage(1);
+    const mainContent = document.querySelector('.apple-main-content');
+    if (mainContent) mainContent.scrollTop = 0;
+
+    // Consume the one-shot navigation flag so later state changes cannot
+    // accidentally reset pagination again.
+    navigate('/logbook', { replace: true, state: null });
+  }, [menuReset, navigate]);
 
   useEffect(() => {
     if (!restoreState || isLoading) return undefined;

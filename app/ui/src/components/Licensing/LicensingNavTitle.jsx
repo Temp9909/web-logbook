@@ -21,7 +21,9 @@ export const LicensingNavTitle = () => {
 
   const { warning, expired } = useMemo(() => {
     const cfg = settings?.licenses_expiration;
-    if (!cfg?.show_warning && !cfg?.show_expired) {
+    const showWarning = cfg?.show_warning ?? true;
+    const showExpired = cfg?.show_expired ?? true;
+    if (!showWarning && !showExpired) {
       return { warning: 0, expired: 0 };
     }
 
@@ -42,8 +44,8 @@ export const LicensingNavTitle = () => {
     return { warning, expired };
   }, [licenses, settings?.licenses_expiration]);
 
-  const showWarning = settings?.licenses_expiration?.show_warning;
-  const showExpired = settings?.licenses_expiration?.show_expired;
+  const showWarning = settings?.licenses_expiration?.show_warning ?? true;
+  const showExpired = settings?.licenses_expiration?.show_expired ?? true;
 
   return (
     <>
