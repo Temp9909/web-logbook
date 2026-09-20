@@ -137,7 +137,9 @@ export const FlightRecord = () => {
 
   useEffect(() => {
     if (id === 'new') {
-      const initialFlight = normalizeFlightTimeZeroes({ ...FLIGHT_INITIAL_STATE, uuid: 'new', ...(location.state || {}) });
+      const initialState = { ...(location.state || {}) };
+      delete initialState.__logbookReturn;
+      const initialFlight = normalizeFlightTimeZeroes({ ...FLIGHT_INITIAL_STATE, uuid: 'new', ...initialState });
       // Query/router data initializes the editable draft when the selected record changes.
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setFlight(initialFlight);
@@ -227,6 +229,11 @@ export const FlightRecord = () => {
   const totalMinutes = useMemo(() => durationToMinutes(flight.time?.total_time), [flight.time?.total_time]);
   const quickFillLabel = formatQuickFillLabel(totalMinutes);
 
+  const returnToLogbook = useCallback(() => {
+    const returnState = location.state?.__logbookReturn;
+    navigate('/logbook', returnState ? { state: { __restoreLogbook: returnState } } : undefined);
+  }, [location.state, navigate]);
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       const normalizedFlight = normalizeFlightTimeZeroes(flight);
@@ -234,13 +241,13 @@ export const FlightRecord = () => {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['logbook'] });
-      navigate('/logbook');
+      returnToLogbook();
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteFlightRecord({ id: flight.uuid }),
-    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['logbook'] }); navigate('/logbook'); },
+    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: ['logbook'] }); returnToLogbook(); },
   });
 
   const handleDelete = () => setDeleteConfirmOpen(true);
@@ -251,7 +258,7 @@ export const FlightRecord = () => {
   };
 
   const actions = <>
-    <button className="btn ghost exact-secondary-action" onClick={() => navigate('/logbook')}>Back</button>
+    <button className="btn ghost exact-secondary-action" onClick={returnToLogbook}>Back</button>
     {id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button> : null}
     <button className="btn primary exact-done-button" disabled={saveMutation.isPending} onClick={() => saveMutation.mutate()}>{saveMutation.isPending ? 'Saving…' : 'Done'}</button>
   </>;

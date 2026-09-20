@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { fetchLogbookData } from '../../util/http/logbook';
 import { useErrorNotification } from '../../hooks/useAppNotifications';
 import { SelectField } from '../AppleExact/Primitives';
@@ -182,17 +182,30 @@ function EasaTable({ rows, onOpen }) {
 
 export default function Logbook() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const restoreState = location.state?.__restoreLogbook || null;
   const { settings } = useSettings();
-  const [search, setSearch] = useState('');
-  const [segment, setSegment] = useState('all');
+  const [search, setSearch] = useState(() => restoreState?.search || '');
+  const [segment, setSegment] = useState(() => ['all','pic','ifr','night'].includes(restoreState?.segment) ? restoreState.segment : 'all');
   const [customizeOpen, setCustomizeOpen] = useState(false);
   const [selectedMetrics, setSelectedMetrics] = useState(loadSelectedMetrics);
-  const [pageSize, setPageSize] = useState(loadPageSize);
-  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(() => [12,25,50,100].includes(Number(restoreState?.pageSize)) ? Number(restoreState.pageSize) : loadPageSize());
+  const [page, setPage] = useState(() => Math.max(1, Number(restoreState?.page) || 1));
+  const paginationFiltersReady = useRef(false);
   const { data = [], isLoading, isError, error } = useQuery({
     queryKey:['logbook'], queryFn:({signal})=>fetchLogbookData({signal}), staleTime:3600000, gcTime:3600000
   });
   useErrorNotification({ isError, error, fallbackMessage:'Failed to load logbook' });
+
+  useEffect(() => {
+    if (!restoreState || isLoading) return undefined;
+    const scrollTop = Math.max(0, Number(restoreState.scrollTop) || 0);
+    const frame = window.requestAnimationFrame(() => {
+      const mainContent = document.querySelector('.apple-main-content');
+      if (mainContent) mainContent.scrollTop = scrollTop;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [isLoading, restoreState]);
 
   useEffect(() => {
     localStorage.setItem('logbook-summary-metrics', JSON.stringify(selectedMetrics));
@@ -203,6 +216,10 @@ export default function Logbook() {
   }, [pageSize]);
 
   useEffect(() => {
+    if (!paginationFiltersReady.current) {
+      paginationFiltersReady.current = true;
+      return;
+    }
     setPage(1);
   }, [search, segment, pageSize]);
 
@@ -273,6 +290,24 @@ export default function Logbook() {
     setSelectedMetrics(prev => prev.map((value, i) => i === index ? key : value));
   };
 
+
+  const captureReturnState = () => ({
+    page: safePage,
+    pageSize,
+    search,
+    segment,
+    scrollTop: document.querySelector('.apple-main-content')?.scrollTop || 0,
+  });
+
+  const openFlight = (uuid) => {
+    if (!uuid) return;
+    navigate(`/logbook/${uuid}`, { state: { __logbookReturn: captureReturnState() } });
+  };
+
+  const openNewFlight = () => {
+    navigate('/logbook/new', { state: { __logbookReturn: captureReturnState() } });
+  };
+
   const last = rows[0]?.date ? humanDate(rows[0].date) : '';
   const total = allSummaries.metrics.total_time?.all || 0;
   return (
@@ -318,9 +353,9 @@ export default function Logbook() {
         </div>
         <span className="spacer" />
         <button className="btn ghost exact-secondary-action" onClick={()=>navigate('/export')}>Export</button>
-        <button className="btn primary exact-primary-action" onClick={()=>navigate('/logbook/new')}>＋ New flight</button>
+        <button className="btn primary exact-primary-action" onClick={openNewFlight}>＋ New flight</button>
       </div>
-      <EasaTable rows={pagedRows} onOpen={(uuid)=>navigate(`/logbook/${uuid}`)} />
+      <EasaTable rows={pagedRows} onOpen={openFlight} />
       <div className="exact-logbook-pagination">
         <div className="exact-pagination-count">
           {filtered.length ? `${pageStartIndex + 1}–${pageEndIndex} of ${filtered.length} flights` : '0 flights'}

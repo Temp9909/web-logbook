@@ -114,6 +114,15 @@ type PDFExporter struct {
 
 	pdf *fpdf.Fpdf
 
+	// Embedded EASA vector templates. Keeping these as PDF form XObjects avoids
+	// the very large raster background that made browser PDF scrolling stutter.
+	easaFrontImporter1    *gofpdi.Importer
+	easaFrontImporter2    *gofpdi.Importer
+	easaFrontPage1        int
+	easaFrontPage2        int
+	easaCompositeImporter *gofpdi.Importer
+	easaCompositePage     int
+
 	rowCounter      int
 	pageCounter     int
 	signatureBlockX float64
@@ -339,47 +348,117 @@ func (p *PDFExporter) loadSignature() error {
 	return nil
 }
 
-// titlePage prints title page
-func (p *PDFExporter) titlePage() {
-
-	type XY struct {
-		x float64
-		y float64
+// loadEASAVectorTemplates imports the exact EASA front pages (92-93) and
+// the combined 1-12 logbook sheet as reusable vector PDF form XObjects.
+func (p *PDFExporter) loadEASAVectorTemplates() error {
+	frontBytes, err := content.ReadFile("template/easa_front_pages.pdf")
+	if err != nil {
+		return fmt.Errorf("failed to read EASA front pages template: %w", err)
 	}
+	frontReader1 := io.ReadSeeker(bytes.NewReader(frontBytes))
+	p.easaFrontImporter1 = gofpdi.NewImporter()
+	p.easaFrontPage1 = p.easaFrontImporter1.ImportPageFromStream(p.pdf, &frontReader1, 1, "/MediaBox")
+	frontReader2 := io.ReadSeeker(bytes.NewReader(frontBytes))
+	p.easaFrontImporter2 = gofpdi.NewImporter()
+	p.easaFrontPage2 = p.easaFrontImporter2.ImportPageFromStream(p.pdf, &frontReader2, 2, "/MediaBox")
 
-	coord := map[string]map[string]XY{
-		PDFA4: {
-			Title:   {x: 95, y: 60},
-			Name:    {x: 65, y: 150},
-			License: {x: 65, y: 157},
-			Address: {x: 65, y: 164},
-		},
+	compositeBytes, err := content.ReadFile("template/easa_1_12_vector.pdf")
+	if err != nil {
+		return fmt.Errorf("failed to read EASA 1-12 vector template: %w", err)
 	}
+	compositeReader := io.ReadSeeker(bytes.NewReader(compositeBytes))
+	p.easaCompositeImporter = gofpdi.NewImporter()
+	p.easaCompositePage = p.easaCompositeImporter.ImportPageFromStream(p.pdf, &compositeReader, 1, "/MediaBox")
+	return nil
+}
 
-	if len(p.Export.CustomTitleBlob) != 0 {
-		p.printCustomTitle()
+func (p *PDFExporter) drawFrontValue(x, y, w float64, value string) {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return
+	}
+	// Hide the underscore glyphs only under the entered value, then restore a
+	// clean baseline so the EASA form still reads as the original paper page.
+	p.pdf.SetFillColor(255, 255, 255)
+	p.pdf.Rect(x, y, w, 5.1, "F")
+	p.pdf.SetDrawColor(0, 0, 0)
+	p.pdf.SetLineWidth(0.18)
+	p.pdf.Line(x, y+4.55, x+w, y+4.55)
+	p.pdf.SetTextColor(0, 0, 0)
+	p.pdf.SetFont(fontRegular, "", 10.8)
+	p.pdf.SetXY(x+0.8, y+0.15)
+	p.pdf.CellFormat(w-1.6, 4.0, value, "", 0, "L", false, 0, "")
+}
+
+func (p *PDFExporter) drawFrontAddress() {
+	address := strings.TrimSpace(p.Address)
+	if address == "" {
 		return
 	}
 
-	p.pdf.AddPage()
-	p.pdf.SetFont(fontBold, "", TitlePageMainFontSize)
-	p.pdf.SetXY(coord[p.Format][Title].x, coord[p.Format][Title].y)
-	p.pdf.MultiCell(100, 2, Title, "", "C", false)
+	const (
+		x0 = 78.12 * ptToMM
+		x1 = 319.02 * ptToMM
+	)
+	lineYs := []float64{137.30 * ptToMM, 154.58 * ptToMM, 171.74 * ptToMM}
+	width := x1 - x0
 
-	p.pdf.SetFont(fontRegular, "", TitlePageInfoFontSize)
-
-	info := map[string]string{
-		Name:    fmt.Sprintf("%s %s", Name, strings.ToUpper(p.OwnerName)),
-		License: fmt.Sprintf("%s %s", License, strings.ToUpper(p.LicenseNumber)),
-		Address: fmt.Sprintf("%s %s", Address, strings.ToUpper(p.Address)),
-	}
-
-	for position, text := range info {
-		if strings.TrimSpace(position) != strings.TrimSpace(text) {
-			p.pdf.SetXY(coord[p.Format][position].x, coord[p.Format][position].y)
-			p.pdf.MultiCell(160, 2, text, "", "C", false)
+	p.pdf.SetFont(fontRegular, "", 10.2)
+	words := strings.Fields(strings.ReplaceAll(address, "\n", " "))
+	lines := []string{}
+	current := ""
+	for _, word := range words {
+		candidate := word
+		if current != "" {
+			candidate = current + " " + word
+		}
+		if current == "" || p.pdf.GetStringWidth(candidate) <= width-1.8 {
+			current = candidate
+		} else {
+			lines = append(lines, current)
+			current = word
+			if len(lines) == 2 {
+				break
+			}
 		}
 	}
+	if current != "" && len(lines) < 3 {
+		lines = append(lines, current)
+	}
+	if len(lines) == 0 {
+		return
+	}
+
+	for i := 0; i < 3; i++ {
+		y := lineYs[i]
+		p.pdf.SetFillColor(255, 255, 255)
+		p.pdf.Rect(x0, y-0.7, width, 4.7, "F")
+		p.pdf.SetDrawColor(0, 0, 0)
+		p.pdf.SetLineWidth(0.18)
+		p.pdf.Line(x0, y+3.2, x1, y+3.2)
+		if i < len(lines) {
+			p.pdf.SetTextColor(0, 0, 0)
+			p.pdf.SetFont(fontRegular, "", 10.2)
+			p.pdf.SetXY(x0+0.7, y-0.45)
+			p.pdf.CellFormat(width-1.4, 3.7, lines[i], "", 0, "L", false, 0, "")
+		}
+	}
+}
+
+// titlePage reproduces the two official EASA pilot-logbook front pages:
+// page 92 (holder name/licence number) and page 93 (holder address).
+func (p *PDFExporter) titlePage() {
+	// EASA page 92.
+	p.pdf.AddPage()
+	p.easaFrontImporter1.UseImportedTemplate(p.pdf, p.easaFrontPage1, 0, 0, 297, 210)
+	p.drawFrontValue(219.86*ptToMM, 282.9*ptToMM, (575.94-219.86)*ptToMM, p.OwnerName)
+	p.drawFrontValue(219.86*ptToMM, 351.55*ptToMM, (575.77-219.86)*ptToMM, p.LicenseNumber)
+
+	// EASA page 93. The current address occupies the first address block; the
+	// five official "space for address change" blocks stay untouched.
+	p.pdf.AddPage()
+	p.easaFrontImporter2.UseImportedTemplate(p.pdf, p.easaFrontPage2, 0, 0, 297, 210)
+	p.drawFrontAddress()
 }
 
 // printCustomTitle prints custom title page

@@ -130,7 +130,7 @@ func (p *PDFExporter) ExportA4(flightRecords []models.FlightRecord, w io.Writer)
 	if err := p.initPDF(); err != nil {
 		return err
 	}
-	if err := p.loadEASACompositeTemplates(); err != nil {
+	if err := p.loadEASAVectorTemplates(); err != nil {
 		return err
 	}
 
@@ -178,24 +178,15 @@ func (p *PDFExporter) ExportA4(flightRecords []models.FlightRecord, w io.Writer)
 	return p.pdf.Output(w)
 }
 
-func (p *PDFExporter) loadEASACompositeTemplates() error {
-	bs, err := content.ReadFile("template/easa_1_12_aligned.png")
-	if err != nil {
-		return err
-	}
-	p.pdf.RegisterImageReader("easa-1-12-aligned", "png", bytes.NewReader(bs))
-	return nil
-}
-
 func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	p.pdf.AddPage()
 	layout := compositeLayout()
 
-	// One pre-aligned template: the original EASA 1-8 half is kept at its
-	// measured geometry; the 9-12 half is remapped onto the same horizontal
-	// row boundaries. This avoids the visible row drift that occurred when two
-	// independently-sized source crops were merely placed side by side.
-	p.pdf.Image("easa-1-12-aligned", layout.leftX, layout.topY, layout.leftW+layout.rightW, layout.height, false, "", 0, "")
+	// Exact vector template built from the EASA Nov 2025 source pages. The
+	// 1-8 and 9-12 halves share the same row grid and are already positioned on
+	// one A4-landscape page. Unlike the previous 36 MP PNG, this stays sharp and
+	// scrolls smoothly in the browser PDF preview.
+	p.easaCompositeImporter.UseImportedTemplate(p.pdf, p.easaCompositePage, 0, 0, 297, 210)
 
 	lx := transformBounds(easaLeftX, easaLeftX[0], layout.leftX, layout.scale)
 	rightStart := layout.leftX + layout.leftW + compositeGap
@@ -214,6 +205,7 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 
 	p.drawCompositeLeftTotals(lx, y, layout.scale)
 	p.drawCompositeRightTotals(rx, y, layout.scale)
+	p.drawCompositeCertification(rx, y)
 	p.drawCompositePilotSignature(rx, y)
 }
 
@@ -491,14 +483,43 @@ func (p *PDFExporter) drawCompositeRightTotals(x, y []float64, scale float64) {
 	}
 }
 
+func (p *PDFExporter) drawCompositeCertification(x, y []float64) {
+	cellX0, cellX1 := x[16], x[17]
+	cellY0, cellY1 := y[15], y[18]
+
+	// The aligned template already contains the certification wording as raster
+	// artwork. Clear only the inside of that cell, keeping the measured EASA
+	// border untouched, then redraw the same wording slightly larger.
+	inset := 0.16
+	p.pdf.SetFillColor(255, 255, 255)
+	p.pdf.Rect(cellX0+inset, cellY0+inset, (cellX1-cellX0)-2*inset, (cellY1-cellY0)-2*inset, "F")
+
+	p.pdf.SetTextColor(0, 0, 0)
+	p.pdf.SetFont(fontRegular, "", 6.8)
+	lineH := 2.55
+	textX := cellX0 + 0.85
+	textY := cellY0 + 1.45
+	usableW := (cellX1 - cellX0) - 1.7
+
+	p.pdf.SetXY(textX, textY)
+	p.pdf.CellFormat(usableW, lineH, "I certify that the entries", "", 1, "L", false, 0, "")
+	p.pdf.SetX(textX)
+	p.pdf.CellFormat(usableW, lineH, "in this log are true.", "", 0, "L", false, 0, "")
+}
+
 func (p *PDFExporter) drawCompositePilotSignature(x, y []float64) {
-	if p.SignatureImage == "" {
-		return
-	}
 	cellX0, cellX1 := x[16], x[17]
 	cellY0, cellY1 := y[18], y[19]
 	cellW, cellH := cellX1-cellX0, cellY1-cellY0
-	// Keep the EASA "PILOT'S SIGNATURE" label visible at the top of the exact
-	// source box; place the image in the lower part of that same measured cell.
-	p.pdf.Image("signature", cellX0+cellW*0.14, cellY0+cellH*0.32, cellW*0.78, cellH*0.58, false, "", 0, "")
+
+	p.pdf.SetTextColor(0, 0, 0)
+	p.pdf.SetFont(fontBold, "", 6.9)
+	p.pdf.SetXY(cellX0+0.85, cellY0+0.75)
+	p.pdf.CellFormat(cellW-1.7, 2.8, "PILOT'S SIGNATURE", "", 0, "L", false, 0, "")
+
+	if p.SignatureImage == "" {
+		return
+	}
+	// Keep the label unobstructed; the signature image uses only the lower area.
+	p.pdf.Image("signature", cellX0+cellW*0.14, cellY0+cellH*0.30, cellW*0.78, cellH*0.61, false, "", 0, "")
 }
