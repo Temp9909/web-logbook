@@ -5,6 +5,9 @@ import (
 	"embed"
 	"encoding/base64"
 	"fmt"
+	"image"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"strings"
 	"time"
@@ -119,6 +122,7 @@ type PDFExporter struct {
 	pageCounter     int
 	signatureBlockX float64
 	signatureBlockY float64
+	signatureAspect float64
 }
 
 // NewPDFExporter creates a new PDFExporter object
@@ -326,18 +330,37 @@ func (p *PDFExporter) loadFonts() error {
 
 // loadSignature register PNG image with signature in a pdf file
 func (p *PDFExporter) loadSignature() error {
-	if p.SignatureImage != "" {
-		unbased, err := base64.StdEncoding.DecodeString(strings.ReplaceAll(p.SignatureImage, "data:image/png;base64,", ""))
-		if err != nil {
-			err = fmt.Errorf("error adding signature image to the pdf file - %s, continue without signature", err)
-			p.SignatureImage = ""
-			return err
-		}
-
-		r := bytes.NewReader(unbased)
-		p.pdf.RegisterImageReader("signature", "png", r)
+	if p.SignatureImage == "" {
+		return nil
 	}
 
+	encoded := p.SignatureImage
+	imageType := "png"
+	if comma := strings.Index(encoded, ","); comma >= 0 && strings.HasPrefix(encoded, "data:image/") {
+		mime := strings.ToLower(encoded[len("data:image/"):comma])
+		if semi := strings.Index(mime, ";"); semi >= 0 {
+			mime = mime[:semi]
+		}
+		if mime == "jpeg" {
+			mime = "jpg"
+		}
+		if mime == "png" || mime == "jpg" {
+			imageType = mime
+		}
+		encoded = encoded[comma+1:]
+	}
+
+	unbased, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		p.SignatureImage = ""
+		return fmt.Errorf("error adding signature image to the pdf file - %s, continue without signature", err)
+	}
+
+	if cfg, _, cfgErr := image.DecodeConfig(bytes.NewReader(unbased)); cfgErr == nil && cfg.Height > 0 {
+		p.signatureAspect = float64(cfg.Width) / float64(cfg.Height)
+	}
+
+	p.pdf.RegisterImageReader("signature", imageType, bytes.NewReader(unbased))
 	return nil
 }
 

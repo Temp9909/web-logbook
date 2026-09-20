@@ -3789,3 +3789,11 @@ textarea,
   }
 }
 
+
+/* Logbook signature: same proportions as the usable PDF area under
+   “I certify that the entries in this log are true.” */
+.signature-pdf-guide{display:grid;justify-items:center;gap:7px;padding:8px 0 2px}
+.signature-pdf-label{font-size:11.5px;font-weight:600;color:var(--secondary)}
+.signature.signature-pdf-box{width:min(100%,420px);height:auto;aspect-ratio:1.5491285519 / 1;border:1px solid var(--label);border-radius:8px;background:#fff;overflow:hidden;box-sizing:border-box}
+.signature-pdf-canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.signature-pdf-note{max-width:420px;text-align:center;font-size:11.5px;line-height:1.35;color:var(--secondary)}

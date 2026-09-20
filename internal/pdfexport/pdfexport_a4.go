@@ -216,7 +216,6 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	p.drawCompositeLeftTotals(lx, y, layout.scale)
 	p.drawCompositeRightTotals(rx, y, layout.scale)
 	p.drawCompositeCertification(rx, y)
-	p.drawCompositePilotSignature(rx, y)
 	// Redraw the 12-row 1-8 / 9-12 flight grid as one vector layer. This
 	// removes tiny raster colour/position differences at the centre seam in
 	// browser PDF previews without changing any EASA cell dimensions.
@@ -540,7 +539,7 @@ func (p *PDFExporter) drawCompositeCertification(x, y []float64) {
 
 	// The aligned template already contains the certification wording as raster
 	// artwork. Clear only the inside of that cell, keeping the measured EASA
-	// border untouched, then redraw the same wording slightly larger.
+	// border untouched, then redraw the wording and the pilot signature below it.
 	inset := 0.16
 	p.pdf.SetFillColor(255, 255, 255)
 	p.pdf.Rect(cellX0+inset, cellY0+inset, (cellX1-cellX0)-2*inset, (cellY1-cellY0)-2*inset, "F")
@@ -556,18 +555,34 @@ func (p *PDFExporter) drawCompositeCertification(x, y []float64) {
 	p.pdf.CellFormat(usableW, lineH, "I certify that the entries", "", 1, "L", false, 0, "")
 	p.pdf.SetX(textX)
 	p.pdf.CellFormat(usableW, lineH, "in this log are true.", "", 0, "L", false, 0, "")
-}
 
-func (p *PDFExporter) drawCompositePilotSignature(x, y []float64) {
 	if p.SignatureImage == "" {
 		return
 	}
-	cellX0, cellX1 := x[16], x[17]
-	cellY0, cellY1 := y[18], y[19]
-	cellW, cellH := cellX1-cellX0, cellY1-cellY0
-	// Keep the EASA "PILOT'S SIGNATURE" label visible at the top of the exact
-	// source box; place the image in the lower part of that same measured cell.
-	p.pdf.Image("signature", cellX0+cellW*0.14, cellY0+cellH*0.32, cellW*0.78, cellH*0.58, false, "", 0, "")
+
+	// Exact usable signature rectangle. The Settings signature pad uses this
+	// same aspect ratio, and the image is always contained inside these bounds.
+	sigX0 := cellX0 + 1.0
+	sigX1 := cellX1 - 1.0
+	sigY0 := textY + 2*lineH + 0.8
+	sigY1 := cellY1 - 1.0
+	availW := sigX1 - sigX0
+	availH := sigY1 - sigY0
+	if availW <= 0 || availH <= 0 {
+		return
+	}
+
+	drawW, drawH := availW, availH
+	if p.signatureAspect > 0 {
+		drawH = drawW / p.signatureAspect
+		if drawH > availH {
+			drawH = availH
+			drawW = drawH * p.signatureAspect
+		}
+	}
+	drawX := sigX0 + (availW-drawW)/2
+	drawY := sigY0 + (availH-drawH)/2
+	p.pdf.Image("signature", drawX, drawY, drawW, drawH, false, "", 0, "")
 }
 
 // drawCompositeCertificationGrid redraws only the thin grid lines around the

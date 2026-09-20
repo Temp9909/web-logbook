@@ -81,20 +81,76 @@ export function SwitchColorMenu({value,onChange}){
   />;
 }
 
+const LOGBOOK_SIGNATURE_ASPECT=1.5491285519;
+
+const drawContainedSignature=(canvas,dataUrl,paddingRatio=0)=>new Promise((resolve,reject)=>{
+  if(!canvas||!dataUrl){resolve();return;}
+  const image=new Image();
+  image.onload=()=>{
+    const ctx=canvas.getContext('2d');
+    const ratio=Math.max(window.devicePixelRatio||1,1);
+    const cssW=canvas.width/ratio;
+    const cssH=canvas.height/ratio;
+    const padX=cssW*paddingRatio;
+    const padY=cssH*paddingRatio;
+    const maxW=Math.max(1,cssW-2*padX);
+    const maxH=Math.max(1,cssH-2*padY);
+    const scale=Math.min(maxW/image.naturalWidth,maxH/image.naturalHeight);
+    const drawW=image.naturalWidth*scale;
+    const drawH=image.naturalHeight*scale;
+    ctx.drawImage(image,(cssW-drawW)/2,(cssH-drawH)/2,drawW,drawH);
+    resolve();
+  };
+  image.onerror=reject;
+  image.src=dataUrl;
+});
+
+const normalizeSignatureImage=(dataUrl)=>new Promise((resolve,reject)=>{
+  const image=new Image();
+  image.onload=()=>{
+    const width=930;
+    const height=Math.round(width/LOGBOOK_SIGNATURE_ASPECT);
+    const canvas=document.createElement('canvas');
+    canvas.width=width;
+    canvas.height=height;
+    const ctx=canvas.getContext('2d');
+    const padding=Math.round(Math.min(width,height)*0.035);
+    const maxW=width-padding*2;
+    const maxH=height-padding*2;
+    const scale=Math.min(maxW/image.naturalWidth,maxH/image.naturalHeight);
+    const drawW=image.naturalWidth*scale;
+    const drawH=image.naturalHeight*scale;
+    ctx.drawImage(image,(width-drawW)/2,(height-drawH)/2,drawW,drawH);
+    resolve(canvas.toDataURL('image/png'));
+  };
+  image.onerror=reject;
+  image.src=dataUrl;
+});
+
 function SignatureEditor({settings,onChange,onSignatureChange}){
   const canvasRef=useRef(null);const padRef=useRef(null);const fileRef=useRef(null);
   useEffect(()=>{
     const canvas=canvasRef.current;if(!canvas)return;
-    const ratio=Math.max(window.devicePixelRatio||1,1);canvas.width=canvas.offsetWidth*ratio;canvas.height=160*ratio;canvas.getContext('2d').scale(ratio,ratio);
+    const ratio=Math.max(window.devicePixelRatio||1,1);
+    canvas.width=Math.round(canvas.offsetWidth*ratio);
+    canvas.height=Math.round(canvas.offsetHeight*ratio);
+    canvas.getContext('2d').scale(ratio,ratio);
     const pad=new SignaturePad(canvas,{penColor:settings.penColor||'#000000'});padRef.current=pad;
-    if(settings.signature_image){try{pad.fromDataURL(settings.signature_image)}catch{/* ignore */}}
-    const sync=()=>{if(!pad.isEmpty())onSignatureChange(pad.toDataURL())};pad.addEventListener('endStroke',sync);
+    if(settings.signature_image){drawContainedSignature(canvas,settings.signature_image).catch(()=>{});}
+    const sync=()=>{if(!pad.isEmpty())onSignatureChange(canvas.toDataURL('image/png'))};pad.addEventListener('endStroke',sync);
     return()=>{pad.removeEventListener('endStroke',sync);pad.off()};
   },[]);
   useEffect(()=>{if(padRef.current)padRef.current.penColor=settings.penColor||'#000000'},[settings.penColor]);
-  const upload=(file)=>{if(!file)return;const reader=new FileReader();reader.onload=()=>{onSignatureChange(reader.result);padRef.current?.fromDataURL(reader.result)};reader.readAsDataURL(file)};
-  return <Card title="Logbook signature" subtitle="Draw or upload the signature used on signed records." actions={<><input ref={fileRef} hidden type="file" accept="image/*" onChange={e=>upload(e.target.files?.[0])}/><button className="btn small" onClick={()=>fileRef.current?.click()}>Upload</button><input aria-label="Signature color" type="color" value={settings.penColor||'#000000'} onChange={e=>onChange('penColor',e.target.value)}/><button className="btn danger small" onClick={()=>{padRef.current?.clear();onSignatureChange('')}}>Clear</button></>}><div className="signature"><canvas ref={canvasRef} style={{width:'100%',height:160,display:'block'}}/></div></Card>
+  const upload=(file)=>{if(!file)return;const reader=new FileReader();reader.onload=async()=>{try{const normalized=await normalizeSignatureImage(reader.result);onSignatureChange(normalized);padRef.current?.clear();await drawContainedSignature(canvasRef.current,normalized);}catch{/* ignore invalid image */}};reader.readAsDataURL(file)};
+  return <Card title="Logbook signature" subtitle="Exact PDF signature area. The frame below has the same proportions as the available space under “I certify…”, so anything drawn inside it will fit in the export." actions={<><input ref={fileRef} hidden type="file" accept="image/*" onChange={e=>upload(e.target.files?.[0])}/><button className="btn small" onClick={()=>fileRef.current?.click()}>Upload</button><input aria-label="Signature color" type="color" value={settings.penColor||'#000000'} onChange={e=>onChange('penColor',e.target.value)}/><button className="btn danger small" onClick={()=>{padRef.current?.clear();onSignatureChange('')}}>Clear</button></>}>
+    <div className="signature-pdf-guide">
+      <div className="signature-pdf-label">PDF signature area</div>
+      <div className="signature signature-pdf-box"><canvas ref={canvasRef} className="signature-pdf-canvas"/></div>
+      <div className="signature-pdf-note">Strokes cannot extend outside this frame. Uploaded signatures are scaled to fit without distortion.</div>
+    </div>
+  </Card>
 }
+
 
 export const Settings=()=>{
   const dialogs=useDialogs();
