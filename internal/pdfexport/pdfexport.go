@@ -175,9 +175,10 @@ func (p *PDFExporter) init() error {
 	p.Export.Fill = 3
 	p.Export.ReplaceSPTime = true
 
-	if !p.Export.IncludeSignature {
-		p.SignatureImage = ""
-	}
+	// Logbook signature is now a fixed part of the EASA export. The legacy
+	// IncludeSignature flag is no longer exposed in Settings, so an old false
+	// value in the database must not silently hide a saved signature.
+	p.Export.IncludeSignature = p.SignatureImage != ""
 
 	p.initHeaders()
 	p.initColumns()

@@ -216,11 +216,9 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	p.drawCompositeLeftTotals(lx, y, layout.scale)
 	p.drawCompositeRightTotals(rx, y, layout.scale)
 	p.drawCompositeCertification(rx, y)
-	// Redraw the 12-row 1-8 / 9-12 flight grid as one vector layer. This
-	// removes tiny raster colour/position differences at the centre seam in
-	// browser PDF previews without changing any EASA cell dimensions.
-	p.drawCompositeFlightGrid(lx, rx, y)
-	p.drawCompositeCertificationGrid(rx, y)
+	// The 12-row grid is baked into the high-resolution template on the exact
+	// template pixel coordinates. Do not draw another vector grid here: doing
+	// so creates double/grey lines at common browser-preview zoom levels.
 }
 
 func splitEASATime(value string) (string, string) {
