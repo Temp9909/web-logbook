@@ -339,10 +339,9 @@ func (p *PDFExporter) loadSignature() error {
 	return nil
 }
 
-// titlePage prints the two fixed EASA front pages: the pilot logbook
-// identification page and the holder's address page. User data is
-// overlaid on the official page artwork so the export preview keeps the
-// familiar EASA appearance without changing the logbook pages themselves.
+// titlePage prints two clean front pages that reproduce only the main
+// EASA logbook content blocks (name/licence and address), without copying
+// the EASA page chrome such as the logo, running headers or footer text.
 func (p *PDFExporter) titlePage() {
 
 	if len(p.Export.CustomTitleBlob) != 0 {
@@ -350,67 +349,115 @@ func (p *PDFExporter) titlePage() {
 		return
 	}
 
-	// Page 1: PILOT LOGBOOK / holder details
-	if bs, err := content.ReadFile("template/easa_front_page_1.png"); err == nil {
-		p.pdf.RegisterImageReader("easa-front-page-1", "png", bytes.NewReader(bs))
-		p.pdf.AddPage()
-		p.pdf.Image("easa-front-page-1", 0, 0, 297, 210, false, "", 0, "")
+	// Front page 1: PILOT LOGBOOK / holder details
+	p.pdf.AddPage()
+	p.pdf.SetDrawColor(0, 0, 0)
+	p.pdf.SetLineWidth(0.25)
+	p.pdf.Rect(18, 30, 251, 120, "")
+	p.pdf.Line(19, 57, 267, 57)
 
-		p.pdf.SetTextColor(0, 0, 0)
-		p.pdf.SetFont(fontRegular, "", 11)
-		if strings.TrimSpace(p.OwnerName) != "" {
-			p.pdf.SetXY(76, 100.3)
-			p.pdf.CellFormat(126, 6, strings.ToUpper(p.OwnerName), "", 0, "L", false, 0, "")
-		}
-		if strings.TrimSpace(p.LicenseNumber) != "" {
-			p.pdf.SetXY(76, 124.7)
-			p.pdf.CellFormat(126, 6, strings.ToUpper(p.LicenseNumber), "", 0, "L", false, 0, "")
-		}
+	p.pdf.SetTextColor(35, 52, 110)
+	p.pdf.SetFont(fontBold, "", 16)
+	p.pdf.SetXY(18, 59)
+	p.pdf.CellFormat(251, 10, "PILOT LOGBOOK", "", 0, "C", false, 0, "")
+
+	p.pdf.SetTextColor(0, 0, 0)
+	p.pdf.SetFont(fontRegular, "", 10)
+	p.pdf.SetXY(35, 95)
+	p.pdf.CellFormat(34, 6, "Holder's name(s)", "", 0, "L", false, 0, "")
+	p.pdf.Line(77, 101.2, 203, 101.2)
+	if strings.TrimSpace(p.OwnerName) != "" {
+		p.pdf.SetXY(79, 96.2)
+		p.pdf.CellFormat(122, 5, strings.ToUpper(strings.TrimSpace(p.OwnerName)), "", 0, "L", false, 0, "")
 	}
 
-	// Page 2: HOLDER'S ADDRESS
-	if bs, err := content.ReadFile("template/easa_front_page_2.png"); err == nil {
-		p.pdf.RegisterImageReader("easa-front-page-2", "png", bytes.NewReader(bs))
-		p.pdf.AddPage()
-		p.pdf.Image("easa-front-page-2", 0, 0, 297, 210, false, "", 0, "")
+	p.pdf.SetXY(35, 120)
+	p.pdf.CellFormat(40, 6, "Holder's licence number", "", 0, "L", false, 0, "")
+	p.pdf.Line(77, 126.2, 203, 126.2)
+	if strings.TrimSpace(p.LicenseNumber) != "" {
+		p.pdf.SetXY(79, 121.2)
+		p.pdf.CellFormat(122, 5, strings.ToUpper(strings.TrimSpace(p.LicenseNumber)), "", 0, "L", false, 0, "")
+	}
 
-		addr := strings.TrimSpace(p.Address)
-		if addr != "" {
-			p.pdf.SetTextColor(0, 0, 0)
-			p.pdf.SetFont(fontRegular, "", 10)
-			addr = strings.ToUpper(strings.ReplaceAll(addr, "\r", ""))
-			lines := strings.Split(addr, "\n")
-			if len(lines) == 1 {
-				// Soft-wrap a single-line address to fit the first address box.
-				words := strings.Fields(lines[0])
-				wrapped := []string{}
-				line := ""
-				for _, w := range words {
-					candidate := strings.TrimSpace(line + " " + w)
-					if line == "" || p.pdf.GetStringWidth(candidate) <= 84 {
-						line = candidate
-					} else {
-						wrapped = append(wrapped, line)
-						line = w
-					}
-				}
-				if line != "" {
-					wrapped = append(wrapped, line)
-				}
-				lines = wrapped
-			}
-			if len(lines) > 3 {
-				lines = lines[:3]
-			}
-			lineYs := []float64{51.6, 58.0, 64.4}
+	// Front page 2: address page with the same principal layout only.
+	p.pdf.AddPage()
+	p.pdf.SetDrawColor(0, 0, 0)
+	p.pdf.SetLineWidth(0.25)
+	pageX, pageY, pageW, pageH := 18.0, 25.0, 251.0, 124.0
+	headerH := 10.0
+	p.pdf.Rect(pageX, pageY, pageW, pageH, "")
+	p.pdf.Line(pageX, pageY+headerH, pageX+pageW, pageY+headerH)
+	p.pdf.Line(pageX+pageW/2, pageY+headerH, pageX+pageW/2, pageY+pageH)
+	bodyY := pageY + headerH
+	bodyH := pageH - headerH
+	rowH := bodyH / 3
+	p.pdf.Line(pageX, bodyY+rowH, pageX+pageW, bodyY+rowH)
+	p.pdf.Line(pageX, bodyY+rowH*2, pageX+pageW, bodyY+rowH*2)
+
+	p.pdf.SetTextColor(0, 0, 0)
+	p.pdf.SetFont(fontRegular, "", 10)
+	p.pdf.SetXY(pageX+2, pageY+2.5)
+	p.pdf.CellFormat(70, 4, "HOLDER'S ADDRESS:", "", 0, "L", false, 0, "")
+
+	writeAddressCell := func(x, y, w, h float64, lines []string, fillFirst bool) {
+		left := x + 3
+		lineYs := []float64{y + 12, y + 18.5, y + 25}
+		for _, ly := range lineYs {
+			p.pdf.Line(left, ly, x+w-39, ly)
+		}
+		if fillFirst {
+			p.pdf.SetFont(fontRegular, "", 9.5)
 			for i, line := range lines {
 				if i >= len(lineYs) {
 					break
 				}
-				p.pdf.SetXY(26.5, lineYs[i])
-				p.pdf.CellFormat(84, 5, line, "", 0, "L", false, 0, "")
+				p.pdf.SetXY(left+1, lineYs[i]-4.1)
+				p.pdf.CellFormat(w-44, 4, line, "", 0, "L", false, 0, "")
 			}
 		}
+		p.pdf.SetFont(fontRegular, "", 10)
+		p.pdf.SetXY(left, y+h-11)
+		p.pdf.CellFormat(w-6, 5, "[space for address change]", "", 0, "L", false, 0, "")
+	}
+
+	addr := strings.ToUpper(strings.TrimSpace(strings.ReplaceAll(p.Address, "\r", "")))
+	addrLines := []string{}
+	if addr != "" {
+		parts := strings.Split(addr, "\n")
+		for _, part := range parts {
+			part = strings.TrimSpace(part)
+			if part != "" {
+				addrLines = append(addrLines, part)
+			}
+		}
+		if len(addrLines) == 1 {
+			words := strings.Fields(addrLines[0])
+			addrLines = []string{}
+			line := ""
+			p.pdf.SetFont(fontRegular, "", 9.5)
+			for _, w := range words {
+				candidate := strings.TrimSpace(line + " " + w)
+				if line == "" || p.pdf.GetStringWidth(candidate) <= 84 {
+					line = candidate
+				} else {
+					addrLines = append(addrLines, line)
+					line = w
+				}
+			}
+			if line != "" {
+				addrLines = append(addrLines, line)
+			}
+		}
+		if len(addrLines) > 3 {
+			addrLines = addrLines[:3]
+		}
+	}
+
+	cellW := pageW / 2
+	for row := 0; row < 3; row++ {
+		cy := bodyY + float64(row)*rowH
+		writeAddressCell(pageX, cy, cellW, rowH, addrLines, row == 0 && len(addrLines) > 0)
+		writeAddressCell(pageX+cellW, cy, cellW, rowH, nil, false)
 	}
 }
 
