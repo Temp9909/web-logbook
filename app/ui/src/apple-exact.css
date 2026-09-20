@@ -241,6 +241,10 @@
     border-left: 1px solid var(--separator);
   }
   table.easa thead tr.grp th:first-child { border-left: 0; }
+  table.easa thead tr.grp th.apple-logbook-primary-header {
+    vertical-align: top;
+    padding-top: 18px;
+  }
   table.easa thead tr.sub th {
     font-size: 9.5px; font-weight: 600; color: var(--secondary);
     border-left: 1px solid var(--separator);
@@ -3801,7 +3805,17 @@ textarea,
 /* iOS Safari zooms the visual viewport when a focused form control renders
    below 16px. Keep mobile edit controls at that threshold so the app header
    stays in view when the keyboard opens and closes. */
-@media (max-width: 720px) and (pointer: coarse) {
+@media (max-width: 720px) {
+  .app {
+    height: 100dvh;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 45;
+  }
+
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
   select,
   textarea,

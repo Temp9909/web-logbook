@@ -124,14 +124,14 @@ function EasaTable({ rows, onOpen }) {
             <th colSpan="2">ARRIVAL</th>
             <th colSpan="2">AIRCRAFT</th>
             <th colSpan="2">SINGLE-PILOT TIME</th>
-            <th rowSpan="2">MULTI-PILOT<br/>TIME</th>
-            <th rowSpan="2">TOTAL TIME<br/>OF FLIGHT</th>
-            <th rowSpan="2">NAME(S) PIC</th>
+            <th rowSpan="2" className="apple-logbook-primary-header">MULTI-PILOT<br/>TIME</th>
+            <th rowSpan="2" className="apple-logbook-primary-header">TOTAL TIME<br/>OF FLIGHT</th>
+            <th rowSpan="2" className="apple-logbook-primary-header">NAME(S) PIC</th>
             <th colSpan="2">LANDINGS</th>
             <th colSpan="2">OPERATIONAL<br/>CONDITION TIME</th>
             <th colSpan="4">PILOT FUNCTION TIME</th>
             <th colSpan="3">FSTD SESSION</th>
-            <th rowSpan="2">REMARKS AND<br/>ENDORSEMENTS</th>
+            <th rowSpan="2" className="apple-logbook-primary-header">REMARKS AND<br/>ENDORSEMENTS</th>
           </tr>
           <tr className="sub">
             <th>PLACE</th><th>TIME</th>

@@ -127,7 +127,7 @@ const normalizeSignatureImage=(dataUrl)=>new Promise((resolve,reject)=>{
   image.src=dataUrl;
 });
 
-function SignatureEditor({settings,onChange,onSignatureChange}){
+function SignatureEditor({settings,onSignatureChange}){
   const canvasRef=useRef(null);const padRef=useRef(null);const fileRef=useRef(null);
   useEffect(()=>{
     const canvas=canvasRef.current;if(!canvas)return;
@@ -135,14 +135,13 @@ function SignatureEditor({settings,onChange,onSignatureChange}){
     canvas.width=Math.round(canvas.offsetWidth*ratio);
     canvas.height=Math.round(canvas.offsetHeight*ratio);
     canvas.getContext('2d').scale(ratio,ratio);
-    const pad=new SignaturePad(canvas,{penColor:settings.penColor||'#000000'});padRef.current=pad;
+    const pad=new SignaturePad(canvas,{penColor:'#000000'});padRef.current=pad;
     if(settings.signature_image){drawContainedSignature(canvas,settings.signature_image).catch(()=>{});}
     const sync=()=>{if(!pad.isEmpty())onSignatureChange(canvas.toDataURL('image/png'))};pad.addEventListener('endStroke',sync);
     return()=>{pad.removeEventListener('endStroke',sync);pad.off()};
   },[]);
-  useEffect(()=>{if(padRef.current)padRef.current.penColor=settings.penColor||'#000000'},[settings.penColor]);
   const upload=(file)=>{if(!file)return;const reader=new FileReader();reader.onload=async()=>{try{const normalized=await normalizeSignatureImage(reader.result);onSignatureChange(normalized);padRef.current?.clear();await drawContainedSignature(canvasRef.current,normalized);}catch{/* ignore invalid image */}};reader.readAsDataURL(file)};
-  return <Card title="Logbook signature" subtitle="Exact PDF signature area. The frame below has the same proportions as the available space under “I certify…”, so anything drawn inside it will fit in the export." actions={<><input ref={fileRef} hidden type="file" accept="image/*" onChange={e=>upload(e.target.files?.[0])}/><button className="btn small" onClick={()=>fileRef.current?.click()}>Upload</button><input aria-label="Signature color" type="color" value={settings.penColor||'#000000'} onChange={e=>onChange('penColor',e.target.value)}/><button className="btn danger small" onClick={()=>{padRef.current?.clear();onSignatureChange('')}}>Clear</button></>}>
+  return <Card title="Logbook signature" subtitle="Exact PDF signature area. The frame below has the same proportions as the available space under “I certify…”, so anything drawn inside it will fit in the export." actions={<><input ref={fileRef} hidden type="file" accept="image/*" onChange={e=>upload(e.target.files?.[0])}/><button className="btn small" onClick={()=>fileRef.current?.click()}>Upload</button><button className="btn danger small" onClick={()=>{padRef.current?.clear();onSignatureChange('')}}>Clear</button></>}>
     <div className="signature-pdf-guide">
       <div className="signature-pdf-label">PDF signature area</div>
       <div className="signature signature-pdf-box"><canvas ref={canvasRef} className="signature-pdf-canvas"/></div>
@@ -309,7 +308,7 @@ export const Settings=()=>{
       />;
     })}</div><div className="panel-sub" style={{marginTop:12}}>Changes are saved automatically.</div></Card>:null}
 
-    {tab==='signature'?<SignatureEditor settings={settings} onChange={change} onSignatureChange={changeSignature}/>:null}
+    {tab==='signature'?<SignatureEditor settings={settings} onSignatureChange={changeSignature}/>:null}
 
 
   </section>;
