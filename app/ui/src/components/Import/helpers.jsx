@@ -99,6 +99,5 @@ export const marshallItem = (item) => {
     pic_name: item.pic_name,
     remarks: item.remarks,
     custom_fields: customFields,
-    tags: item.tags,
   };
 }

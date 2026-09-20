@@ -76,8 +76,8 @@ function loadSelectedMetrics() {
 }
 
 function loadPageSize() {
-  const value = Number(localStorage.getItem('logbook-page-size') || 25);
-  return [10,25,50,100].includes(value) ? value : 25;
+  const value = Number(localStorage.getItem('logbook-page-size') || 12);
+  return [12,25,50,100].includes(value) ? value : 12;
 }
 
 function paginationItems(current, total) {
@@ -228,7 +228,7 @@ export default function Logbook() {
     if (segment === 'night' && toMinutes(rowTime(r,'night_time')) <= 0) return false;
     const q = search.trim().toLowerCase();
     if (!q) return true;
-    const haystack = [r.date,r.departure?.place,r.departure?.time,r.arrival?.place,r.arrival?.time,r.aircraft?.model,r.aircraft?.reg_name,r.pic_name,r.remarks,r.tags].filter(Boolean).join(' ').toLowerCase();
+    const haystack = [r.date,r.departure?.place,r.departure?.time,r.arrival?.place,r.arrival?.time,r.aircraft?.model,r.aircraft?.reg_name,r.pic_name,r.remarks].filter(Boolean).join(' ').toLowerCase();
     return haystack.includes(q);
   }), [rows, search, segment]);
 
@@ -304,7 +304,7 @@ export default function Logbook() {
           label="Rows per page"
           value={String(pageSize)}
           onChange={(value)=>setPageSize(Number(value))}
-          options={[10,25,50,100].map((value)=>({ value:String(value), label:String(value) }))}
+          options={[12,25,50,100].map((value)=>({ value:String(value), label:String(value) }))}
         />
         <div className="exact-page-buttons" aria-label="Logbook pages">
           <button type="button" className="exact-page-button" disabled={safePage <= 1} onClick={()=>setPage((value)=>Math.max(1,value-1))} aria-label="Previous page"><PaginationChevron direction="left" /></button>

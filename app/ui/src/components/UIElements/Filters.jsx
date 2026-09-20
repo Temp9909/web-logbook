@@ -14,7 +14,6 @@ import TextField from "./TextField";
 import Select from "./Select";
 import { fetchAircraftModelsCategories, fetchAircraftsBuildList } from "../../util/http/aircraft";
 import { splitCategories } from "../Aircrafts/aircraftCategories";
-import FlightTags from "./FlightTags";
 
 const MAP_FILTER_INITIAL_STATE = {
   start_date: dayjs().startOf('year'),
@@ -22,7 +21,6 @@ const MAP_FILTER_INITIAL_STATE = {
   aircraft_reg: "",
   aircraft_model: "",
   aircraft_category: "",
-  tags: "",
   place: "",
 };
 
@@ -80,13 +78,11 @@ const filterData = (data, filter, modelsData, aircrafts) => {
         filter.aircraft_category === flight.sim.type
       );
     })();
-    // filter tags
-    const matchesTags = filter.tags ? flight.tags.includes(filter.tags) : true;
     // filter arrival and departure place
     const matchesArrival = filter.place ? flight.arrival.place.toUpperCase().includes(filter.place.toUpperCase()) : true;
     const matchesDeparture = filter.place ? flight.departure.place.toUpperCase().includes(filter.place.toUpperCase()) : true;
 
-    return matchesDate & matchesReg && matchesType && matchesCategory && matchesTags && (matchesArrival || matchesDeparture);
+    return matchesDate & matchesReg && matchesType && matchesCategory && (matchesArrival || matchesDeparture);
   });
 
   return filteredData;
@@ -197,14 +193,7 @@ export const Filters = ({ data, callbackFunction, quickSelect = defaultQuickSele
         options="all"
         excludeOptions={["IFR"]}
       />
-      <FlightTags
-        gsize={{ xs: 6, sm: 6, md: 12, lg: 12, xl: 12 }}
-        id="tags"
-        handleChange={handleChange}
-        value={filter.tags}
-        multiple={false}
-        disableClearable={false}
-      />
+
       <TextField
         gsize={{ xs: 6, sm: 6, md: 12, lg: 12, xl: 12 }}
         id="place"

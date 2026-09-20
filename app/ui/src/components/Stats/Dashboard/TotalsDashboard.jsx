@@ -67,7 +67,6 @@ export const TotalsDashboard = () => {
       },
       distance: 0,
       custom_fields: {},
-      tags: "",
     };
 
     return [artificialFlight, ...rawData];

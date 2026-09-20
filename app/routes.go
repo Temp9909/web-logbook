@@ -50,7 +50,6 @@ func (app *application) routes() *chi.Mux {
 				r.Delete("/{uuid}", app.HandlerApiTrackLogReset)
 			})
 
-			r.Get("/tags", app.HandlerApiFlightRecordTags)
 			r.Get("/pic-names", app.HandlerApiFlightRecordPicNames)
 		})
 
@@ -95,7 +94,6 @@ func (app *application) routes() *chi.Mux {
 			r.Get("/list", app.HandlerApiSettingsList)
 			r.Put("/general", app.HandlerApiSettingsUpdate)
 			r.Put("/signature", app.HandlerApiSettingsSignature)
-			r.Put("/airports", app.HandlerApiSettingsAirports)
 			r.Get("/export/defaults/{format}", app.HandlerApiSettingsExportDefaults)
 			r.Put("/export/{format}", app.HandlerApiSettingsExportUpdate)
 			r.Get("/standard-fields", app.HandlerApiSettingsFieldsDefaults)

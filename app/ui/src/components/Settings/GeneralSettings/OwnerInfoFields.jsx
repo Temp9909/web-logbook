@@ -25,13 +25,6 @@ export const OwnerInfoFields = ({ settings, handleChange }) => {
         value={settings.address ?? ""}
         tooltip="Address"
       />
-      <TextField gsize={{ xs: 12, sm: 12, md: 6, lg: 6, xl: 6 }}
-        id="signature_text"
-        label="Signature Text"
-        handleChange={handleChange}
-        value={settings.signature_text ?? ""}
-        tooltip="Signature Text"
-      />
     </Grid>
   );
 };

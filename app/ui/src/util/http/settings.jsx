@@ -44,16 +44,6 @@ export const updateSignature = async ({ settings }) => {
   return await handleFetch(url, options, 'Cannot update signature');
 }
 
-export const updateAirportsDBSettings = async ({ settings }) => {
-  const url = `${API_URL}/settings/airports`;
-  const options = {
-    method: 'PUT',
-    headers: { 'Authorization': `Bearer ${getAuthToken()}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings),
-  };
-  return await handleFetch(url, options, 'Cannot update airports DB settings');
-}
-
 export const fetchPdfDefaults = async ({ signal, format }) => {
   const url = `${API_URL}/settings/export/defaults/${format}`;
   const options = {

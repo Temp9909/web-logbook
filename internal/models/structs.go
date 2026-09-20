@@ -68,7 +68,6 @@ type FlightRecord struct {
 	Distance     float64 `json:"distance"`
 	Track        []byte  `json:"track"`
 	CustomFields string  `json:"custom_fields"`
-	Tags         string  `json:"tags"`
 	Signature    string  `json:"signature"`
 
 	// calculated
@@ -232,27 +231,25 @@ type ColumnsHeader struct {
 	Instr     string `json:"instr"`
 	SimType   string `json:"sim_type"`
 	SimTime   string `json:"sim_time"`
-	Tags      string `json:"tags"`
 }
 
 type ExportPDF struct {
-	LogbookRows          int           `json:"logbook_rows"`
-	Fill                 int           `json:"fill"`
-	LeftMargin           float64       `json:"left_margin"`
-	LeftMarginA          float64       `json:"left_margin_a"`
-	LeftMarginB          float64       `json:"left_margin_b"`
-	TopMargin            float64       `json:"top_margin"`
-	BodyRow              float64       `json:"body_row_height"`
-	FooterRow            float64       `json:"footer_row_height"`
-	PageBreaks           string        `json:"page_breaks"`
-	Columns              ColumnsWidth  `json:"columns"`
-	Headers              ColumnsHeader `json:"headers"`
-	ReplaceSPTime        bool          `json:"replace_sp_time"`
-	IncludeSignature     bool          `json:"include_signature"`
-	IsExtended           bool          `json:"is_extended"`
-	TimeFieldsAutoFormat byte          `json:"time_fields_auto_format"`
-	CustomTitle          string        `json:"custom_title"`
-	CustomTitleBlob      []byte
+	LogbookRows      int           `json:"logbook_rows"`
+	Fill             int           `json:"fill"`
+	LeftMargin       float64       `json:"left_margin"`
+	LeftMarginA      float64       `json:"left_margin_a"`
+	LeftMarginB      float64       `json:"left_margin_b"`
+	TopMargin        float64       `json:"top_margin"`
+	BodyRow          float64       `json:"body_row_height"`
+	FooterRow        float64       `json:"footer_row_height"`
+	PageBreaks       string        `json:"page_breaks"`
+	Columns          ColumnsWidth  `json:"columns"`
+	Headers          ColumnsHeader `json:"headers"`
+	ReplaceSPTime    bool          `json:"replace_sp_time"`
+	IncludeSignature bool          `json:"include_signature"`
+	IsExtended       bool          `json:"is_extended"`
+	CustomTitle      string        `json:"custom_title"`
+	CustomTitleBlob  []byte
 }
 
 // Settings is a type for settings
@@ -272,10 +269,7 @@ type Settings struct {
 
 	ExportA4 ExportPDF `json:"export_a4"`
 
-	LogbookPagination     string        `json:"logbook_pagination"`
 	SelfPICLabel          string        `json:"self_pic_label"`
-	LogbookTotalsView     byte          `json:"logbook_totals_view"`
-	TimeFieldsAutoFormat  byte          `json:"time_fields_auto_format"`
 	SwitchColor           string        `json:"switch_color"`
 	HideMenuIcons         bool          `json:"hide_menu_icons"`
 	ShowMenuLinkChevrons  bool          `json:"show_menu_link_chevrons"`

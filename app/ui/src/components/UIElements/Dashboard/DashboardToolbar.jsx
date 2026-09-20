@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ColorModeContext } from '../../../context/ColorModeContext';
 
-const TITLES = { logbook:'Logbook', licensing:'Licensing', map:'Map', aircrafts:'Aircrafts', airports:'Airports', persons:'Persons', attachments:'Attachments', stats:'Stats', currency:'Currency', export:'Export', import:'Import', settings:'Settings' };
+const TITLES = { logbook:'Logbook', licensing:'Licensing', map:'Map', aircrafts:'Aircrafts', persons:'Persons', attachments:'Attachments', stats:'Stats', currency:'Currency', export:'Export', import:'Import', settings:'Settings' };
 
 export default function DashboardToolbar({ onMenu, menuOpen }) {
   const { toggleColorMode } = useContext(ColorModeContext);

@@ -12,21 +12,8 @@ const HELP_CONTENT = [
     description: "Configure general logbook settings and preferences.",
   },
   {
-    title: "Logbook Pagination",
-    description: "Set a custom number of rows displayed per page in the main logbook table.",
-  },
-  {
     title: "Self PIC Label",
     description: "Text used when you're PIC. This text will be displayed in the 'PIC' field for the flight record when you double click on it.",
-  },
-  {
-    title: "Logbook table totals view",
-    description: `There are 2 options. Standard will show you the current page totals and grand totals through the whole logbook. 
-      Paper Logbook will show you the totals for each page, previous page and the totals will be a summary of these 2 values.`
-  },
-  {
-    title: "Time Fields Auto-format",
-    description: "Automatically format time fields to maintain a consistent display format.",
   },
   {
     title: "License Expiration",
@@ -34,8 +21,7 @@ const HELP_CONTENT = [
   },
   {
     title: "Authentication",
-    description: `Configure a username and password if your logbook is accessible from the internet. 
-      The Secret Key is automatically generated and used to issue secure tokens.`,
+    description: "Configure a username and password if your logbook is accessible from the internet.",
   },
   {
     title: "Upload Database",

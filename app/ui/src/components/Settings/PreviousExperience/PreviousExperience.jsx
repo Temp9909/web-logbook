@@ -65,7 +65,7 @@ export const PreviousExperience = ({ settings, handleChange }) => {
 
   return (
     <ApplePanel
-      title="Previous flight experience"
+      title="Past flight experience"
       subtitle="Enter totals accumulated before the first flight stored in this logbook."
       actions={<ActionButtons settings={settings} />}
     >

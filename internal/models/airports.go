@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+// DefaultAirportDBSource is the fixed background airport reference source.
+// The Airports management UI has been removed; the application uses this source automatically.
+const DefaultAirportDBSource = "https://davidmegginson.github.io/ourairports-data/airports.csv"
+
 var airportCache sync.Map
 
 // GetAirportByID return airport record by ID (ICAO or IATA)

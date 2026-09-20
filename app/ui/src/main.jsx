@@ -59,7 +59,6 @@ const router = createBrowserRouter([
             ]
           },
           { path: 'attachments', element: <AttachmentsPage /> },
-          { path: 'airports', element: <Navigate to="/settings?tab=airports" replace /> },
           {
             path: 'stats', children: [
               { index: true, element: <StatsDashboardPage /> },

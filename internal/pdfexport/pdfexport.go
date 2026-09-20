@@ -18,6 +18,8 @@ import (
 const (
 	// EASALogbookRows matches the 12 entry lines in the AMC1 FCL.050 pilot-logbook example.
 	EASALogbookRows = 12
+	// EASACertificationText is fixed by the EASA logbook layout and is not user-configurable.
+	EASACertificationText = "I certify that the entries in this log are true."
 
 	PDFA4 string = "A4"
 )
@@ -55,16 +57,16 @@ func EmptyTotals() models.FlightRecord {
 	return models.FlightRecord{}
 }
 
-var HeaderBG = NewColor(217, 217, 217)
+var HeaderBG = NewColor(255, 255, 255)
 var HeaderText = NewColor(0, 0, 0)
-var BodyFillBG = NewColor(228, 228, 228)
+var BodyFillBG = NewColor(255, 255, 255)
 var BodyText = NewColor(0, 0, 0)
 
 // Constants for font sizes
 const (
-	HeaderFontSize        float64 = 8
-	BodyFontSize          float64 = 8
-	SignatureFontSize     float64 = 6
+	HeaderFontSize        float64 = 6
+	BodyFontSize          float64 = 6
+	SignatureFontSize     float64 = 7
 	PageNumberFontSize    float64 = 6
 	TitlePageMainFontSize float64 = 20
 	TitlePageInfoFontSize float64 = 15
@@ -129,7 +131,7 @@ func NewPDFExporter(format, ownerName, licenseNumber, address,
 		OwnerName:      ownerName,
 		LicenseNumber:  licenseNumber,
 		Address:        address,
-		Signature:      signature,
+		Signature:      EASACertificationText,
 		SignatureImage: signatureImage,
 
 		Export: exportConfig,
@@ -161,8 +163,8 @@ func (p *PDFExporter) init() error {
 	p.Export.LogbookRows = EASALogbookRows
 	p.Export.IsExtended = true
 	p.Export.LeftMargin = 10.0
-	p.Export.TopMargin = 30.0
-	p.Export.BodyRow = 5.0
+	p.Export.TopMargin = 31.0
+	p.Export.BodyRow = easaBodyRowHeight
 	p.Export.FooterRow = 6.0
 	p.Export.Fill = 3
 	p.Export.ReplaceSPTime = true
@@ -283,8 +285,8 @@ func (p *PDFExporter) initPDF() error {
 	// The application exports only A4 landscape.
 	p.pdf = fpdf.New("L", "mm", "A4", "")
 
-	// page configuration
-	p.pdf.SetAutoPageBreak(true, 5)
+	// Keep every 12-row logbook sheet on exactly one A4 landscape page.
+	p.pdf.SetAutoPageBreak(false, 0)
 
 	// load fonts
 	err := p.loadFonts()
@@ -505,41 +507,10 @@ func isFSTDRecord(record models.FlightRecord) bool {
 	return strings.TrimSpace(record.SIM.Type) != "" || strings.TrimSpace(record.SIM.Time) != ""
 }
 
-// formatTimeField formats time field in the logbook
 func (p *PDFExporter) formatTimeField(timeField string) string {
-	if p.Export.TimeFieldsAutoFormat == 0 || timeField == "" {
-		return timeField
-	}
-
-	parts := strings.Split(timeField, ":")
-
-	if len(parts) != 2 { // probably some wrong value in the field
-		if timeField == "0" {
-			return ""
-		}
-
-		return timeField
-	}
-
-	hours := parts[0]
-	minutes := parts[1]
-
-	if p.Export.TimeFieldsAutoFormat == 1 {
-		// add leading zero if missing
-		if len(hours) == 1 {
-			hours = fmt.Sprintf("0%s", hours)
-		}
-	} else {
-		// Remove leading zero if present
-		if strings.HasPrefix(hours, "0") && len(hours) == 2 {
-			hours = hours[1:]
-		}
-	}
-
-	return hours + ":" + minutes
+	return timeField
 }
 
-// printBodyRemarksCell prints remarks cell in the row of the logbook
 func (p *PDFExporter) printBodyRemarksCell(w float64, value string, signature string, uuid string, fill bool) {
 	if w <= 0 {
 		return
@@ -653,9 +624,10 @@ func (p *PDFExporter) printSignature() {
 
 // printPageNumber prints page number in the footer of the logbook
 func (p *PDFExporter) printPageNumber() {
+	p.pdf.SetTextColor(0, 0, 0)
 	p.pdf.SetFont(fontRegular, "", PageNumberFontSize)
-	p.pdf.SetY(p.pdf.GetY() + 2)
-	p.pdf.MultiCell(10, 1, fmt.Sprintf("page %d", p.pageCounter), "", "L", false)
+	p.pdf.SetXY(p.Export.LeftMargin, 196)
+	p.pdf.CellFormat(24, 3, fmt.Sprintf("page %d", p.pageCounter), "", 0, "L", false, 0, "")
 }
 
 // checkPageBreaks checks if we need to insert a page break and a new logbook started

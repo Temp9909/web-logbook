@@ -7,7 +7,7 @@ import { autoTimeRecog, convertToDDMMYYYY, marshallItem } from './helpers';
 import { Card, Chip, Modal, NativeTable, PageHead, SelectField, SwitchRow } from '../AppleExact/Primitives';
 
 const FIELDS=[
-  ['date','Date','Date'],['departure_place','Departure Place','Departure Place'],['departure_time','Departure Time','Departure Time'],['arrival_place','Arrival Place','Arrival Place'],['arrival_time','Arrival Time','Arrival Time'],['aircraft_model','Aircraft Model','Aircraft Model'],['aircraft_reg_name','Aircraft Reg','Aircraft Reg'],['se_time','SE Time','Time SE'],['me_time','ME Time','Time ME'],['mcc_time','MCC Time','Time MCC'],['total_time','Total Time','Time Total'],['night_time','Night Time','Time Night'],['ifr_time','IFR Time','Time IFR'],['pic_time','PIC Time','Time PIC'],['co_pilot_time','Co-pilot Time','Time CoPilot'],['dual_time','Dual Time','Time Dual'],['instructor_time','Instructor Time','Time Instructor'],['landings_day','Day Landings','Landings Day'],['landings_night','Night Landings','Landings Night'],['sim_type','FSTD Type','SIM Type'],['sim_time','FSTD Time','SIM Time'],['pic_name','PIC Name','PIC Name'],['remarks','Remarks','Remarks'],['tags','Tags','Tags']
+  ['date','Date','Date'],['departure_place','Departure Place','Departure Place'],['departure_time','Departure Time','Departure Time'],['arrival_place','Arrival Place','Arrival Place'],['arrival_time','Arrival Time','Arrival Time'],['aircraft_model','Aircraft Model','Aircraft Model'],['aircraft_reg_name','Aircraft Reg','Aircraft Reg'],['se_time','SE Time','Time SE'],['me_time','ME Time','Time ME'],['mcc_time','MCC Time','Time MCC'],['total_time','Total Time','Time Total'],['night_time','Night Time','Time Night'],['ifr_time','IFR Time','Time IFR'],['pic_time','PIC Time','Time PIC'],['co_pilot_time','Co-pilot Time','Time CoPilot'],['dual_time','Dual Time','Time Dual'],['instructor_time','Instructor Time','Time Instructor'],['landings_day','Day Landings','Landings Day'],['landings_night','Night Landings','Landings Night'],['sim_type','FSTD Type','SIM Type'],['sim_time','FSTD Time','SIM Time'],['pic_name','PIC Name','PIC Name'],['remarks','Remarks','Remarks']
 ];
 
 const buildRows=(raw,headers,mapping)=>raw.slice(1).map((row,index)=>{
@@ -16,7 +16,6 @@ const buildRows=(raw,headers,mapping)=>raw.slice(1).map((row,index)=>{
   if(!item.date)return null;
   item.date=convertToDDMMYYYY(item.date);item.departure_time=autoTimeRecog(item.departure_time);item.arrival_time=autoTimeRecog(item.arrival_time);
   if(item.departure_place?.includes('-')){const [a,b]=item.departure_place.toUpperCase().split('-');item.departure_place=a.trim();item.arrival_place=b?.trim()||item.arrival_place;}
-  if(item.tags)item.tags=item.tags.replace(/[;|]/g,',');
   return marshallItem(item);
 }).filter(Boolean);
 

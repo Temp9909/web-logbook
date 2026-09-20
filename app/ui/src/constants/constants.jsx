@@ -48,7 +48,6 @@ export const FLIGHT_INITIAL_STATE = {
   },
   pic_name: "",
   remarks: "",
-  tags: "",
 };
 
 export const LICENSE_INITIAL_STATE = {

@@ -18,7 +18,6 @@ import useSettings from '../../hooks/useSettings';
 import FlightRecordMenuButtons from './FlightRecordMenuButtons';
 import { FIELDS_VISIBILITY_KEY } from '../../constants/constants';
 import { getValue } from '../../util/helpers';
-import FlightTags from '../UIElements/FlightTags';
 import { fetchAircraftModelsCategories } from '../../util/http/aircraft';
 import { PICNameField } from './PICNameField';
 import CustomFields from './CustomFields';
@@ -149,15 +148,6 @@ export const FlightRecordDetails = ({ flight, handleChange, setFlight }) => {
                   value={getValue(flight, "sim.time")}
                 />
               </>
-            }
-            {((visibility?.["tags"] ?? true)) &&
-              <FlightTags gsize={{ xs: 12, sm: 6 }}
-                id="tags"
-                label={fieldNameF("tags")}
-                tooltip="Flight tags. To add a tag, start typing and press Enter."
-                handleChange={handleChange}
-                value={flight.tags ? flight.tags.split(',') : []}
-              />
             }
           </Grid>
 

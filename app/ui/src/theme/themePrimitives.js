@@ -90,7 +90,7 @@ export const systemColors = {
 // Apple labels / separators / fills (semantic colors)
 export const appleLight = {
   label: '#1D1D1F',
-  secondaryLabel: 'rgba(60, 60, 67, 0.60)',
+  secondaryLabel: '#566171',
   tertiaryLabel: 'rgba(60, 60, 67, 0.30)',
   separator: 'rgba(60, 60, 67, 0.18)',
   fill: 'rgba(116, 116, 128, 0.08)',

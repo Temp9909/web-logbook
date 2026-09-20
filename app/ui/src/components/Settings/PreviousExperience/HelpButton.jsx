@@ -4,7 +4,7 @@ import HelpButtonDrawer from "../../UIElements/HelpButtonDrawer";
 const HELP_CONTENT = [
   {
     title: "Previous Experience",
-    description: "You can set your previous flight experience here. These values will be added to the totals in the logbook table, PDF export and Dashboard Totals.",
+    description: "You can set your past flight experience here. These values will be added to the totals in the logbook table, PDF export and Dashboard Totals.",
   },
   {
     title: "SP Multi Engine vs Total Multi Engine Time",

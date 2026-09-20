@@ -37,7 +37,6 @@ const defaultFieldNames = {
     sim_type: "Type",
     sim_time: "Time",
     remarks: "Remarks",
-    tags: "Tags",
   },
   flightRecord: { // flight record page
     date: "Date",
@@ -72,11 +71,10 @@ const defaultFieldNames = {
     sim_type: "Type",
     sim_time: "Time",
     remarks: "Remarks",
-    tags: "Tags",
   }
 }
 
-const DEFAULT_PAGINATION_OPTIONS = [5, 10, 15, 20, 25, 30, 50, 100];
+const DEFAULT_PAGINATION_OPTIONS = [12, 25, 50, 100];
 
 export const useSettings = () => {
   // Load settings
@@ -89,14 +87,7 @@ export const useSettings = () => {
   });
   useErrorNotification({ isError: isSettingsError, error: settingsError, fallbackMessage: 'Failed to load settings' });
 
-  const paginationOptions = useMemo(() => {
-    if (!data?.logbook_pagination) {
-      return DEFAULT_PAGINATION_OPTIONS;
-    }
-
-    const options = data.logbook_pagination.split(',').map(opt => parseInt(opt.trim())).filter(num => !Number.isNaN(num));;
-    return options.length > 0 ? options : DEFAULT_PAGINATION_OPTIONS;
-  }, [data.logbook_pagination]);
+  const paginationOptions = DEFAULT_PAGINATION_OPTIONS;
 
   /**
    * Get standard field name for a field or column

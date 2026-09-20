@@ -43,10 +43,10 @@ describe("useSettings", () => {
         isLoading: false,
       });
       const { result } = renderHook(() => useSettings());
-      expect(result.current.paginationOptions).toEqual([5, 10, 15, 20, 25, 30, 50, 100]);
+      expect(result.current.paginationOptions).toEqual([12, 25, 50, 100]);
     });
 
-    it("should return parsed options from settings", () => {
+    it("should keep fixed options even when an old pagination setting exists", () => {
       const mockSettings = { logbook_pagination: "10, 20, 100" };
       useQuery.mockReturnValue({
         data: mockSettings,
@@ -55,7 +55,7 @@ describe("useSettings", () => {
       const { result } = renderHook(() => useSettings());
       // Wait for useEffect to update state
       waitFor(() => {
-        expect(result.current.paginationOptions).toEqual([10, 20, 100]);
+        expect(result.current.paginationOptions).toEqual([12, 25, 50, 100]);
       })
 
     });
@@ -67,7 +67,7 @@ describe("useSettings", () => {
       });
       const { result } = renderHook(() => useSettings());
       waitFor(() => {
-        expect(result.current.paginationOptions).toEqual([5, 10, 15, 20, 25, 30, 50, 100]);
+        expect(result.current.paginationOptions).toEqual([12, 25, 50, 100]);
       })
     });
   });

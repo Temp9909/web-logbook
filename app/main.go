@@ -38,13 +38,12 @@ type config struct {
 }
 
 type application struct {
-	config               config
-	infoLog              *log.Logger
-	errorLog             *log.Logger
-	warningLog           *log.Logger
-	version              string
-	db                   models.DBModel
-	timeFieldsAutoFormat byte
+	config     config
+	infoLog    *log.Logger
+	errorLog   *log.Logger
+	warningLog *log.Logger
+	version    string
+	db         models.DBModel
 }
 
 func (app *application) serve() error {
@@ -167,36 +166,41 @@ func main() {
 		// but probably let's continue to run the app...
 	}
 
-	// check airport db
+	// The airport directory is a fixed background reference dataset. There is no
+	// Airports management screen anymore. Existing installations migrate once to
+	// the OurAirports source, while a failed refresh never prevents the logbook
+	// itself from starting if an older airport directory is already available.
 	count, err := app.db.GetAirportDBRecordsCount()
 	if err != nil {
 		app.errorLog.Printf("error checking airport db - %s\n", err)
 		return
 	}
-	if count == 0 {
-		app.infoLog.Println("no records in the airport db, updating...")
-		airports, err := app.downloadAirportDB("")
-		if err != nil {
-			app.errorLog.Printf("error downloading airport db - %s\n", err)
-			return
-		}
-		app.infoLog.Printf("downloaded %d records\n", len(airports))
-
-		err = app.db.UpdateAirportDB(airports, false)
-		if err != nil {
-			app.errorLog.Printf("error updating airport db - %s\n", err)
-			return
-		}
-		app.infoLog.Println("airport db has been updated")
+	airportSettings, settingsErr := app.db.GetSettings()
+	if settingsErr != nil {
+		app.errorLog.Printf("error checking airport settings - %s\n", settingsErr)
 	}
-
-	// check settings
-	settings, err := app.db.GetSettings()
-	if err != nil {
-		app.errorLog.Printf("cannot load settings - %s\n", err)
-		return
+	needsAirportRefresh := count == 0 || settingsErr == nil && airportSettings.AirportDBSource != models.DefaultAirportDBSource
+	if needsAirportRefresh {
+		app.infoLog.Println("updating integrated airport directory...")
+		airports, downloadErr := app.downloadAirportDB(models.DefaultAirportDBSource)
+		if downloadErr != nil {
+			app.warningLog.Printf("unable to refresh integrated airport directory - %s\n", downloadErr)
+		} else {
+			app.infoLog.Printf("downloaded %d airport records\n", len(airports))
+			if updateErr := app.db.UpdateAirportDB(airports, true); updateErr != nil {
+				app.warningLog.Printf("unable to update integrated airport directory - %s\n", updateErr)
+			} else {
+				if settingsErr == nil {
+					airportSettings.AirportDBSource = models.DefaultAirportDBSource
+					airportSettings.NoICAOFilter = true
+					if err := app.db.UpdateSettings(airportSettings); err != nil {
+						app.warningLog.Printf("unable to save airport directory marker - %s\n", err)
+					}
+				}
+				app.infoLog.Println("integrated airport directory has been updated")
+			}
+		}
 	}
-	app.timeFieldsAutoFormat = settings.TimeFieldsAutoFormat
 
 	// create distance cache on background
 	go app.db.CreateDistanceCache()

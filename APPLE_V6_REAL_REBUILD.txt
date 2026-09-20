@@ -13,7 +13,7 @@ Pages rebuilt with native Apple-style React/HTML shells (not just a MUI skin):
 - Persons + Person detail
 - Attachments
 - Settings
-- Previous flight experience
+- Past flight experience
 - Logbook signature
 - Standard fields
 - Custom fields

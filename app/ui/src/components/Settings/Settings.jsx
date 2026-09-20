@@ -1,22 +1,32 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import SignaturePad from 'signature_pad';
 import useSettings from '../../hooks/useSettings';
-import useCustomFields from '../../hooks/useCustomFields';
 import { useDialogs } from '../../hooks/useDialogs/useDialogs';
-import { createCustomField, deleteCustomField, updateCustomField } from '../../util/http/fields';
 import { updateSettings, updateSignature } from '../../util/http/settings';
 import { queryClient } from '../../util/http/http';
 import { deleteLogbookData, downloadDBFile, uploadDBFile } from '../../util/http/db';
-import { CUSTOM_FIELD_INITIAL_STATE } from '../../constants/constants';
-import { Card, Field, Loading, Modal, NativeTable, PageHead, SelectField, SwitchRow, TextArea, setNested } from '../AppleExact/Primitives';
-import Airports from '../Airports/Airports';
+import { Card, Field, Loading, PageHead, SelectField, SwitchRow, setNested } from '../AppleExact/Primitives';
 
-const standardLabels={date:'Date',departure:'Departure Header',dep_place:'Place',dep_time:'Time',arrival:'Arrival Header',arr_place:'Place',arr_time:'Time',aircraft:'Aircraft Header',model:'Type',reg:'Reg',spt:'Single Pilot Header',se:'SE',me:'ME',mcc:'MCC Time',total:'Total Time',pic_name:'PIC Name',landings:'Landings',land_day:'Day',land_night:'Night',oct:'Operational Condition Time',night:'Night',ifr:'IFR',pft:'Pilot Function Time',pic:'PIC',cop:'CoPilot',dual:'Dual',instr:'Instr',fstd:'FSTD',sim_type:'Type',sim_time:'Time',remarks:'Remarks',tags:'Tags'};
-const previousFields=[['total_time','Total time'],['se_time','SP SE'],['me_time','SP ME'],['mcc_time','Multi-pilot'],['night_time','Night'],['ifr_time','IFR'],['pic_time','PIC'],['co_pilot_time','Co-pilot'],['dual_time','Dual'],['instructor_time','Instructor'],['sim_time','FSTD / Sim'],['me_total_time','Total ME'],['cc_time','Cross country'],['landings_day','Day landings'],['landings_night','Night landings']];
-const fieldTypes=['text','number','time','duration','enroute'];
-const statsByType={text:['none','count'],number:['none','sum','average','count'],time:['none','count'],duration:['none','sum','average','count'],enroute:['none']};
+const previousFields=[
+  ['total_time','Total time'],
+  ['se_time','SP SE'],
+  ['me_time','SP ME'],
+  ['mcc_time','Multi-pilot time'],
+  ['night_time','Night'],
+  ['ifr_time','IFR'],
+  ['pic_time','PIC'],
+  ['co_pilot_time','Co-pilot'],
+  ['dual_time','Dual'],
+  ['instructor_time','Instructor'],
+  ['sim_time','FSTD total time'],
+  ['me_total_time','Total ME'],
+  ['cc_time','Cross Country'],
+  ['landings_day','Day landings'],
+  ['landings_night','Night landings'],
+];
+
 const switchColors=[
   {name:'Automatic',value:'',color:'#4AD968'},
   {name:'Red',value:'#FF3B30',color:'#FF3B30'},
@@ -59,10 +69,10 @@ export const Settings=()=>{
   const dialogs=useDialogs();
   const dbFileRef=useRef(null);
   const [searchParams,setSearchParams]=useSearchParams();
-  const allowedTabs=['general','previous','signature','standard','custom','airports'];
+  const allowedTabs=['general','previous','signature'];
   const requestedTab=searchParams.get('tab');
   const tab=allowedTabs.includes(requestedTab)?requestedTab:'general';
-  const {data,isLoading}=useSettings();const {data:customFields=[],isCustomFieldsLoading}=useCustomFields();const [settings,setSettings]=useState({});const [field,setField]=useState(null);
+  const {data,isLoading}=useSettings();const [settings,setSettings]=useState({});
   const settingsHydratedRef=useRef(false);
   const settingsRef=useRef({});
   const generalSaveInFlightRef=useRef(false);
@@ -156,16 +166,6 @@ export const Settings=()=>{
   const downloadDb=useMutation({mutationFn:downloadDBFile,onSuccess:(blob)=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='web-logbook.sql';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}});
   const uploadDb=useMutation({mutationFn:(form)=>uploadDBFile({payload:form}),onSuccess:()=>queryClient.invalidateQueries()});
   const deleteLogbook=useMutation({mutationFn:deleteLogbookData,onSuccess:async()=>{queryClient.setQueryData(['logbook'],[]);await queryClient.invalidateQueries();}});
-  const saveField=useMutation({mutationFn:()=>field.uuid==='new'?createCustomField({field}):updateCustomField({field}),onSuccess:async()=>{await queryClient.invalidateQueries({queryKey:['custom-fields']});setField(null)}});
-  const removeField=useMutation({mutationFn:(uuid)=>deleteCustomField({uuid}),onSuccess:()=>queryClient.invalidateQueries({queryKey:['custom-fields']})});
-  const confirmDeleteField=useCallback(async(row)=>{
-    const confirmed=await dialogs.confirm(`Delete ${row?.name || 'this custom field'}?`,{title:'Delete custom field',severity:'error'});
-    if(confirmed)removeField.mutate(row.uuid);
-  },[dialogs,removeField]);
-  const customCols=useMemo(()=>[
-    {key:'display_order',label:'Order'},{key:'name',label:'Name'},{key:'description',label:'Description'},{key:'category',label:'Category'},{key:'type',label:'Type'},{key:'stats_function',label:'Stats function'},
-    {key:'actions',label:'',render:r=><div className="exact-actions-cell"><button className="btn small" onClick={e=>{e.stopPropagation();setField({...r})}}>Edit</button><button className="btn danger small" onClick={e=>{e.stopPropagation();confirmDeleteField(r)}}>Delete</button></div>,searchValue:()=>''}
-  ],[confirmDeleteField]);
   const handleDbUpload=useCallback(async(event)=>{
     const file=event.target.files?.[0];
     event.target.value='';
@@ -175,19 +175,19 @@ export const Settings=()=>{
     const form=new FormData();form.append('dbfile',file);uploadDb.mutate(form);
   },[dialogs,uploadDb]);
   const confirmDeleteLogbook=useCallback(async()=>{
-    const confirmed=await dialogs.confirm('This permanently deletes all flight records and their attachments. Aircraft, persons, licences and settings are kept. Would you like to continue?',{title:'Delete logbook data',severity:'error'});
+    const confirmed=await dialogs.confirm('This permanently deletes all flight records and attachments, licences, aircraft data and persons. Settings are kept. Would you like to continue?',{title:'Delete logbook data',severity:'error'});
     if(confirmed)deleteLogbook.mutate();
   },[dialogs,deleteLogbook]);
-  const tabs=[['general','General'],['previous','Previous flight experience'],['signature','Logbook signature'],['standard','Standard fields'],['custom','Custom fields'],['airports','Airports']];
+  const tabs=[['general','General'],['previous','Past flight experience'],['signature','Logbook signature']];
   return <section className="exact-react-page">
-    <PageHead title="Settings" subtitle="Configure your logbook, fields, signature, airports and previous experience." />
+    <PageHead title="Settings" subtitle="Configure your logbook, signature and past flight experience." />
     <Loading show={isLoading}/>
     <div className="settings-tabs">{tabs.map(([id,label])=><button key={id} className={tab===id?'on':''} onClick={()=>selectTab(id)}>{label}</button>)}</div>
 
     {tab==='general'?<div className="grid two">
       <Card title="General settings" subtitle="Owner information, application options and authentication.">
-        <div className="section-label">Owner information</div><div className="form-grid two"><Field label="Owner name" value={settings.owner_name||''} onChange={v=>change('owner_name',v)}/><Field label="Licence number" value={settings.license_number||''} onChange={v=>change('license_number',v)}/><Field label="Address" value={settings.address||''} onChange={v=>change('address',v)}/><Field label="Signature text" value={settings.signature_text||''} onChange={v=>change('signature_text',v)}/></div>
-        <div className="section-label" style={{marginTop:15}}>Logbook</div><div className="form-grid two"><Field label="Logbook pagination" value={settings.logbook_pagination||''} onChange={v=>change('logbook_pagination',v)}/><Field label="Self PIC label" value={settings.self_pic_label||'Self'} onChange={v=>change('self_pic_label',v)}/><Field label="Expiry warning period (days)" type="number" value={settings.licenses_expiration?.warning_period||90} onChange={v=>change('licenses_expiration.warning_period',v)}/></div>
+        <div className="section-label">Owner information</div><div className="form-grid two"><Field label="Owner name" value={settings.owner_name||''} onChange={v=>change('owner_name',v)}/><Field label="Licence number" value={settings.license_number||''} onChange={v=>change('license_number',v)}/><Field label="Address" value={settings.address||''} onChange={v=>change('address',v)}/></div>
+        <div className="section-label" style={{marginTop:15}}>Logbook</div><div className="form-grid two"><Field label="Self PIC label" value={settings.self_pic_label||'Self'} onChange={v=>change('self_pic_label',v)}/><Field label="Expiry warning period (days)" type="number" value={settings.licenses_expiration?.warning_period||90} onChange={v=>change('licenses_expiration.warning_period',v)}/></div>
         <div className="card rows" style={{borderRadius:10,marginTop:12}}><SwitchRow label="Show licence warning" checked={Boolean(settings.licenses_expiration?.show_warning)} onChange={v=>change('licenses_expiration.show_warning',v)}/><SwitchRow label="Show expired licences" checked={Boolean(settings.licenses_expiration?.show_expired)} onChange={v=>change('licenses_expiration.show_expired',v)}/></div>
         <div className="section-label" style={{marginTop:15}}>Appearance</div>
         <div className="card rows" style={{borderRadius:10}}>
@@ -199,27 +199,19 @@ export const Settings=()=>{
           </div>
         </div>
       </Card>
-      <Card title="Security & database" subtitle="Authentication, formatting and database operations.">
-        <div className="card rows" style={{borderRadius:10}}><SwitchRow label="Enable authentication" checked={Boolean(settings.auth_enabled)} onChange={v=>{change('auth_enabled',v);if(v&&!settings.secret_key){const a=new Uint8Array(32);crypto.getRandomValues(a);change('secret_key',btoa(String.fromCharCode.apply(null,a)))}}}/></div>
-        <div className="form-grid two" style={{marginTop:12}}><Field label="Login" value={settings.login||''} disabled={!settings.auth_enabled} onChange={v=>change('login',v)}/><Field label="Password" type="password" value={settings.password||''} disabled={!settings.auth_enabled} onChange={v=>change('password',v)}/><Field label="Secret key" value={settings.secret_key||''} disabled={!settings.auth_enabled} onChange={v=>change('secret_key',v)}/><SelectField label="Time fields autoformat" value={String(settings.time_fields_auto_format??0)} onChange={v=>change('time_fields_auto_format',Number(v))} options={[{value:'0',label:'None'},{value:'1',label:'HH:MM'},{value:'2',label:'H:MM'}]}/><SelectField label="Logbook totals view" value={String(settings.logbook_totals_view??0)} onChange={v=>change('logbook_totals_view',Number(v))} options={[{value:'0',label:'Standard'},{value:'1',label:'Paper Logbook'}]}/></div>
+      <Card title="Security & database" subtitle="Authentication and database operations.">
+        <div className="card rows" style={{borderRadius:10}}><SwitchRow label="Enable authentication" checked={Boolean(settings.auth_enabled)} onChange={v=>change('auth_enabled',v)}/></div>
+        <div className="form-grid two" style={{marginTop:12}}><Field label="Login" value={settings.login||''} disabled={!settings.auth_enabled} onChange={v=>change('login',v)}/><Field label="Password" type="password" value={settings.password||''} disabled={!settings.auth_enabled} onChange={v=>change('password',v)}/></div>
         <div className="section-label" style={{marginTop:15}}>Data</div>
-        <div className="card rows" style={{borderRadius:10}}><div className="setting-row"><div><div className="lbl">Download database</div><div className="sub">Create a local backup of the current database.</div></div><span className="spacer"/><button className="btn small" disabled={downloadDb.isPending} onClick={()=>downloadDb.mutate()}>{downloadDb.isPending?'Preparing…':'Download'}</button></div><div className="setting-row"><div><div className="lbl">Upload database</div><div className="sub exact-warning">Replaces the current database. Make a backup first.</div></div><span className="spacer"/><input ref={dbFileRef} hidden type="file" onChange={handleDbUpload}/><button className="btn danger small" disabled={uploadDb.isPending} onClick={()=>dbFileRef.current?.click()}>{uploadDb.isPending?'Uploading…':'Upload'}</button></div><div className="setting-row"><div><div className="lbl">Delete logbook data</div><div className="sub exact-warning">Permanently deletes all flight records and their attachments. Settings, aircraft, persons and licences are kept.</div></div><span className="spacer"/><button className="btn danger small" disabled={deleteLogbook.isPending} onClick={confirmDeleteLogbook}>{deleteLogbook.isPending?'Deleting…':'Delete'}</button></div></div>
+        <div className="card rows" style={{borderRadius:10}}><div className="setting-row"><div><div className="lbl">Download database</div><div className="sub">Create a local backup of the current database.</div></div><span className="spacer"/><button className="btn small" disabled={downloadDb.isPending} onClick={()=>downloadDb.mutate()}>{downloadDb.isPending?'Preparing…':'Download'}</button></div><div className="setting-row"><div><div className="lbl">Upload database</div><div className="sub exact-warning">Replaces the current database. Make a backup first.</div></div><span className="spacer"/><input ref={dbFileRef} hidden type="file" onChange={handleDbUpload}/><button className="btn danger small" disabled={uploadDb.isPending} onClick={()=>dbFileRef.current?.click()}>{uploadDb.isPending?'Uploading…':'Upload'}</button></div><div className="setting-row"><div><div className="lbl">Delete logbook data</div><div className="sub exact-warning">Permanently deletes flight records and attachments, licences, aircraft data and persons. Settings are kept.</div></div><span className="spacer"/><button className="btn danger small" disabled={deleteLogbook.isPending} onClick={confirmDeleteLogbook}>{deleteLogbook.isPending?'Deleting…':'Delete'}</button></div></div>
       </Card>
     </div>:null}
 
-    {tab==='previous'?<Card title="Previous flight experience" subtitle="Enter totals accumulated before the first flight stored in this logbook."><div className="form-grid">{previousFields.map(([key,label])=><Field key={key} label={label} value={settings.previous_experience?.[key]??''} onChange={v=>change(`previous_experience.${key}`,v)}/>)}</div></Card>:null}
+    {tab==='previous'?<Card title="Past flight experience" subtitle="Enter totals accumulated before the first flight stored in this logbook."><div className="form-grid">{previousFields.map(([key,label])=><Field key={key} label={label} value={settings.previous_experience?.[key]??''} onChange={v=>change(`previous_experience.${key}`,v)}/>)}</div></Card>:null}
 
     {tab==='signature'?<SignatureEditor settings={settings} onChange={change} onSignatureChange={changeSignature}/>:null}
 
-    {tab==='standard'?<Card title="Standard fields" subtitle="Choose the names used for the standard logbook columns."><div className="card rows" style={{borderRadius:10,marginBottom:14}}><SwitchRow label="Enable custom names for standard fields" sub="Override the default EASA labels." checked={Boolean(settings.enable_custom_names)} onChange={v=>change('enable_custom_names',v)}/></div><div className="form-grid">{Object.entries(standardLabels).map(([key,label])=><Field key={key} label={label} disabled={!settings.enable_custom_names} value={settings.standard_fields_headers?.[key]??label} onChange={v=>change(`standard_fields_headers.${key}`,v)}/>)}</div></Card>:null}
 
-    {tab==='custom'?<Card title="Custom fields" subtitle="Add your own fields and decide how they appear in statistics." actions={<button className="btn primary small" onClick={()=>setField({...CUSTOM_FIELD_INITIAL_STATE})}>＋ New custom field</button>}><NativeTable rows={customFields} columns={customCols} rowKey={r=>r.uuid} loading={isCustomFieldsLoading} searchPlaceholder="Search custom fields…" /></Card>:null}
-
-    {tab==='airports'?<Airports embedded />:null}
-
-    <Modal open={!!field} title={field?.uuid==='new'?'New custom field':'Edit custom field'} onClose={()=>setField(null)} actions={<><button className="btn exact-secondary-action" onClick={()=>setField(null)}>Back</button><button className="btn primary" disabled={saveField.isPending} onClick={()=>saveField.mutate()}>Save field</button></>}>
-      {field?<><div className="form-grid two"><Field label="Name" value={field.name||''} onChange={v=>setField(p=>({...p,name:v}))}/><Field label="Description" value={field.description||''} onChange={v=>setField(p=>({...p,description:v}))}/><Field label="Category" value={field.category||''} onChange={v=>setField(p=>({...p,category:v}))}/><SelectField label="Type" disabled={field.uuid!=='new'} value={field.type||'text'} onChange={v=>setField(p=>({...p,type:v,stats_function:statsByType[v]?.[0]||'none'}))} options={fieldTypes}/><SelectField label="Stats function" value={field.stats_function||'none'} onChange={v=>setField(p=>({...p,stats_function:v}))} options={statsByType[field.type]||['none']}/><Field label="Display order" type="number" value={field.display_order??0} onChange={v=>setField(p=>({...p,display_order:v}))}/></div></>:null}<Loading show={saveField.isPending}/>
-    </Modal>
   </section>;
 };
 export default Settings;

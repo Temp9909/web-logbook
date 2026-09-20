@@ -71,7 +71,7 @@ func (app *application) HandlerApiAirportList(w http.ResponseWriter, r *http.Req
 
 func (app *application) downloadAirportDB(source string) ([]models.Airport, error) {
 	if source == "" {
-		source = "https://github.com/vsimakhin/Airports/raw/master/airports.json"
+		source = models.DefaultAirportDBSource
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
@@ -87,6 +87,9 @@ func (app *application) downloadAirportDB(source string) ([]models.Airport, erro
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("airport database download failed: %s", resp.Status)
+	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -133,56 +136,52 @@ func (app *application) parseJSONAirports(data []byte) ([]models.Airport, error)
 }
 
 func (app *application) parseCSVAirports(data []byte) ([]models.Airport, error) {
-	const (
-		// CSV field indices
-		csvID      = 1
-		csvName    = 3
-		csvLat     = 4
-		csvLon     = 5
-		csvElev    = 6
-		csvCountry = 8
-		csvCity    = 10
-		csvICAO    = 14
-		csvIATA    = 13
-	)
-
 	r := csv.NewReader(bytes.NewReader(data))
 	records, err := r.ReadAll()
 	if err != nil {
 		return nil, err
 	}
+	if len(records) == 0 {
+		return []models.Airport{}, nil
+	}
 
-	airports := make([]models.Airport, 0, len(records))
-	for _, record := range records {
-		if len(record) <= csvIATA {
-			continue
+	header := make(map[string]int, len(records[0]))
+	for i, name := range records[0] {
+		header[strings.TrimSpace(strings.ToLower(name))] = i
+	}
+	field := func(record []string, name string) string {
+		i, ok := header[name]
+		if !ok || i < 0 || i >= len(record) {
+			return ""
 		}
+		return strings.TrimSpace(record[i])
+	}
 
-		icao := record[csvICAO]
-		iata := record[csvIATA]
-		name := record[csvName]
-
-		if icao == "" && iata == "" {
-			if strings.Contains(strings.ToUpper(name), "DUPLICATE") {
-				continue
-			}
-			icao = fmt.Sprintf("%s %s", strings.ToUpper(name), record[csvID])
+	airports := make([]models.Airport, 0, len(records)-1)
+	for _, record := range records[1:] {
+		ident := strings.ToUpper(field(record, "ident"))
+		icao := strings.ToUpper(field(record, "icao_code"))
+		if icao == "" {
+			icao = strings.ToUpper(field(record, "gps_code"))
 		}
-
+		if icao == "" {
+			icao = ident
+		}
 		if icao == "" {
 			continue
 		}
 
-		elevation, _ := strconv.Atoi(record[csvElev])
-		lat, _ := strconv.ParseFloat(record[csvLat], 64)
-		lon, _ := strconv.ParseFloat(record[csvLon], 64)
+		iata := strings.ToUpper(field(record, "iata_code"))
+		elevation, _ := strconv.Atoi(field(record, "elevation_ft"))
+		lat, _ := strconv.ParseFloat(field(record, "latitude_deg"), 64)
+		lon, _ := strconv.ParseFloat(field(record, "longitude_deg"), 64)
 
 		airports = append(airports, models.Airport{
 			ICAO:      icao,
 			IATA:      iata,
-			Name:      name,
-			City:      record[csvCity],
-			Country:   record[csvCountry],
+			Name:      field(record, "name"),
+			City:      field(record, "municipality"),
+			Country:   field(record, "iso_country"),
 			Elevation: elevation,
 			Lat:       lat,
 			Lon:       lon,
@@ -193,19 +192,13 @@ func (app *application) parseCSVAirports(data []byte) ([]models.Airport, error) 
 
 // HandlerAirportUpdate updates the Airports DB
 func (app *application) HandlerApiAirportDBUpdate(w http.ResponseWriter, r *http.Request) {
-	settings, err := app.db.GetSettings()
+	airports, err := app.downloadAirportDB(models.DefaultAirportDBSource)
 	if err != nil {
 		app.handleError(w, err)
 		return
 	}
 
-	airports, err := app.downloadAirportDB(settings.AirportDBSource)
-	if err != nil {
-		app.handleError(w, err)
-		return
-	}
-
-	err = app.db.UpdateAirportDB(airports, settings.NoICAOFilter)
+	err = app.db.UpdateAirportDB(airports, true)
 	if err != nil {
 		app.handleError(w, err)
 		return

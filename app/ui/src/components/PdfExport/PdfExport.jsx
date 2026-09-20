@@ -72,7 +72,7 @@ export const PdfExport = () => {
     <section className="exact-react-page">
       <PageHead
         title="Export"
-        subtitle="Preview your EASA logbook in A4 landscape format."
+        subtitle="Preview your EASA logbook in A4 landscape format — one complete 12-column logbook page per PDF page."
         actions={(
           <button className="btn primary" disabled={exp.isPending} onClick={() => exp.mutate()}>
             {exp.isPending ? 'Preparing…' : 'Export PDF'}
@@ -80,10 +80,10 @@ export const PdfExport = () => {
         )}
       />
 
-      <Card title="Preview" subtitle="A4 landscape · EASA AMC1 FCL.050 · 12 entries per spread (columns 1–8 / 9–12).">
+      <Card title="Preview" subtitle="A4 landscape · EASA AMC1 FCL.050 · 12 entries per page · columns 1–12.">
         {previewError ? <div className="note exact-preview-error">{previewError}</div> : null}
         {!previewError && previewUrl ? (
-          <iframe className="exact-pdf-preview-frame" src={previewUrl} title="A4 PDF preview" />
+          <iframe className="exact-pdf-preview-frame" src={`${previewUrl}#zoom=page-fit`} title="A4 PDF preview" />
         ) : null}
         {!previewError && !previewUrl && !isLoading ? (
           <div className="exact-preview-loading">Generating PDF preview…</div>

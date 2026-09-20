@@ -281,7 +281,6 @@ export const FlightRecord = () => {
         <Card title="Flight" subtitle="Date, departure and arrival.">
           <div className="form-grid two">
             <Field label="Date" type="date" value={toInputDate(flight.date)} onChange={(v) => change('date', fromInputDate(v))} />
-            <Field label="Tags" value={flight.tags || ''} onChange={(v) => change('tags', v)} placeholder="training, IFR" />
             <Field label="Departure place" value={flight.departure?.place || ''} onChange={(v) => change('departure.place', v.toUpperCase())} />
             <TimeSelectField label="Departure time (UTC)" mode="clock" value={flight.departure?.time || ''} onChange={(v) => change('departure.time', v)} />
             <Field label="Arrival place" value={flight.arrival?.place || ''} onChange={(v) => change('arrival.place', v.toUpperCase())} />

@@ -48,7 +48,6 @@ var logbookTable = NewTable("logbook", "uuid", UUID,
 		{Name: "distance", Type: Real},
 		{Name: "track", Type: Blob},
 		{Name: "custom_fields", Type: FullText},
-		{Name: "tags", Type: BigText, Properties: "NOT NULL DEFAULT ''"},
 		{Name: "signature", Type: FullText},
 	})
 
@@ -189,7 +188,7 @@ var logbookView = NewView("logbook_view",
 					IFNULL(custom_fields, '{}') as custom_fields,
 					CASE WHEN track IS NULL THEN 0 ELSE 1 END AS has_track,
 					IFNULL(ac.cnt, 0) AS attachments_count,
-					IFNULL(tags, '') AS tags, IFNULL(signature, '') AS signature
+					IFNULL(signature, '') AS signature
 				FROM logbook
 				LEFT JOIN (
 					SELECT record_id, COUNT(*) AS cnt FROM attachments GROUP BY record_id
@@ -217,7 +216,7 @@ var logbookView = NewView("logbook_view",
 					IFNULL(distance, 0) distance, track, IFNULL(custom_fields, '{}') as custom_fields,
 					CASE WHEN track IS NULL THEN 0 ELSE 1 END AS has_track,
 					IFNULL(ac.cnt, 0) AS attachments_count,
-					IFNULL(tags, '') AS tags, IFNULL(signature, '') AS signature
+					IFNULL(signature, '') AS signature
 				FROM logbook
 				LEFT JOIN (
 					SELECT record_id, COUNT(*) AS cnt FROM attachments GROUP BY record_id
@@ -384,7 +383,6 @@ var logbookStatsView = NewView("logbook_stats_view",
 					IFNULL(custom_fields, '{}') as custom_fields,
 					CASE WHEN track IS NULL THEN 0 ELSE 1 END AS has_track,
 					IFNULL(ac.cnt, 0) AS attachments_count,
-					IFNULL(tags, '') AS tags,
 					IFNULL(signature, '') AS signature
 				FROM logbook
 				LEFT JOIN (
@@ -581,7 +579,6 @@ var logbookStatsView = NewView("logbook_stats_view",
 					IFNULL(l.custom_fields, '{}') AS custom_fields,
 					CASE WHEN l.track IS NULL THEN 0 ELSE 1 END AS has_track,
 					IFNULL(ac.cnt, 0) AS attachments_count,
-					IFNULL(l.tags, '') AS tags,
 					IFNULL(l.signature, '') AS signature
 				FROM logbook l
 				LEFT JOIN (

@@ -68,7 +68,6 @@ var standardFieldsHeaders = ColumnsHeader{
 	Instr:     "Instr",
 	SimType:   "Type",
 	SimTime:   "Time",
-	Tags:      "Tags",
 }
 
 // default columns width for A4 format
@@ -131,8 +130,8 @@ func (m *DBModel) CheckDefaultValues() error {
 	}
 
 	if s.AirportDBSource == "" {
-		s.AirportDBSource = "https://github.com/vsimakhin/Airports/raw/master/airports.json"
-		s.NoICAOFilter = false
+		s.AirportDBSource = DefaultAirportDBSource
+		s.NoICAOFilter = true
 		applyDefaults = true
 	}
 

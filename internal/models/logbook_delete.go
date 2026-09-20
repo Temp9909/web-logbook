@@ -2,9 +2,8 @@ package models
 
 import "fmt"
 
-// DeleteLogbookData removes flight records and data directly attached to them.
-// Reference/configuration data (settings, aircraft, persons, licensing, airports,
-// custom fields and currency rules) is intentionally preserved.
+// DeleteLogbookData removes the complete personal logbook dataset.
+// Application settings, airports, custom fields and currency rules are preserved.
 func (m *DBModel) DeleteLogbookData() error {
 	ctx, cancel := m.ContextWithDefaultTimeout()
 	defer cancel()
@@ -18,6 +17,12 @@ func (m *DBModel) DeleteLogbookData() error {
 		"DELETE FROM attachments",
 		"DELETE FROM person_to_log",
 		"DELETE FROM logbook",
+		"DELETE FROM licensing",
+		"DELETE FROM persons",
+		"DELETE FROM aircrafts",
+		"DELETE FROM aircraft_categories",
+		"DELETE FROM deleted_aircrafts",
+		"DELETE FROM deleted_aircraft_types",
 	}
 
 	for _, query := range queries {
