@@ -513,16 +513,16 @@ func (p *PDFExporter) drawCompositeFullGrid(lx, rx, y []float64) {
 		// Totals rows stop before the merged labels and certification cell.
 		p.pdf.Line(lx[6], y[16], rx[16], y[16])
 		p.pdf.Line(lx[6], y[17], rx[16], y[17])
-		// Only the right-hand signature section extends below y[18].
-		p.pdf.Line(lx[16], y[19], rx[17], y[19])
+		// One shared bottom rule connects pages 1-8 and 9-12 cleanly.
+		p.pdf.Line(lx[0], y[19], rx[17], y[19])
 
 		// Left-page vertical rules. Each span exactly follows the merged EASA
 		// header and totals cells instead of cutting through their labels.
 		leftSpans := []struct{ x, top, bottom int }{
-			{0, 0, 18}, {1, 0, 18}, {2, 2, 15}, {3, 0, 18},
-			{4, 2, 15}, {5, 0, 18}, {6, 2, 18}, {7, 0, 18},
-			{8, 2, 18}, {9, 1, 18}, {10, 3, 18}, {11, 0, 18},
-			{12, 3, 15}, {13, 0, 18}, {14, 0, 18}, {15, 2, 18},
+			{0, 0, 19}, {1, 0, 19}, {2, 2, 15}, {3, 0, 19},
+			{4, 2, 15}, {5, 0, 19}, {6, 2, 19}, {7, 0, 19},
+			{8, 2, 19}, {9, 1, 19}, {10, 3, 19}, {11, 0, 19},
+			{12, 3, 15}, {13, 0, 19}, {14, 0, 19}, {15, 2, 19},
 			{16, 0, 19},
 		}
 		for _, span := range leftSpans {
