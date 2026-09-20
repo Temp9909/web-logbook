@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchLogbookMapData } from '../../util/http/logbook';
-import { fetchAirports } from '../../util/http/airport';
+import { fetchAirportsByCodes } from '../../util/http/airport';
 import { formatDistanceNM, getStats } from '../../util/helpers';
 import FlightMap from '../FlightMap/FlightMap';
 import { DEFAULT_MAP_OPTIONS } from '../FlightMap/helpers';
@@ -9,7 +9,16 @@ import { Card, Loading, PageHead, SelectField, SwitchRow } from '../AppleExact/P
 
 export const SummaryFlightMap = () => {
   const { data = [], isLoading } = useQuery({queryKey:['logbook','map'],queryFn:({signal})=>fetchLogbookMapData({signal}),staleTime:3600000});
-  const { data: airports = [] } = useQuery({queryKey:['airports'],queryFn:({signal})=>fetchAirports({signal}),staleTime:3600000});
+  const airportCodes = useMemo(() => Array.from(new Set((Array.isArray(data) ? data : [])
+    .flatMap((flight) => [flight?.departure?.place, flight?.arrival?.place])
+    .map((code) => String(code || '').trim().toUpperCase())
+    .filter(Boolean))).sort(), [data]);
+  const { data: airports = [], isLoading: airportsLoading } = useQuery({
+    queryKey: ['airports', 'resolve', airportCodes],
+    queryFn: ({ signal }) => fetchAirportsByCodes({ signal, codes: airportCodes }),
+    enabled: airportCodes.length > 0,
+    staleTime: 3600000,
+  });
   const [period,setPeriod] = useState('all');
   const [aircraft,setAircraft] = useState('all');
   const [options,setOptions] = useState(()=>{
@@ -18,7 +27,12 @@ export const SummaryFlightMap = () => {
 
   const airportsMap = useMemo(()=>{
     const map = new Map();
-    (Array.isArray(airports)?airports:[]).forEach((a)=>{ if(a?.icao) map.set(a.icao,a); if(a?.iata) map.set(a.iata,a); });
+    (Array.isArray(airports)?airports:[]).forEach((airport)=>{
+      const icao = String(airport?.icao || '').trim().toUpperCase();
+      const iata = String(airport?.iata || '').trim().toUpperCase();
+      if(icao) map.set(icao,airport);
+      if(iata) map.set(iata,airport);
+    });
     return map;
   },[airports]);
   const aircrafts = useMemo(()=>Array.from(new Set((Array.isArray(data)?data:[]).map(f=>f?.aircraft?.reg_name).filter(Boolean))).sort(),[data]);
@@ -46,7 +60,7 @@ export const SummaryFlightMap = () => {
 
   return <section className="exact-react-page">
     <PageHead title="Map" subtitle="Explore your flights, routes and airports." />
-    <Loading show={isLoading}/>
+    <Loading show={isLoading || airportsLoading}/>
     <div className="split">
       <aside className="exact-map-sidebar">
         <Card title="Filters" subtitle="Choose which flights are shown on the map.">

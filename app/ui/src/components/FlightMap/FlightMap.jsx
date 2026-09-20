@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
@@ -18,18 +18,21 @@ import { CODEC_JSON, useLocalStorageState } from '../../hooks/useLocalStorageSta
 import { formatDistanceNM, sumDistanceNM } from '../../util/helpers';
 
 const getAirportData = async (id, airportsMap) => {
+  const normalizedId = String(id || '').trim().toUpperCase();
+  if (!normalizedId) return null;
+
   if (airportsMap) {
-    const airport = airportsMap.get(id);
+    const airport = airportsMap.get(normalizedId) || airportsMap.get(id);
     if (airport) return airport;
   }
 
   try {
-    const cachedData = queryClient.getQueryData(["airports", id]);
+    const cachedData = queryClient.getQueryData(["airports", normalizedId]);
     if (cachedData) return cachedData;
 
     return await queryClient.fetchQuery({
-      queryKey: ["airports", id],
-      queryFn: ({ signal }) => fetchAirport({ signal, id }),
+      queryKey: ["airports", normalizedId],
+      queryFn: ({ signal }) => fetchAirport({ signal, id: normalizedId }),
       staleTime: 86400000,
       gcTime: 86400000,
     });
@@ -40,7 +43,16 @@ const getAirportData = async (id, airportsMap) => {
 
 export const FlightMap = ({ data, title = "Flight Map", sx, airportsMap, embedded = false, optionsOverride = null }) => {
   const [storedOptions] = useLocalStorageState(MAP_OPTIONS_NAME, DEFAULT_MAP_OPTIONS, { codec: CODEC_JSON });
-  const options = optionsOverride || storedOptions;
+  const options = useMemo(() => {
+    const rawOptions = optionsOverride || storedOptions || {};
+    return {
+      ...DEFAULT_MAP_OPTIONS,
+      ...rawOptions,
+      routes: { ...DEFAULT_MAP_OPTIONS.routes, ...(rawOptions.routes || {}) },
+      tracks: { ...DEFAULT_MAP_OPTIONS.tracks, ...(rawOptions.tracks || {}) },
+      airport: { ...DEFAULT_MAP_OPTIONS.airport, ...(rawOptions.airport || {}) },
+    };
+  }, [optionsOverride, storedOptions]);
 
   const mapRef = useRef(null);
   const hoverTooltipRef = useRef(null);

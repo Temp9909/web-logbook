@@ -168,7 +168,7 @@ func main() {
 
 	// The airport directory is a fixed background reference dataset. There is no
 	// Airports management screen anymore. Existing installations migrate once to
-	// the OurAirports source, while a failed refresh never prevents the logbook
+	// the stable built-in airport source, while a failed refresh never prevents the logbook
 	// itself from starting if an older airport directory is already available.
 	count, err := app.db.GetAirportDBRecordsCount()
 	if err != nil {

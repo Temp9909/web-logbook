@@ -11,8 +11,8 @@ import (
 )
 
 // DefaultAirportDBSource is the fixed background airport reference source.
-// The Airports management UI has been removed; the application uses this source automatically.
-const DefaultAirportDBSource = "https://davidmegginson.github.io/ourairports-data/airports.csv"
+// The Airports management UI has been removed; the application uses the project's stable airport JSON mirror automatically so map lookups stay lightweight.
+const DefaultAirportDBSource = "https://github.com/vsimakhin/Airports/raw/master/airports.json"
 
 var airportCache sync.Map
 

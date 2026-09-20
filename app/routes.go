@@ -101,6 +101,7 @@ func (app *application) routes() *chi.Mux {
 
 		// airports
 		r.Route("/airport", func(r chi.Router) {
+			r.Post("/resolve", app.HandlerApiAirportsResolve)
 			r.With(middleware.Compress(5)).Get("/standard-list", app.HandlerApiStandardAirportList)
 			r.With(middleware.Compress(5)).Get("/custom-list", app.HandlerApiCustomAirportList)
 			r.With(middleware.Compress(5)).Get("/list", app.HandlerApiAirportList)

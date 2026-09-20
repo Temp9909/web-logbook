@@ -36,6 +36,43 @@ func (app *application) HandlerApiAirportByID(w http.ResponseWriter, r *http.Req
 	app.writeJSON(w, http.StatusOK, airport)
 }
 
+// HandlerApiAirportsResolve resolves only the airport codes currently needed by the map.
+// This keeps the Map fast even when the integrated airport directory contains tens of
+// thousands of records.
+func (app *application) HandlerApiAirportsResolve(w http.ResponseWriter, r *http.Request) {
+	var request struct {
+		Codes []string `json:"codes"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		app.handleError(w, err)
+		return
+	}
+
+	seen := make(map[string]struct{}, len(request.Codes))
+	airports := make([]models.Airport, 0, len(request.Codes))
+	for _, rawCode := range request.Codes {
+		code := strings.ToUpper(strings.TrimSpace(rawCode))
+		if code == "" {
+			continue
+		}
+		if _, exists := seen[code]; exists {
+			continue
+		}
+		seen[code] = struct{}{}
+
+		airport, err := app.db.GetAirportByID(code)
+		if err != nil {
+			app.handleError(w, err)
+			return
+		}
+		if airport.ICAO != "" || airport.IATA != "" {
+			airports = append(airports, airport)
+		}
+	}
+
+	app.writeJSON(w, http.StatusOK, airports)
+}
+
 // HandlerApiStandardAirportList returns a list of standard airports
 func (app *application) HandlerApiStandardAirportList(w http.ResponseWriter, r *http.Request) {
 	airports, err := app.db.GetStandardAirports()
@@ -120,10 +157,17 @@ func (app *application) parseJSONAirports(data []byte) ([]models.Airport, error)
 	}
 
 	airports := make([]models.Airport, 0, len(airportsMap))
-	for _, a := range airportsMap {
+	for key, a := range airportsMap {
+		icao := strings.ToUpper(strings.TrimSpace(a.ICAO))
+		if icao == "" {
+			icao = strings.ToUpper(strings.TrimSpace(key))
+		}
+		if icao == "" {
+			continue
+		}
 		airports = append(airports, models.Airport{
-			ICAO:      a.ICAO,
-			IATA:      a.IATA,
+			ICAO:      icao,
+			IATA:      strings.ToUpper(strings.TrimSpace(a.IATA)),
 			Name:      a.Name,
 			City:      a.City,
 			Country:   a.Country,

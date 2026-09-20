@@ -3,39 +3,146 @@ package pdfexport
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"strings"
 
 	"github.com/vsimakhin/web-logbook/internal/models"
 )
 
-// The EASA paper logbook uses two landscape pages for columns 1-8 and 9-12.
-// The application keeps A4 landscape as requested, but renders the full logical
-// 12-column logbook page on ONE PDF page. The vertical measurements and the
-// certification/signature block are taken from the Nov 2025 AMC1 FCL.050 model;
-// the columns are proportionally compressed horizontally to fit one A4 page.
+// The Nov 2025 AMC1 FCL.050 pilot logbook is printed by EASA as two facing
+// pages: columns 1-8 on page 94 and columns 9-12 on page 95.
+//
+// The application combines those two exact source table geometries onto ONE
+// A4-landscape PDF page. Both source tables are reduced with the SAME uniform
+// scale factor and placed edge-to-edge. This preserves every relative column,
+// row and text position from the EASA source while allowing the complete
+// 1-12 logbook spread to fit on one physical A4 page.
 const (
-	easaCombinedTableWidth = 277.0
+	ptToMM = 25.4 / 72.0
 
-	// Header/body measurements follow the proportions of EASA pp. 94-95.
-	easaHeaderNumberHeight = 5.36
-	easaHeaderMainHeight   = 8.75
-	easaHeaderSubHeight    = 8.75
-	easaBodyRowHeight      = 4.82
+	// Kept for the legacy Export settings struct. The composite renderer uses
+	// the measured EASA row boundaries below rather than this value directly.
+	easaBodyRowHeight = 13.6825 * ptToMM
 
-	// On EASA p. 95 the certification block spans the first two lower rows and
-	// the signature box occupies the last row. Keeping these heights fixes the
-	// visibly undersized signature area from the previous exporter.
-	easaFooterRow1Height = 12.0
-	easaFooterRow2Height = 14.1
-	easaFooterRow3Height = 17.6
+	// Measured text size in the EASA source. Dynamic flight data is reduced by
+	// the same uniform factor as the source table artwork.
+	easaTextFontSize = 9.96
+
+	compositeMarginX = 3.0
+	compositeGap     = 0.0
 )
 
-// exportA4 creates an A4 landscape PDF. One batch of 12 records is one PDF
-// logbook page containing columns 1 through 12.
+// Exact line coordinates measured from the EASA Nov 2025 PDF (points from the
+// top-left of each A4-landscape source page).
+var easaLeftX = []float64{
+	70.32 * ptToMM, 132.02 * ptToMM, 174.62 * ptToMM, 216.02 * ptToMM,
+	257.18 * ptToMM, 300.05 * ptToMM, 373.37 * ptToMM, 447.65 * ptToMM,
+	480.67 * ptToMM, 514.15 * ptToMM, 545.59 * ptToMM, 581.47 * ptToMM,
+	610.75 * ptToMM, 642.91 * ptToMM, 700.42 * ptToMM, 731.14 * ptToMM,
+	769.42 * ptToMM,
+}
+
+var easaLeftY = []float64{
+	107.42 * ptToMM, 123.02 * ptToMM, 147.86 * ptToMM, 172.82 * ptToMM,
+	187.01 * ptToMM, 201.17 * ptToMM, 215.33 * ptToMM, 229.37 * ptToMM,
+	243.53 * ptToMM, 257.69 * ptToMM, 271.85 * ptToMM, 285.89 * ptToMM,
+	300.05 * ptToMM, 314.23 * ptToMM, 328.39 * ptToMM, 342.55 * ptToMM,
+	377.35 * ptToMM, 414.43 * ptToMM, 449.86 * ptToMM, 477.70 * ptToMM,
+}
+
+var easaRightX = []float64{
+	71.04 * ptToMM, 105.50 * ptToMM, 141.38 * ptToMM, 176.90 * ptToMM,
+	214.34 * ptToMM, 245.54 * ptToMM, 276.38 * ptToMM, 309.29 * ptToMM,
+	344.21 * ptToMM, 377.09 * ptToMM, 409.61 * ptToMM, 443.69 * ptToMM,
+	480.79 * ptToMM, 541.63 * ptToMM, 592.03 * ptToMM, 622.75 * ptToMM,
+	653.83 * ptToMM, 767.62 * ptToMM,
+}
+
+var easaRightY = []float64{
+	87.98 * ptToMM, 103.10 * ptToMM, 115.82 * ptToMM, 140.66 * ptToMM,
+	154.34 * ptToMM, 168.14 * ptToMM, 181.70 * ptToMM, 195.41 * ptToMM,
+	209.09 * ptToMM, 222.77 * ptToMM, 236.45 * ptToMM, 250.13 * ptToMM,
+	263.81 * ptToMM, 277.37 * ptToMM, 291.17 * ptToMM, 304.85 * ptToMM,
+	338.59 * ptToMM, 378.55 * ptToMM, 427.87 * ptToMM,
+}
+
+type easaCompositeLayout struct {
+	scale  float64
+	leftX  float64
+	leftY  float64
+	rightX float64
+	rightY float64
+	leftW  float64
+	leftH  float64
+	rightW float64
+	rightH float64
+}
+
+func sourceWidth(bounds []float64) float64 {
+	return bounds[len(bounds)-1] - bounds[0]
+}
+
+func sourceHeight(bounds []float64) float64 {
+	return bounds[len(bounds)-1] - bounds[0]
+}
+
+// compositeLayout uses one common scale for BOTH EASA halves. The two exact
+// cropped tables touch at the centre seam and the complete spread is centred
+// vertically on the A4 landscape page.
+func compositeLayout() easaCompositeLayout {
+	const pageW = 297.0
+	const pageH = 210.0
+
+	leftSourceW := sourceWidth(easaLeftX)
+	rightSourceW := sourceWidth(easaRightX)
+	leftSourceH := sourceHeight(easaLeftY)
+	rightSourceH := sourceHeight(easaRightY)
+
+	availableW := pageW - 2*compositeMarginX - compositeGap
+	scale := availableW / (leftSourceW + rightSourceW)
+
+	leftW := leftSourceW * scale
+	rightW := rightSourceW * scale
+	leftH := leftSourceH * scale
+	rightH := rightSourceH * scale
+	maxH := leftH
+	if rightH > maxH {
+		maxH = rightH
+	}
+	top := (pageH - maxH) / 2
+
+	return easaCompositeLayout{
+		scale:  scale,
+		leftX:  compositeMarginX,
+		leftY:  top,
+		rightX: compositeMarginX + leftW + compositeGap,
+		rightY: top,
+		leftW:  leftW,
+		leftH:  leftH,
+		rightW: rightW,
+		rightH: rightH,
+	}
+}
+
+func transformBound(v, sourceStart, targetStart, scale float64) float64 {
+	return targetStart + (v-sourceStart)*scale
+}
+
+func transformBounds(bounds []float64, sourceStart, targetStart, scale float64) []float64 {
+	out := make([]float64, len(bounds))
+	for i, v := range bounds {
+		out[i] = transformBound(v, sourceStart, targetStart, scale)
+	}
+	return out
+}
+
+// ExportA4 creates one physical A4-landscape page for every 12-entry logbook
+// sheet, combining the exact EASA 1-8 and 9-12 table geometries side-by-side.
 func (p *PDFExporter) ExportA4(flightRecords []models.FlightRecord, w io.Writer) error {
 	if err := p.initPDF(); err != nil {
+		return err
+	}
+	if err := p.loadEASACompositeTemplates(); err != nil {
 		return err
 	}
 
@@ -43,7 +150,7 @@ func (p *PDFExporter) ExportA4(flightRecords []models.FlightRecord, w io.Writer)
 	p.pageCounter = 1
 	p.titlePage()
 
-	// GetFlightRecordsForExport is newest-first. EASA logbooks read oldest-first.
+	// Database export is newest-first. Paper logbooks are chronological.
 	ordered := make([]models.FlightRecord, 0, len(flightRecords))
 	for i := len(flightRecords) - 1; i >= 0; i-- {
 		record := flightRecords[i]
@@ -53,10 +160,9 @@ func (p *PDFExporter) ExportA4(flightRecords []models.FlightRecord, w io.Writer)
 		ordered = append(ordered, record)
 	}
 
-	// Keep one blank logbook page for an empty logbook.
 	if len(ordered) == 0 {
 		p.totalPage = EmptyTotals()
-		p.printEASACombinedPage(nil)
+		p.printEASACompositePage(nil)
 		return p.pdf.Output(w)
 	}
 
@@ -73,7 +179,7 @@ func (p *PDFExporter) ExportA4(flightRecords []models.FlightRecord, w io.Writer)
 			p.totalTime = models.CalculateTotals(p.totalTime, record)
 		}
 
-		p.printEASACombinedPage(batch)
+		p.printEASACompositePage(batch)
 		p.totalPrevious = p.totalTime
 
 		if end < len(ordered) {
@@ -84,99 +190,50 @@ func (p *PDFExporter) ExportA4(flightRecords []models.FlightRecord, w io.Writer)
 	return p.pdf.Output(w)
 }
 
-func scaleWidths(total float64, ratios ...float64) []float64 {
-	result := make([]float64, len(ratios))
-	for i, ratio := range ratios {
-		result[i] = total * ratio
+func (p *PDFExporter) loadEASACompositeTemplates() error {
+	for name, path := range map[string]string{
+		"easa-left-1-8":   "template/easa_left_1_8.png",
+		"easa-right-9-12": "template/easa_right_9_12.png",
+	} {
+		bs, err := content.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		p.pdf.RegisterImageReader(name, "png", bytes.NewReader(bs))
 	}
-	return result
+	return nil
 }
 
-// combinedGroupWidths keeps column 12 at approximately the same physical width
-// as the EASA reference (about 40.4 mm). Columns 1-11 are compressed by the
-// same factor so the complete spread fits inside one 277 mm A4-landscape table.
-func combinedGroupWidths() []float64 {
-	return []float64{
-		11.36, // 1 DATE
-		15.49, // 2 DEPARTURE
-		15.49, // 3 ARRIVAL
-		27.23, // 4 AIRCRAFT
-		24.72, // 5 SINGLE-/MULTI-PILOT TIME
-		11.29, // 6 TOTAL TIME OF FLIGHT
-		10.63, // 7 NAME(S) PIC
-		12.91, // 8 LANDINGS
-		26.41, // 9 OPERATIONAL CONDITION TIME
-		49.16, // 10 PILOT FUNCTION TIME
-		31.95, // 11 FSTD SESSION
-		40.36, // 12 REMARKS / CERTIFICATION / SIGNATURE
+func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
+	p.pdf.AddPage()
+	layout := compositeLayout()
+
+	// These are literal crops of the page-94 and page-95 EASA tables. Static
+	// grid lines, headings, certification text and signature label therefore
+	// retain their exact source dimensions and placement before uniform scaling.
+	p.pdf.Image("easa-left-1-8", layout.leftX, layout.leftY, layout.leftW, layout.leftH, false, "", 0, "")
+	p.pdf.Image("easa-right-9-12", layout.rightX, layout.rightY, layout.rightW, layout.rightH, false, "", 0, "")
+
+	lx := transformBounds(easaLeftX, easaLeftX[0], layout.leftX, layout.scale)
+	ly := transformBounds(easaLeftY, easaLeftY[0], layout.leftY, layout.scale)
+	rx := transformBounds(easaRightX, easaRightX[0], layout.rightX, layout.scale)
+	ry := transformBounds(easaRightY, easaRightY[0], layout.rightY, layout.scale)
+
+	for i := 0; i < EASALogbookRows; i++ {
+		record := EmptyTotals()
+		if i < len(records) {
+			record = records[i]
+		}
+		p.drawCompositeLeftBodyRow(record, i, lx, ly, layout.scale)
+		p.drawCompositeRightBodyRow(record, i, rx, ry, layout.scale)
 	}
+
+	p.drawCompositeLeftTotals(lx, ly, layout.scale)
+	p.drawCompositeRightTotals(rx, ry, layout.scale)
+	p.drawCompositePilotSignature(rx, ry)
 }
 
-func (p *PDFExporter) drawCell(x, y, w, h float64, text, align string, fontSize float64, bold bool) {
-	if w <= 0 || h <= 0 {
-		return
-	}
-
-	p.pdf.SetFillColor(255, 255, 255)
-	p.pdf.SetDrawColor(0, 0, 0)
-	p.pdf.Rect(x, y, w, h, "DF")
-
-	text = strings.TrimSpace(text)
-	if text == "" {
-		return
-	}
-
-	font := fontRegular
-	if bold {
-		font = fontBold
-	}
-	p.pdf.SetTextColor(0, 0, 0)
-	p.pdf.SetFont(font, "", fontSize)
-
-	lines := strings.Split(text, "\n")
-	lineH := fontSize * 0.42 // fpdf sizes are points, coordinates are mm.
-	if lineH < 2.0 {
-		lineH = 2.0
-	}
-	textH := float64(len(lines)) * lineH
-	textY := y + (h-textH)/2
-	if textY < y+0.35 {
-		textY = y + 0.35
-	}
-
-	textX := x
-	textW := w
-	if align == "L" && w > 2.0 {
-		textX = x + 0.8
-		textW = w - 1.6
-	}
-	p.pdf.SetXY(textX, textY)
-	p.pdf.MultiCell(textW, lineH, text, "", align, false)
-}
-
-func (p *PDFExporter) drawTimeCell(x, y, w, h float64, value string, fontSize float64) {
-	hours, minutes := splitTime(p.formatTimeField(value))
-	half := w / 2
-	p.drawCell(x, y, half, h, hours, "C", fontSize, false)
-	p.drawCell(x+half, y, w-half, h, minutes, "C", fontSize, false)
-}
-
-func (p *PDFExporter) drawSinglePilotCell(x, y, w, h float64, value string, fontSize float64) {
-	value = strings.TrimSpace(value)
-	if p.Export.ReplaceSPTime && value != "" && value != "0" && value != "0:00" && value != "00:00" {
-		p.pdf.SetFillColor(255, 255, 255)
-		p.pdf.SetDrawColor(0, 0, 0)
-		p.pdf.Rect(x, y, w, h, "DF")
-		p.pdf.SetTextColor(0, 0, 0)
-		p.pdf.SetFont(fontB612, "", fontSize)
-		p.pdf.SetXY(x, y+(h-2.2)/2)
-		p.pdf.CellFormat(w, 2.2, CheckSymbol, "", 0, "C", false, 0, "")
-		return
-	}
-	p.drawTimeCell(x, y, w, h, value, fontSize)
-}
-
-func splitTime(value string) (string, string) {
+func splitEASATime(value string) (string, string) {
 	value = strings.TrimSpace(value)
 	if value == "" || value == "0" || value == "0:00" || value == "00:00" {
 		return "", ""
@@ -185,181 +242,139 @@ func splitTime(value string) (string, string) {
 	if len(parts) != 2 {
 		return value, ""
 	}
-	return parts[0], parts[1]
+	return strings.TrimLeft(parts[0], "0"), parts[1]
 }
 
-func (p *PDFExporter) drawCombinedHeader(widths []float64) float64 {
-	x := p.Export.LeftMargin
-	y := p.Export.TopMargin
-
-	for i, w := range widths {
-		p.drawCell(x, y, w, easaHeaderNumberHeight, fmt.Sprintf("%d", i+1), "C", 5.8, true)
-		x += w
+func compactEASATime(value string) string {
+	h, m := splitEASATime(value)
+	if h == "" && m == "" {
+		return ""
 	}
-
-	x = p.Export.LeftMargin
-	y += easaHeaderNumberHeight
-	fullLower := easaHeaderMainHeight + easaHeaderSubHeight
-
-	// 1 - DATE
-	p.drawCell(x, y, widths[0], fullLower, "DATE\n(dd/mm/yy)", "C", 5.4, true)
-	x += widths[0]
-
-	// 2 - DEPARTURE
-	p.drawCell(x, y, widths[1], easaHeaderMainHeight, "DEPARTURE", "C", 5.3, true)
-	dep := scaleWidths(widths[1], 0.51, 0.49)
-	p.drawCell(x, y+easaHeaderMainHeight, dep[0], easaHeaderSubHeight, "PLACE", "C", 5.1, true)
-	p.drawCell(x+dep[0], y+easaHeaderMainHeight, dep[1], easaHeaderSubHeight, "TIME", "C", 5.1, true)
-	x += widths[1]
-
-	// 3 - ARRIVAL
-	p.drawCell(x, y, widths[2], easaHeaderMainHeight, "ARRIVAL", "C", 5.3, true)
-	arr := scaleWidths(widths[2], 0.51, 0.49)
-	p.drawCell(x, y+easaHeaderMainHeight, arr[0], easaHeaderSubHeight, "PLACE", "C", 5.1, true)
-	p.drawCell(x+arr[0], y+easaHeaderMainHeight, arr[1], easaHeaderSubHeight, "TIME", "C", 5.1, true)
-	x += widths[2]
-
-	// 4 - AIRCRAFT
-	p.drawCell(x, y, widths[3], easaHeaderMainHeight, "AIRCRAFT", "C", 5.4, true)
-	aircraft := scaleWidths(widths[3], 0.50, 0.50)
-	p.drawCell(x, y+easaHeaderMainHeight, aircraft[0], easaHeaderSubHeight, "MAKE, MODEL,\nVARIANT", "C", 4.6, true)
-	p.drawCell(x+aircraft[0], y+easaHeaderMainHeight, aircraft[1], easaHeaderSubHeight, "REGISTRATION", "C", 4.7, true)
-	x += widths[3]
-
-	// 5 - SINGLE-PILOT TIME / MULTI-PILOT TIME
-	fiveGroups := scaleWidths(widths[4], 0.49, 0.51)
-	p.drawCell(x, y, fiveGroups[0], easaHeaderMainHeight, "SINGLE-PILOT\nTIME", "C", 4.7, true)
-	sp := scaleWidths(fiveGroups[0], 0.50, 0.50)
-	p.drawCell(x, y+easaHeaderMainHeight, sp[0], easaHeaderSubHeight, "SE", "C", 5.1, true)
-	p.drawCell(x+sp[0], y+easaHeaderMainHeight, sp[1], easaHeaderSubHeight, "ME", "C", 5.1, true)
-	p.drawCell(x+fiveGroups[0], y, fiveGroups[1], fullLower, "MULTI-PILOT\nTIME", "C", 4.6, true)
-	x += widths[4]
-
-	// 6 - TOTAL TIME OF FLIGHT
-	p.drawCell(x, y, widths[5], fullLower, "TOTAL TIME\nOF FLIGHT", "C", 4.9, true)
-	x += widths[5]
-
-	// 7 - NAME(S) PIC
-	p.drawCell(x, y, widths[6], fullLower, "NAME(S)\nPIC", "C", 5.0, true)
-	x += widths[6]
-
-	// 8 - LANDINGS
-	p.drawCell(x, y, widths[7], easaHeaderMainHeight, "LANDINGS", "C", 4.9, true)
-	land := scaleWidths(widths[7], 0.50, 0.50)
-	p.drawCell(x, y+easaHeaderMainHeight, land[0], easaHeaderSubHeight, "DAY", "C", 5.0, true)
-	p.drawCell(x+land[0], y+easaHeaderMainHeight, land[1], easaHeaderSubHeight, "NIGHT", "C", 5.0, true)
-	x += widths[7]
-
-	// 9 - OPERATIONAL CONDITION TIME
-	p.drawCell(x, y, widths[8], easaHeaderMainHeight, "OPERATIONAL CONDITION TIME", "C", 4.55, true)
-	nine := scaleWidths(widths[8], 0.50, 0.50)
-	p.drawCell(x, y+easaHeaderMainHeight, nine[0], easaHeaderSubHeight, "NIGHT", "C", 5.0, true)
-	p.drawCell(x+nine[0], y+easaHeaderMainHeight, nine[1], easaHeaderSubHeight, "IFR", "C", 5.0, true)
-	x += widths[8]
-
-	// 10 - PILOT FUNCTION TIME
-	p.drawCell(x, y, widths[9], easaHeaderMainHeight, "PILOT FUNCTION TIME", "C", 5.2, true)
-	ten := scaleWidths(widths[9], 0.25, 0.25, 0.25, 0.25)
-	labels := []string{"PIC", "CO-PILOT", "DUAL", "INSTRUCTOR"}
-	for i, w := range ten {
-		p.drawCell(x, y+easaHeaderMainHeight, w, easaHeaderSubHeight, labels[i], "C", 4.75, true)
-		x += w
+	if h == "" {
+		h = "0"
 	}
-
-	// 11 - FSTD SESSION
-	p.drawCell(x, y, widths[10], easaHeaderMainHeight, "FSTD SESSION", "C", 5.2, true)
-	eleven := scaleWidths(widths[10], 0.35, 0.29, 0.36)
-	p.drawCell(x, y+easaHeaderMainHeight, eleven[0], easaHeaderSubHeight, "DATE\n(dd/mm/yy)", "C", 4.45, true)
-	p.drawCell(x+eleven[0], y+easaHeaderMainHeight, eleven[1], easaHeaderSubHeight, "TYPE", "C", 4.8, true)
-	p.drawCell(x+eleven[0]+eleven[1], y+easaHeaderMainHeight, eleven[2], easaHeaderSubHeight, "TOTAL TIME\nOF SESSION", "C", 4.15, true)
-	x += widths[10]
-
-	// 12 - REMARKS AND ENDORSEMENTS
-	p.drawCell(x, y, widths[11], fullLower, "REMARKS AND\nENDORSEMENTS", "C", 5.5, true)
-
-	return p.Export.TopMargin + easaHeaderNumberHeight + fullLower
+	if m == "" {
+		return h
+	}
+	return h + " " + m
 }
 
-func (p *PDFExporter) drawCombinedBodyRow(record models.FlightRecord, widths []float64, y float64, rowIndex int) {
-	p.rowCounter = rowIndex + 1
-	x := p.Export.LeftMargin
-	fontSize := 5.8
+func (p *PDFExporter) overlayTextCell(x0, y0, x1, y1 float64, text, align string, fontSize float64, bold bool) {
+	text = strings.TrimSpace(text)
+	if text == "" || x1 <= x0 || y1 <= y0 {
+		return
+	}
 
-	flightDate := ""
+	font := fontRegular
+	if bold {
+		font = fontBold
+	}
+
+	p.pdf.SetTextColor(0, 0, 0)
+	p.pdf.SetFont(font, "", fontSize)
+
+	padding := 0.45
+	if align == "L" {
+		padding = 0.60
+	}
+	usableW := (x1 - x0) - 2*padding
+	if usableW < 0.5 {
+		usableW = x1 - x0
+		padding = 0
+	}
+
+	// Shrink long single-line data just enough to stay inside the exact EASA cell.
+	if !strings.Contains(text, "\n") {
+		for p.pdf.GetStringWidth(text) > usableW && fontSize > 3.0 {
+			fontSize -= 0.2
+			p.pdf.SetFont(font, "", fontSize)
+		}
+	}
+
+	lineH := fontSize * ptToMM * 1.10
+	if lineH < 1.05 {
+		lineH = 1.05
+	}
+	lines := strings.Split(text, "\n")
+	textH := float64(len(lines)) * lineH
+	textY := y0 + ((y1-y0)-textH)/2
+	if textY < y0+0.15 {
+		textY = y0 + 0.15
+	}
+
+	p.pdf.SetXY(x0+padding, textY)
+	p.pdf.MultiCell(usableW, lineH, text, "", align, false)
+}
+
+func (p *PDFExporter) overlaySplitTime(x0, xMid, x1, y0, y1 float64, value string, fontSize float64) {
+	h, m := splitEASATime(p.formatTimeField(value))
+	p.overlayTextCell(x0, y0, xMid, y1, h, "C", fontSize, false)
+	p.overlayTextCell(xMid, y0, x1, y1, m, "C", fontSize, false)
+}
+
+func (p *PDFExporter) overlaySinglePilot(x0, x1, y0, y1 float64, value string, fontSize float64) {
+	value = strings.TrimSpace(value)
+	if value == "" || value == "0" || value == "0:00" || value == "00:00" {
+		return
+	}
+	if p.Export.ReplaceSPTime {
+		p.pdf.SetTextColor(0, 0, 0)
+		p.pdf.SetFont(fontB612, "", fontSize)
+		lineH := fontSize * ptToMM
+		p.pdf.SetXY(x0, y0+((y1-y0)-lineH)/2)
+		p.pdf.CellFormat(x1-x0, lineH, CheckSymbol, "", 0, "C", false, 0, "")
+		return
+	}
+	p.overlayTextCell(x0, y0, x1, y1, compactEASATime(value), "C", fontSize, false)
+}
+
+func (p *PDFExporter) drawCompositeLeftBodyRow(record models.FlightRecord, row int, x, y []float64, scale float64) {
+	y0, y1 := y[3+row], y[4+row]
+	font := easaTextFontSize * scale
+
+	date := ""
 	if !isFSTDRecord(record) {
-		flightDate = formatLogbookDate(record.Date)
+		date = formatLogbookDate(record.Date)
 	}
-	p.drawCell(x, y, widths[0], easaBodyRowHeight, flightDate, "C", fontSize, false)
-	x += widths[0]
+	p.overlayTextCell(x[0], y0, x[1], y1, date, "C", font, false)
+	p.overlayTextCell(x[1], y0, x[2], y1, record.Departure.Place, "C", font, false)
+	p.overlayTextCell(x[2], y0, x[3], y1, record.Departure.Time, "C", font, false)
+	p.overlayTextCell(x[3], y0, x[4], y1, record.Arrival.Place, "C", font, false)
+	p.overlayTextCell(x[4], y0, x[5], y1, record.Arrival.Time, "C", font, false)
+	p.overlayTextCell(x[5], y0, x[6], y1, record.Aircraft.Model, "C", font, false)
+	p.overlayTextCell(x[6], y0, x[7], y1, record.Aircraft.Reg, "C", font, false)
+	p.overlaySinglePilot(x[7], x[8], y0, y1, record.Time.SE, font)
+	p.overlaySinglePilot(x[8], x[9], y0, y1, record.Time.ME, font)
+	p.overlaySplitTime(x[9], x[10], x[11], y0, y1, record.Time.MCC, font)
+	p.overlaySplitTime(x[11], x[12], x[13], y0, y1, record.Time.Total, font)
+	p.overlayTextCell(x[13], y0, x[14], y1, record.PIC, "C", font, false)
+	p.overlayTextCell(x[14], y0, x[15], y1, formatLandings(record.Landings.Day), "C", font, false)
+	p.overlayTextCell(x[15], y0, x[16], y1, formatLandings(record.Landings.Night), "C", font, false)
+}
 
-	dep := scaleWidths(widths[1], 0.51, 0.49)
-	p.drawCell(x, y, dep[0], easaBodyRowHeight, record.Departure.Place, "C", fontSize, false)
-	p.drawCell(x+dep[0], y, dep[1], easaBodyRowHeight, record.Departure.Time, "C", 5.2, false)
-	x += widths[1]
+func (p *PDFExporter) drawCompositeRightBodyRow(record models.FlightRecord, row int, x, y []float64, scale float64) {
+	y0, y1 := y[3+row], y[4+row]
+	font := easaTextFontSize * scale
 
-	arr := scaleWidths(widths[2], 0.51, 0.49)
-	p.drawCell(x, y, arr[0], easaBodyRowHeight, record.Arrival.Place, "C", fontSize, false)
-	p.drawCell(x+arr[0], y, arr[1], easaBodyRowHeight, record.Arrival.Time, "C", 5.2, false)
-	x += widths[2]
+	p.overlaySplitTime(x[0], x[1], x[2], y0, y1, record.Time.Night, font)
+	p.overlaySplitTime(x[2], x[3], x[4], y0, y1, record.Time.IFR, font)
+	p.overlaySplitTime(x[4], x[5], x[6], y0, y1, record.Time.PIC, font)
+	p.overlaySplitTime(x[6], x[7], x[8], y0, y1, record.Time.CoPilot, font)
+	p.overlaySplitTime(x[8], x[9], x[10], y0, y1, record.Time.Dual, font)
+	p.overlaySplitTime(x[10], x[11], x[12], y0, y1, record.Time.Instructor, font)
 
-	aircraft := scaleWidths(widths[3], 0.50, 0.50)
-	p.drawCell(x, y, aircraft[0], easaBodyRowHeight, record.Aircraft.Model, "C", 5.3, false)
-	p.drawCell(x+aircraft[0], y, aircraft[1], easaBodyRowHeight, record.Aircraft.Reg, "C", 5.3, false)
-	x += widths[3]
-
-	five := scaleWidths(widths[4], 0.245, 0.245, 0.51)
-	p.drawSinglePilotCell(x, y, five[0], easaBodyRowHeight, record.Time.SE, 5.4)
-	p.drawSinglePilotCell(x+five[0], y, five[1], easaBodyRowHeight, record.Time.ME, 5.4)
-	p.drawTimeCell(x+five[0]+five[1], y, five[2], easaBodyRowHeight, record.Time.MCC, 5.2)
-	x += widths[4]
-
-	p.drawTimeCell(x, y, widths[5], easaBodyRowHeight, record.Time.Total, 5.2)
-	x += widths[5]
-
-	p.drawCell(x, y, widths[6], easaBodyRowHeight, record.PIC, "C", 5.0, false)
-	x += widths[6]
-
-	land := scaleWidths(widths[7], 0.50, 0.50)
-	p.drawCell(x, y, land[0], easaBodyRowHeight, formatLandings(record.Landings.Day), "C", 5.4, false)
-	p.drawCell(x+land[0], y, land[1], easaBodyRowHeight, formatLandings(record.Landings.Night), "C", 5.4, false)
-	x += widths[7]
-
-	nine := scaleWidths(widths[8], 0.50, 0.50)
-	p.drawTimeCell(x, y, nine[0], easaBodyRowHeight, record.Time.Night, 5.2)
-	p.drawTimeCell(x+nine[0], y, nine[1], easaBodyRowHeight, record.Time.IFR, 5.2)
-	x += widths[8]
-
-	ten := scaleWidths(widths[9], 0.25, 0.25, 0.25, 0.25)
-	times := []string{record.Time.PIC, record.Time.CoPilot, record.Time.Dual, record.Time.Instructor}
-	for i, w := range ten {
-		p.drawTimeCell(x, y, w, easaBodyRowHeight, times[i], 5.2)
-		x += w
-	}
-
-	eleven := scaleWidths(widths[10], 0.35, 0.29, 0.36)
 	fstdDate := ""
 	if isFSTDRecord(record) {
 		fstdDate = formatLogbookDate(record.Date)
 	}
-	p.drawCell(x, y, eleven[0], easaBodyRowHeight, fstdDate, "C", 5.0, false)
-	p.drawCell(x+eleven[0], y, eleven[1], easaBodyRowHeight, record.SIM.Type, "C", 4.9, false)
-	p.drawTimeCell(x+eleven[0]+eleven[1], y, eleven[2], easaBodyRowHeight, record.SIM.Time, 5.0)
-	x += widths[10]
-
-	p.drawCombinedRemarksCell(x, y, widths[11], easaBodyRowHeight, record.Remarks, record.Signature, record.UUID)
+	p.overlayTextCell(x[12], y0, x[13], y1, fstdDate, "C", font, false)
+	p.overlayTextCell(x[13], y0, x[14], y1, record.SIM.Type, "C", font, false)
+	p.overlaySplitTime(x[14], x[15], x[16], y0, y1, record.SIM.Time, font)
+	p.overlayRemarks(x[16], y0, x[17], y1, record.Remarks, record.Signature, record.UUID, font)
 }
 
-func (p *PDFExporter) drawCombinedRemarksCell(x, y, w, h float64, value, signature, uuid string) {
-	value = strings.TrimSpace(value)
-	fontSize := 5.2
-	if len(value) > 52 {
-		value = value[:49] + "..."
-		fontSize = 4.2
-	} else if len(value) > 34 {
-		fontSize = 4.7
-	}
-	p.drawCell(x, y, w, h, value, "L", fontSize, false)
-
+func (p *PDFExporter) overlayRemarks(x0, y0, x1, y1 float64, value, signature, uuid string, fontSize float64) {
+	p.overlayTextCell(x0, y0, x1, y1, value, "L", fontSize, false)
 	if signature == "" {
 		return
 	}
@@ -368,122 +383,58 @@ func (p *PDFExporter) drawCombinedRemarksCell(x, y, w, h float64, value, signatu
 	if err != nil {
 		return
 	}
-
 	r := bytes.NewReader(unbased)
 	im := p.pdf.RegisterImageReader(uuid, "png", r)
-	if im == nil || im.Height() == 0 {
+	maxH := (y1 - y0) * 0.70
+	s := maxH / im.Height()
+	imgW := im.Width() * s
+	if imgW > (x1-x0)*0.42 {
+		imgW = (x1 - x0) * 0.42
+		s = imgW / im.Width()
+	}
+	imgH := im.Height() * s
+	p.pdf.Image(uuid, x1-imgW-0.30, y0+(y1-y0-imgH)/2, imgW, imgH, false, "", 0, "")
+}
+
+func (p *PDFExporter) drawCompositeLeftTotals(x, y []float64, scale float64) {
+	font := easaTextFontSize * scale
+	totals := []models.FlightRecord{p.totalPage, p.totalPrevious, p.totalTime}
+	for row := 0; row < 3; row++ {
+		y0, y1 := y[15+row], y[16+row]
+		t := totals[row]
+		p.overlayTextCell(x[7], y0, x[8], y1, compactEASATime(t.Time.SE), "C", font, false)
+		p.overlayTextCell(x[8], y0, x[9], y1, compactEASATime(t.Time.ME), "C", font, false)
+		p.overlaySplitTime(x[9], x[10], x[11], y0, y1, t.Time.MCC, font)
+		p.overlayTextCell(x[11], y0, x[13], y1, compactEASATime(t.Time.Total), "C", font, false)
+		p.overlayTextCell(x[14], y0, x[15], y1, formatLandings(t.Landings.Day), "C", font, false)
+		p.overlayTextCell(x[15], y0, x[16], y1, formatLandings(t.Landings.Night), "C", font, false)
+	}
+}
+
+func (p *PDFExporter) drawCompositeRightTotals(x, y []float64, scale float64) {
+	font := easaTextFontSize * scale
+	totals := []models.FlightRecord{p.totalPage, p.totalPrevious, p.totalTime}
+	for row := 0; row < 3; row++ {
+		y0, y1 := y[15+row], y[16+row]
+		t := totals[row]
+		p.overlaySplitTime(x[0], x[1], x[2], y0, y1, t.Time.Night, font)
+		p.overlaySplitTime(x[2], x[3], x[4], y0, y1, t.Time.IFR, font)
+		p.overlaySplitTime(x[4], x[5], x[6], y0, y1, t.Time.PIC, font)
+		p.overlaySplitTime(x[6], x[7], x[8], y0, y1, t.Time.CoPilot, font)
+		p.overlaySplitTime(x[8], x[9], x[10], y0, y1, t.Time.Dual, font)
+		p.overlaySplitTime(x[10], x[11], x[12], y0, y1, t.Time.Instructor, font)
+		p.overlaySplitTime(x[14], x[15], x[16], y0, y1, t.SIM.Time, font)
+	}
+}
+
+func (p *PDFExporter) drawCompositePilotSignature(x, y []float64) {
+	if p.SignatureImage == "" {
 		return
 	}
-	imgH := h - 0.8
-	imgW := im.Width() * (imgH / im.Height())
-	maxW := w * 0.42
-	if imgW > maxW {
-		imgW = maxW
-	}
-	p.pdf.Image(uuid, x+w-imgW-0.4, y+0.4, imgW, imgH, false, "", 0, "")
-}
-
-func (p *PDFExporter) drawFooterTimeCell(x, y, w, h float64, value string) {
-	p.drawTimeCell(x, y, w, h, value, 5.3)
-}
-
-func (p *PDFExporter) drawCombinedFooter(widths []float64, startY float64) {
-	heights := []float64{easaFooterRow1Height, easaFooterRow2Height, easaFooterRow3Height}
-	totals := []models.FlightRecord{p.totalPage, p.totalPrevious, p.totalTime}
-	labels := []string{FooterThisPage, FooterPreviousPage, FooterTotalTime}
-
-	// Columns 1-3 form the large blank block at the lower left. On the
-	// official two-page paper layout the total label sits in half of column 4;
-	// after compressing both pages onto one A4 sheet that half would be too
-	// narrow to remain legible, so the full AIRCRAFT column is used for the
-	// same label while preserving the EASA footer heights.
-	x := p.Export.LeftMargin
-	footerH := heights[0] + heights[1] + heights[2]
-	blankWidth := widths[0] + widths[1] + widths[2]
-	p.drawCell(x, startY, blankWidth, footerH, "", "C", 5.0, false)
-	x += blankWidth
-
-	for row := 0; row < 3; row++ {
-		y := startY
-		for i := 0; i < row; i++ {
-			y += heights[i]
-		}
-		h := heights[row]
-		total := totals[row]
-
-		rowX := x
-		p.drawCell(rowX, y, widths[3], h, labels[row], "L", 5.0, true)
-		rowX += widths[3]
-
-		five := scaleWidths(widths[4], 0.245, 0.245, 0.51)
-		p.drawFooterTimeCell(rowX, y, five[0], h, total.Time.SE)
-		rowX += five[0]
-		p.drawFooterTimeCell(rowX, y, five[1], h, total.Time.ME)
-		rowX += five[1]
-		p.drawFooterTimeCell(rowX, y, five[2], h, total.Time.MCC)
-		rowX += five[2]
-
-		p.drawFooterTimeCell(rowX, y, widths[5], h, total.Time.Total)
-		rowX += widths[5]
-		p.drawCell(rowX, y, widths[6], h, "", "C", 5.0, false)
-		rowX += widths[6]
-
-		land := scaleWidths(widths[7], 0.50, 0.50)
-		p.drawCell(rowX, y, land[0], h, formatLandings(total.Landings.Day), "C", 5.2, false)
-		rowX += land[0]
-		p.drawCell(rowX, y, land[1], h, formatLandings(total.Landings.Night), "C", 5.2, false)
-		rowX += land[1]
-
-		nine := scaleWidths(widths[8], 0.50, 0.50)
-		p.drawFooterTimeCell(rowX, y, nine[0], h, total.Time.Night)
-		rowX += nine[0]
-		p.drawFooterTimeCell(rowX, y, nine[1], h, total.Time.IFR)
-		rowX += nine[1]
-
-		ten := scaleWidths(widths[9], 0.25, 0.25, 0.25, 0.25)
-		times := []string{total.Time.PIC, total.Time.CoPilot, total.Time.Dual, total.Time.Instructor}
-		for i, w := range ten {
-			p.drawFooterTimeCell(rowX, y, w, h, times[i])
-			rowX += w
-		}
-
-		eleven := scaleWidths(widths[10], 0.35, 0.29, 0.36)
-		p.drawCell(rowX, y, eleven[0], h, "", "C", 5.0, false)
-		rowX += eleven[0]
-		p.drawCell(rowX, y, eleven[1], h, "", "C", 5.0, false)
-		rowX += eleven[1]
-		p.drawFooterTimeCell(rowX, y, eleven[2], h, total.SIM.Time)
-	}
-
-	// Column 12 follows the proportions of EASA p. 95: certification over the
-	// first two lower rows, then a distinctly taller signature box.
-	remarksX := p.Export.LeftMargin
-	for i := 0; i < 11; i++ {
-		remarksX += widths[i]
-	}
-	certH := heights[0] + heights[1]
-	p.drawCell(remarksX, startY, widths[11], certH, EASACertificationText, "L", 7.0, true)
-	p.drawCell(remarksX, startY+certH, widths[11], heights[2], "PILOT'S SIGNATURE", "L", 6.4, true)
-
-	if p.SignatureImage != "" {
-		p.pdf.Image("signature", remarksX+widths[11]*0.48, startY+certH+1.2, widths[11]*0.48, heights[2]-2.4, false, "", 0, "")
-	}
-}
-
-func (p *PDFExporter) printEASACombinedPage(records []models.FlightRecord) {
-	p.pdf.AddPage()
-	widths := combinedGroupWidths()
-
-	bodyStart := p.drawCombinedHeader(widths)
-	for i := 0; i < EASALogbookRows; i++ {
-		record := EmptyTotals()
-		if i < len(records) {
-			record = records[i]
-		}
-		p.drawCombinedBodyRow(record, widths, bodyStart+float64(i)*easaBodyRowHeight, i)
-	}
-
-	footerStart := bodyStart + float64(EASALogbookRows)*easaBodyRowHeight
-	p.drawCombinedFooter(widths, footerStart)
-	p.printPageNumber()
+	cellX0, cellX1 := x[16], x[17]
+	cellY0, cellY1 := y[17], y[18]
+	cellW, cellH := cellX1-cellX0, cellY1-cellY0
+	// Keep the EASA "PILOT'S SIGNATURE" label visible at the top of the exact
+	// source box; place the image in the lower part of that same measured cell.
+	p.pdf.Image("signature", cellX0+cellW*0.14, cellY0+cellH*0.32, cellW*0.78, cellH*0.58, false, "", 0, "")
 }

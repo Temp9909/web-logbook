@@ -74,7 +74,7 @@ const (
 
 const CheckSymbol string = "✓"
 
-//go:embed font/*
+//go:embed font/* template/*
 var content embed.FS
 
 // Headers and columns for the logbook
@@ -285,7 +285,7 @@ func (p *PDFExporter) initPDF() error {
 	// The application exports only A4 landscape.
 	p.pdf = fpdf.New("L", "mm", "A4", "")
 
-	// Keep every 12-row logbook sheet on exactly one A4 landscape page.
+	// Keep every 12-row combined EASA 1-12 logbook sheet on exactly one A4 landscape page.
 	p.pdf.SetAutoPageBreak(false, 0)
 
 	// load fonts
