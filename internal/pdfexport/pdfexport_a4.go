@@ -204,6 +204,12 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	// Both halves intentionally share the exact same vertical grid.
 	y := transformBounds(easaLeftY, easaLeftY[0], layout.topY, layout.scale)
 
+	// The template is raster artwork, so its one-pixel body grid can become
+	// broken, doubled or uneven when a browser rescales the PDF preview. Clear
+	// only the empty flight-entry area and rebuild that grid with PDF vectors.
+	// Headers, totals, labels and every other part of the template stay intact.
+	p.clearCompositeFlightGridBackground(lx, rx, y)
+
 	for i := 0; i < EASALogbookRows; i++ {
 		record := EmptyTotals()
 		if i < len(records) {
@@ -216,9 +222,8 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	p.drawCompositeLeftTotals(lx, y, layout.scale)
 	p.drawCompositeRightTotals(rx, y, layout.scale)
 	p.drawCompositeCertification(rx, y)
-	// The 12-row grid is baked into the high-resolution template on the exact
-	// template pixel coordinates. Do not draw another vector grid here: doing
-	// so creates double/grey lines at common browser-preview zoom levels.
+	p.drawCompositeFlightGrid(lx, rx, y)
+	p.drawCompositeCertificationGrid(rx, y)
 }
 
 func splitEASATime(value string) (string, string) {
@@ -495,11 +500,21 @@ func (p *PDFExporter) drawCompositeRightTotals(x, y []float64, scale float64) {
 	}
 }
 
+// clearCompositeFlightGridBackground removes only the raster lines from the
+// empty 12-row entry area. This prevents the replacement vector grid from
+// sitting beside a resampled bitmap line at common preview zoom levels.
+func (p *PDFExporter) clearCompositeFlightGridBackground(lx, rx, y []float64) {
+	if len(lx) < 17 || len(rx) < 18 || len(y) < 16 {
+		return
+	}
+	p.pdf.SetFillColor(255, 255, 255)
+	p.pdf.Rect(lx[0], y[3], rx[len(rx)-1]-lx[0], y[15]-y[3], "F")
+}
+
 // drawCompositeFlightGrid redraws the flight-entry grid (the 12 data rows)
-// over the raster template using one common set of horizontal coordinates.
-// The source artwork remains unchanged for the headers and totals, but every
-// visible row/column line in the 1-8 and 9-12 entry area gets the same solid
-// black vector stroke and is exactly aligned across the centre seam.
+// using one common set of horizontal coordinates. Every visible row/column
+// line in the 1-8 and 9-12 entry area gets the same solid black vector stroke
+// and is exactly aligned across the centre seam.
 func (p *PDFExporter) drawCompositeFlightGrid(lx, rx, y []float64) {
 	if len(lx) < 17 || len(rx) < 18 || len(y) < 16 {
 		return
