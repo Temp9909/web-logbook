@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchLogbookData } from '../../util/http/logbook';
 import { useErrorNotification } from '../../hooks/useAppNotifications';
 import { SelectField } from '../AppleExact/Primitives';
+import useSettings from '../../hooks/useSettings';
 
 const PaginationChevron = ({ direction }) => (
   <svg className="exact-pagination-chevron" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
@@ -181,6 +182,7 @@ function EasaTable({ rows, onOpen }) {
 
 export default function Logbook() {
   const navigate = useNavigate();
+  const { settings } = useSettings();
   const [search, setSearch] = useState('');
   const [segment, setSegment] = useState('all');
   const [customizeOpen, setCustomizeOpen] = useState(false);
@@ -211,6 +213,7 @@ export default function Logbook() {
     const result = {};
     for (const metric of METRICS) result[metric.key] = { all:0, year:0 };
     let landings = 0;
+
     rows.forEach(r => {
       for (const metric of METRICS) {
         const mins = toMinutes(metric.read(r));
@@ -219,8 +222,31 @@ export default function Logbook() {
       }
       landings += rowLanding(r,'day') + rowLanding(r,'night');
     });
+
+    // Past flight experience belongs to the all-time totals, but never to the
+    // current-year delta and never appears as a synthetic flight row.
+    const previous = settings?.previous_experience || {};
+    const previousByMetric = {
+      total_time: previous.total_time,
+      pic_time: previous.pic_time,
+      se_time: previous.se_time,
+      me_time: previous.me_total_time || previous.me_time,
+      mcc_time: previous.mcc_time,
+      night_time: previous.night_time,
+      ifr_time: previous.ifr_time,
+      co_pilot_time: previous.co_pilot_time,
+      dual_time: previous.dual_time,
+      instructor_time: previous.instructor_time,
+      cc_time: previous.cc_time,
+      sim_time: previous.sim_time,
+    };
+    for (const [key, value] of Object.entries(previousByMetric)) {
+      if (result[key]) result[key].all += toMinutes(value);
+    }
+    landings += Number(previous.landings_day || 0) + Number(previous.landings_night || 0);
+
     return { metrics: result, landings };
-  }, [rows, currentYear]);
+  }, [rows, currentYear, settings?.previous_experience]);
 
   const filtered = useMemo(() => rows.filter((r) => {
     if (segment === 'pic' && toMinutes(rowTime(r,'pic_time')) <= 0) return false;

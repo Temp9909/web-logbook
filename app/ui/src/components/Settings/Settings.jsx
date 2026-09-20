@@ -207,7 +207,19 @@ export const Settings=()=>{
       </Card>
     </div>:null}
 
-    {tab==='previous'?<Card title="Past flight experience" subtitle="Enter totals accumulated before the first flight stored in this logbook."><div className="form-grid">{previousFields.map(([key,label])=><Field key={key} label={label} value={settings.previous_experience?.[key]??''} onChange={v=>change(`previous_experience.${key}`,v)}/>)}</div></Card>:null}
+    {tab==='previous'?<Card title="Past flight experience" subtitle="Enter totals accumulated before the first flight stored in this logbook. They are added to all-time totals, statistics and PDF exports."><div className="form-grid">{previousFields.map(([key,label])=>{
+      const landingField=key==='landings_day'||key==='landings_night';
+      return <Field
+        key={key}
+        label={label}
+        type={landingField?'number':'text'}
+        min={landingField?0:undefined}
+        step={landingField?1:undefined}
+        placeholder={landingField?'0':'H:MM'}
+        value={settings.previous_experience?.[key]??''}
+        onChange={v=>change(`previous_experience.${key}`,v)}
+      />;
+    })}</div><div className="panel-sub" style={{marginTop:12}}>Changes are saved automatically.</div></Card>:null}
 
     {tab==='signature'?<SignatureEditor settings={settings} onChange={change} onSignatureChange={changeSignature}/>:null}
 
