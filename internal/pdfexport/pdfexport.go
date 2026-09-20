@@ -74,7 +74,7 @@ const (
 
 const CheckSymbol string = "✓"
 
-//go:embed font/* template/*
+//go:embed font/*
 var content embed.FS
 
 // Headers and columns for the logbook
@@ -351,9 +351,9 @@ func (p *PDFExporter) loadSignature() error {
 // loadEASAVectorTemplates imports the exact EASA front pages (92-93) and
 // the combined 1-12 logbook sheet as reusable vector PDF form XObjects.
 func (p *PDFExporter) loadEASAVectorTemplates() error {
-	frontBytes, err := content.ReadFile("template/easa_front_pages.pdf")
+	frontBytes, err := base64.StdEncoding.DecodeString(easaFrontPagesPDFBase64)
 	if err != nil {
-		return fmt.Errorf("failed to read EASA front pages template: %w", err)
+		return fmt.Errorf("failed to decode embedded EASA front pages template: %w", err)
 	}
 	frontReader1 := io.ReadSeeker(bytes.NewReader(frontBytes))
 	p.easaFrontImporter1 = gofpdi.NewImporter()
@@ -362,9 +362,9 @@ func (p *PDFExporter) loadEASAVectorTemplates() error {
 	p.easaFrontImporter2 = gofpdi.NewImporter()
 	p.easaFrontPage2 = p.easaFrontImporter2.ImportPageFromStream(p.pdf, &frontReader2, 2, "/MediaBox")
 
-	compositeBytes, err := content.ReadFile("template/easa_1_12_vector.pdf")
+	compositeBytes, err := base64.StdEncoding.DecodeString(easaCompositePDFBase64)
 	if err != nil {
-		return fmt.Errorf("failed to read EASA 1-12 vector template: %w", err)
+		return fmt.Errorf("failed to decode embedded EASA 1-12 vector template: %w", err)
 	}
 	compositeReader := io.ReadSeeker(bytes.NewReader(compositeBytes))
 	p.easaCompositeImporter = gofpdi.NewImporter()
