@@ -69,13 +69,10 @@ var easaRightY = []float64{
 type easaCompositeLayout struct {
 	scale  float64
 	leftX  float64
-	leftY  float64
-	rightX float64
-	rightY float64
+	topY   float64
 	leftW  float64
-	leftH  float64
 	rightW float64
-	rightH float64
+	height float64
 }
 
 func sourceWidth(bounds []float64) float64 {
@@ -86,41 +83,32 @@ func sourceHeight(bounds []float64) float64 {
 	return bounds[len(bounds)-1] - bounds[0]
 }
 
-// compositeLayout uses one common scale for BOTH EASA halves. The two exact
-// cropped tables touch at the centre seam and the complete spread is centred
-// vertically on the A4 landscape page.
+// compositeLayout uses one common scale for BOTH EASA halves. The merged
+// template has a single shared vertical grid, so rows 1-8 and 9-12 line up
+// exactly across the centre seam.
 func compositeLayout() easaCompositeLayout {
 	const pageW = 297.0
 	const pageH = 210.0
 
 	leftSourceW := sourceWidth(easaLeftX)
 	rightSourceW := sourceWidth(easaRightX)
-	leftSourceH := sourceHeight(easaLeftY)
-	rightSourceH := sourceHeight(easaRightY)
+	commonSourceH := sourceHeight(easaLeftY)
 
 	availableW := pageW - 2*compositeMarginX - compositeGap
 	scale := availableW / (leftSourceW + rightSourceW)
 
 	leftW := leftSourceW * scale
 	rightW := rightSourceW * scale
-	leftH := leftSourceH * scale
-	rightH := rightSourceH * scale
-	maxH := leftH
-	if rightH > maxH {
-		maxH = rightH
-	}
-	top := (pageH - maxH) / 2
+	height := commonSourceH * scale
+	top := (pageH - height) / 2
 
 	return easaCompositeLayout{
 		scale:  scale,
 		leftX:  compositeMarginX,
-		leftY:  top,
-		rightX: compositeMarginX + leftW + compositeGap,
-		rightY: top,
+		topY:   top,
 		leftW:  leftW,
-		leftH:  leftH,
 		rightW: rightW,
-		rightH: rightH,
+		height: height,
 	}
 }
 
@@ -191,16 +179,11 @@ func (p *PDFExporter) ExportA4(flightRecords []models.FlightRecord, w io.Writer)
 }
 
 func (p *PDFExporter) loadEASACompositeTemplates() error {
-	for name, path := range map[string]string{
-		"easa-left-1-8":   "template/easa_left_1_8.png",
-		"easa-right-9-12": "template/easa_right_9_12.png",
-	} {
-		bs, err := content.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		p.pdf.RegisterImageReader(name, "png", bytes.NewReader(bs))
+	bs, err := content.ReadFile("template/easa_1_12_aligned.png")
+	if err != nil {
+		return err
 	}
+	p.pdf.RegisterImageReader("easa-1-12-aligned", "png", bytes.NewReader(bs))
 	return nil
 }
 
@@ -208,29 +191,30 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	p.pdf.AddPage()
 	layout := compositeLayout()
 
-	// These are literal crops of the page-94 and page-95 EASA tables. Static
-	// grid lines, headings, certification text and signature label therefore
-	// retain their exact source dimensions and placement before uniform scaling.
-	p.pdf.Image("easa-left-1-8", layout.leftX, layout.leftY, layout.leftW, layout.leftH, false, "", 0, "")
-	p.pdf.Image("easa-right-9-12", layout.rightX, layout.rightY, layout.rightW, layout.rightH, false, "", 0, "")
+	// One pre-aligned template: the original EASA 1-8 half is kept at its
+	// measured geometry; the 9-12 half is remapped onto the same horizontal
+	// row boundaries. This avoids the visible row drift that occurred when two
+	// independently-sized source crops were merely placed side by side.
+	p.pdf.Image("easa-1-12-aligned", layout.leftX, layout.topY, layout.leftW+layout.rightW, layout.height, false, "", 0, "")
 
 	lx := transformBounds(easaLeftX, easaLeftX[0], layout.leftX, layout.scale)
-	ly := transformBounds(easaLeftY, easaLeftY[0], layout.leftY, layout.scale)
-	rx := transformBounds(easaRightX, easaRightX[0], layout.rightX, layout.scale)
-	ry := transformBounds(easaRightY, easaRightY[0], layout.rightY, layout.scale)
+	rightStart := layout.leftX + layout.leftW + compositeGap
+	rx := transformBounds(easaRightX, easaRightX[0], rightStart, layout.scale)
+	// Both halves intentionally share the exact same vertical grid.
+	y := transformBounds(easaLeftY, easaLeftY[0], layout.topY, layout.scale)
 
 	for i := 0; i < EASALogbookRows; i++ {
 		record := EmptyTotals()
 		if i < len(records) {
 			record = records[i]
 		}
-		p.drawCompositeLeftBodyRow(record, i, lx, ly, layout.scale)
-		p.drawCompositeRightBodyRow(record, i, rx, ry, layout.scale)
+		p.drawCompositeLeftBodyRow(record, i, lx, y, layout.scale)
+		p.drawCompositeRightBodyRow(record, i, rx, y, layout.scale)
 	}
 
-	p.drawCompositeLeftTotals(lx, ly, layout.scale)
-	p.drawCompositeRightTotals(rx, ry, layout.scale)
-	p.drawCompositePilotSignature(rx, ry)
+	p.drawCompositeLeftTotals(lx, y, layout.scale)
+	p.drawCompositeRightTotals(rx, y, layout.scale)
+	p.drawCompositePilotSignature(rx, y)
 }
 
 func splitEASATime(value string) (string, string) {
@@ -259,6 +243,52 @@ func compactEASATime(value string) string {
 	return h + " " + m
 }
 
+func (p *PDFExporter) wrapTextToWidth(text string, width float64) []string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return nil
+	}
+	var lines []string
+	for _, paragraph := range strings.Split(text, "\n") {
+		words := strings.Fields(paragraph)
+		if len(words) == 0 {
+			lines = append(lines, "")
+			continue
+		}
+		line := words[0]
+		for _, word := range words[1:] {
+			candidate := line + " " + word
+			if p.pdf.GetStringWidth(candidate) <= width {
+				line = candidate
+			} else {
+				lines = append(lines, line)
+				line = word
+			}
+		}
+		lines = append(lines, line)
+	}
+	return lines
+}
+
+func (p *PDFExporter) trimLineToWidth(line string, width float64) string {
+	line = strings.TrimSuffix(strings.TrimSpace(line), "…")
+	if p.pdf.GetStringWidth(line) <= width {
+		return line
+	}
+	runes := []rune(line)
+	for len(runes) > 1 {
+		runes = runes[:len(runes)-1]
+		candidate := strings.TrimSpace(string(runes)) + "…"
+		if p.pdf.GetStringWidth(candidate) <= width {
+			return candidate
+		}
+	}
+	return "…"
+}
+
+// overlayTextCell fits text inside a measured EASA cell. It never allows text
+// to spill into the neighbouring cell: the font is reduced when necessary and
+// wrapped lines are capped to the available height with an ellipsis.
 func (p *PDFExporter) overlayTextCell(x0, y0, x1, y1 float64, text, align string, fontSize float64, bold bool) {
 	text = strings.TrimSpace(text)
 	if text == "" || x1 <= x0 || y1 <= y0 {
@@ -270,40 +300,67 @@ func (p *PDFExporter) overlayTextCell(x0, y0, x1, y1 float64, text, align string
 		font = fontBold
 	}
 
-	p.pdf.SetTextColor(0, 0, 0)
-	p.pdf.SetFont(font, "", fontSize)
-
-	padding := 0.45
+	paddingX := 0.42
+	paddingY := 0.18
 	if align == "L" {
-		padding = 0.60
+		paddingX = 0.55
 	}
-	usableW := (x1 - x0) - 2*padding
-	if usableW < 0.5 {
-		usableW = x1 - x0
-		padding = 0
+	usableW := (x1 - x0) - 2*paddingX
+	usableH := (y1 - y0) - 2*paddingY
+	if usableW <= 0.3 || usableH <= 0.3 {
+		return
 	}
 
-	// Shrink long single-line data just enough to stay inside the exact EASA cell.
-	if !strings.Contains(text, "\n") {
-		for p.pdf.GetStringWidth(text) > usableW && fontSize > 3.0 {
-			fontSize -= 0.2
-			p.pdf.SetFont(font, "", fontSize)
+	minFont := 3.15
+	var lines []string
+	lineH := 0.0
+	for {
+		p.pdf.SetFont(font, "", fontSize)
+		lines = p.wrapTextToWidth(text, usableW)
+		lineH = fontSize * ptToMM * 1.02
+		if lineH < 1.0 {
+			lineH = 1.0
+		}
+		if float64(len(lines))*lineH <= usableH || fontSize <= minFont {
+			break
+		}
+		fontSize -= 0.18
+		if fontSize < minFont {
+			fontSize = minFont
 		}
 	}
 
-	lineH := fontSize * ptToMM * 1.10
-	if lineH < 1.05 {
-		lineH = 1.05
+	p.pdf.SetFont(font, "", fontSize)
+	maxLines := int(usableH / lineH)
+	if maxLines < 1 {
+		maxLines = 1
 	}
-	lines := strings.Split(text, "\n")
-	textH := float64(len(lines)) * lineH
-	textY := y0 + ((y1-y0)-textH)/2
-	if textY < y0+0.15 {
-		textY = y0 + 0.15
+	if len(lines) > maxLines {
+		lines = lines[:maxLines]
+		lines[maxLines-1] = p.trimLineToWidth(lines[maxLines-1], usableW)
 	}
 
-	p.pdf.SetXY(x0+padding, textY)
-	p.pdf.MultiCell(usableW, lineH, text, "", align, false)
+	// Make sure exceptionally long single tokens also remain inside the cell.
+	for i := range lines {
+		lines[i] = p.trimLineToWidth(lines[i], usableW)
+	}
+
+	p.pdf.SetTextColor(0, 0, 0)
+	textH := float64(len(lines)) * lineH
+	textY := y0 + (y1-y0-textH)/2
+	if align == "L" {
+		// Remarks read better from the top-left when they wrap.
+		textY = y0 + paddingY
+	}
+	if textY < y0+paddingY {
+		textY = y0 + paddingY
+	}
+
+	for _, line := range lines {
+		p.pdf.SetXY(x0+paddingX, textY)
+		p.pdf.CellFormat(usableW, lineH, line, "", 0, align, false, 0, "")
+		textY += lineH
+	}
 }
 
 func (p *PDFExporter) overlaySplitTime(x0, xMid, x1, y0, y1 float64, value string, fontSize float64) {
@@ -374,7 +431,13 @@ func (p *PDFExporter) drawCompositeRightBodyRow(record models.FlightRecord, row 
 }
 
 func (p *PDFExporter) overlayRemarks(x0, y0, x1, y1 float64, value, signature, uuid string, fontSize float64) {
-	p.overlayTextCell(x0, y0, x1, y1, value, "L", fontSize, false)
+	textX1 := x1
+	if signature != "" {
+		// Reserve a fixed right-side strip for the per-flight signature so remarks
+		// can never be painted underneath it.
+		textX1 = x0 + (x1-x0)*0.64
+	}
+	p.overlayTextCell(x0, y0, textX1, y1, value, "L", fontSize, false)
 	if signature == "" {
 		return
 	}
@@ -385,15 +448,16 @@ func (p *PDFExporter) overlayRemarks(x0, y0, x1, y1 float64, value, signature, u
 	}
 	r := bytes.NewReader(unbased)
 	im := p.pdf.RegisterImageReader(uuid, "png", r)
-	maxH := (y1 - y0) * 0.70
+	maxH := (y1 - y0) * 0.64
 	s := maxH / im.Height()
 	imgW := im.Width() * s
-	if imgW > (x1-x0)*0.42 {
-		imgW = (x1 - x0) * 0.42
+	maxW := (x1 - textX1) * 0.88
+	if imgW > maxW {
+		imgW = maxW
 		s = imgW / im.Width()
 	}
 	imgH := im.Height() * s
-	p.pdf.Image(uuid, x1-imgW-0.30, y0+(y1-y0-imgH)/2, imgW, imgH, false, "", 0, "")
+	p.pdf.Image(uuid, textX1+(x1-textX1-imgW)/2, y0+(y1-y0-imgH)/2, imgW, imgH, false, "", 0, "")
 }
 
 func (p *PDFExporter) drawCompositeLeftTotals(x, y []float64, scale float64) {
@@ -432,7 +496,7 @@ func (p *PDFExporter) drawCompositePilotSignature(x, y []float64) {
 		return
 	}
 	cellX0, cellX1 := x[16], x[17]
-	cellY0, cellY1 := y[17], y[18]
+	cellY0, cellY1 := y[18], y[19]
 	cellW, cellH := cellX1-cellX0, cellY1-cellY0
 	// Keep the EASA "PILOT'S SIGNATURE" label visible at the top of the exact
 	// source box; place the image in the lower part of that same measured cell.
