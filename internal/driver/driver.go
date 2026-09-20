@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	_ "embed"
@@ -41,7 +42,7 @@ func OpenDB(engine string, dsn string) (*sql.DB, error) {
 // validateDB creates db structure in case it's a first run and the schema is empty
 func validateDB(db *sql.DB, engine string) error {
 	metadataTable.initTable(db, engine)
-	isNewSchema := newShema(db)
+	isNewSchema, previousVersion := newShema(db)
 	if isNewSchema {
 		// check tables
 		tables := []*Table{logbookTable, airportsTable, customAirportsTable,
@@ -70,6 +71,15 @@ func validateDB(db *sql.DB, engine string) error {
 			return err
 		}
 
+		// Version 47 changes both licence-alert switches from their historical
+		// zero-value default (off) to the requested default (on). Apply it once
+		// to existing databases; later user choices remain untouched.
+		if shouldEnableLicenseAlertDefaults(previousVersion) {
+			if err := enableLicenseAlertDefaults(db); err != nil {
+				return err
+			}
+		}
+
 		// update schema version
 		err = updateSchemaVersion(db)
 		if err != nil {
@@ -80,7 +90,7 @@ func validateDB(db *sql.DB, engine string) error {
 	return nil
 }
 
-func newShema(db *sql.DB) bool {
+func newShema(db *sql.DB) (bool, string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -90,18 +100,54 @@ func newShema(db *sql.DB) bool {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			fmt.Printf("No rows found in 'metadata'. Initializing version %s...\n", schemaVersion)
-			return true
+			return true, ""
 		}
 		fmt.Println(err)
-		return true
+		return true, ""
 	}
 
 	if version != schemaVersion {
 		fmt.Printf("Schema version (%s) mismatch. Initializing version %s...\n", version, schemaVersion)
-		return true
+		return true, version
 	}
 
-	return false
+	return false, version
+}
+
+func shouldEnableLicenseAlertDefaults(previousVersion string) bool {
+	previous, err := strconv.Atoi(previousVersion)
+	if err != nil {
+		return false
+	}
+	current, err := strconv.Atoi(schemaVersion)
+	return err == nil && previous < 47 && current >= 47
+}
+
+func enableLicenseAlertDefaults(db *sql.DB) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	var raw string
+	if err := db.QueryRowContext(ctx, "SELECT settings FROM settings2 WHERE id=0").Scan(&raw); err != nil {
+		return err
+	}
+
+	var settings models.Settings
+	if err := json.Unmarshal([]byte(raw), &settings); err != nil {
+		return err
+	}
+	settings.LicensesExpiration.ShowWarning = true
+	settings.LicensesExpiration.ShowExpired = true
+	if settings.LicensesExpiration.WarningPeriod <= 0 {
+		settings.LicensesExpiration.WarningPeriod = 90
+	}
+
+	out, err := json.Marshal(settings)
+	if err != nil {
+		return err
+	}
+	_, err = db.ExecContext(ctx, "UPDATE settings2 SET settings = ? WHERE id = 0", string(out))
+	return err
 }
 
 func updateSchemaVersion(db *sql.DB) error {
@@ -132,6 +178,9 @@ func checkSettingsTable(db *sql.DB) error {
 		// default values
 		s.OwnerName = DefaultOwnerName
 		s.SignatureText = DefaultSignatureText
+		s.LicensesExpiration.ShowWarning = true
+		s.LicensesExpiration.ShowExpired = true
+		s.LicensesExpiration.WarningPeriod = 90
 
 		out, err := json.Marshal(s)
 		if err != nil {

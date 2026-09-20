@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"io"
-	"math"
 	"strings"
 
 	"github.com/vsimakhin/web-logbook/internal/models"
@@ -204,12 +203,6 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	// Both halves intentionally share the exact same vertical grid.
 	y := transformBounds(easaLeftY, easaLeftY[0], layout.topY, layout.scale)
 
-	// The template is raster artwork, so its one-pixel body grid can become
-	// broken, doubled or uneven when a browser rescales the PDF preview. Clear
-	// only the empty flight-entry area and rebuild that grid with PDF vectors.
-	// Headers, totals, labels and every other part of the template stay intact.
-	p.clearCompositeFlightGridBackground(lx, rx, y)
-
 	for i := 0; i < EASALogbookRows; i++ {
 		record := EmptyTotals()
 		if i < len(records) {
@@ -222,8 +215,7 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	p.drawCompositeLeftTotals(lx, y, layout.scale)
 	p.drawCompositeRightTotals(rx, y, layout.scale)
 	p.drawCompositeCertification(rx, y)
-	p.drawCompositeFlightGrid(lx, rx, y)
-	p.drawCompositeCertificationGrid(rx, y)
+	p.drawCompositeFullGrid(lx, rx, y)
 }
 
 func splitEASATime(value string) (string, string) {
@@ -500,50 +492,61 @@ func (p *PDFExporter) drawCompositeRightTotals(x, y []float64, scale float64) {
 	}
 }
 
-// clearCompositeFlightGridBackground removes only the raster lines from the
-// empty 12-row entry area. This prevents the replacement vector grid from
-// sitting beside a resampled bitmap line at common preview zoom levels.
-func (p *PDFExporter) clearCompositeFlightGridBackground(lx, rx, y []float64) {
-	if len(lx) < 17 || len(rx) < 18 || len(y) < 16 {
+// drawCompositeFullGrid replaces every raster rule in the complete EASA table
+// with one coherent vector grid: number/header rows, the 12 flight rows,
+// totals, certification and signature. A wider white pass first removes the
+// bitmap rules, so the final black pass cannot double or overlap them when the
+// browser rescales the PDF preview.
+func (p *PDFExporter) drawCompositeFullGrid(lx, rx, y []float64) {
+	if len(lx) < 17 || len(rx) < 18 || len(y) < 20 {
 		return
 	}
-	p.pdf.SetFillColor(255, 255, 255)
-	p.pdf.Rect(lx[0], y[3], rx[len(rx)-1]-lx[0], y[15]-y[3], "F")
-}
 
-// drawCompositeFlightGrid redraws the flight-entry grid (the 12 data rows)
-// using one common set of horizontal coordinates. Every visible row/column
-// line in the 1-8 and 9-12 entry area gets the same solid black vector stroke
-// and is exactly aligned across the centre seam.
-func (p *PDFExporter) drawCompositeFlightGrid(lx, rx, y []float64) {
-	if len(lx) < 17 || len(rx) < 18 || len(y) < 16 {
-		return
+	draw := func() {
+		// Complete horizontal rules.
+		for _, yi := range []int{0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18} {
+			p.pdf.Line(lx[0], y[yi], rx[17], y[yi])
+		}
+		// Header subdivisions.
+		p.pdf.Line(lx[1], y[2], lx[9], y[2])
+		p.pdf.Line(lx[14], y[2], rx[16], y[2])
+		// Totals rows stop before the merged labels and certification cell.
+		p.pdf.Line(lx[6], y[16], rx[16], y[16])
+		p.pdf.Line(lx[6], y[17], rx[16], y[17])
+		// Only the right-hand signature section extends below y[18].
+		p.pdf.Line(lx[16], y[19], rx[17], y[19])
+
+		// Left-page vertical rules. Each span exactly follows the merged EASA
+		// header and totals cells instead of cutting through their labels.
+		leftSpans := []struct{ x, top, bottom int }{
+			{0, 0, 18}, {1, 0, 18}, {2, 2, 15}, {3, 0, 18},
+			{4, 2, 15}, {5, 0, 18}, {6, 2, 18}, {7, 0, 18},
+			{8, 2, 18}, {9, 1, 18}, {10, 3, 18}, {11, 0, 18},
+			{12, 3, 15}, {13, 0, 18}, {14, 0, 18}, {15, 2, 18},
+			{16, 0, 19},
+		}
+		for _, span := range leftSpans {
+			p.pdf.Line(lx[span.x], y[span.top], lx[span.x], y[span.bottom])
+		}
+
+		// Right-page vertical rules. rx[0] is the shared centre seam and is
+		// therefore drawn only once above as lx[16].
+		rightSpans := []struct{ x, top int }{
+			{1, 3}, {2, 2}, {3, 3}, {4, 0}, {5, 3}, {6, 2},
+			{7, 3}, {8, 2}, {9, 3}, {10, 2}, {11, 3}, {12, 0},
+			{13, 2}, {14, 2}, {15, 3}, {16, 0}, {17, 0},
+		}
+		for _, span := range rightSpans {
+			p.pdf.Line(rx[span.x], y[span.top], rx[span.x], y[19])
+		}
 	}
+
+	p.pdf.SetDrawColor(255, 255, 255)
+	p.pdf.SetLineWidth(0.50)
+	draw()
 	p.pdf.SetDrawColor(0, 0, 0)
 	p.pdf.SetLineWidth(0.14)
-
-	top := y[3]
-	bottom := y[15]
-
-	// Shared horizontal row boundaries: one continuous line from column 1 to
-	// column 12 guarantees that the two EASA halves meet at exactly the same Y.
-	for i := 3; i <= 15; i++ {
-		p.pdf.Line(lx[0], y[i], rx[len(rx)-1], y[i])
-	}
-
-	// Left half (columns 1-8).
-	for _, x := range lx {
-		p.pdf.Line(x, top, x, bottom)
-	}
-
-	// Right half (columns 9-12). Avoid double-stroking the centre seam when
-	// the first right boundary lands on the final left boundary.
-	for i, x := range rx {
-		if i == 0 && math.Abs(x-lx[len(lx)-1]) < 0.05 {
-			continue
-		}
-		p.pdf.Line(x, top, x, bottom)
-	}
+	draw()
 }
 
 func (p *PDFExporter) drawCompositeCertification(x, y []float64) {
@@ -596,24 +599,4 @@ func (p *PDFExporter) drawCompositeCertification(x, y []float64) {
 	drawX := sigX0 + (availW-drawW)/2
 	drawY := sigY0 + (availH-drawH)/2
 	p.pdf.Image("signature", drawX, drawY, drawW, drawH, false, "", 0, "")
-}
-
-// drawCompositeCertificationGrid redraws only the thin grid lines around the
-// EASA certification/signature area. The background template is raster, and
-// repainting the certification text can otherwise make the neighbouring line
-// look faint or discontinuous in the browser preview.
-func (p *PDFExporter) drawCompositeCertificationGrid(x, y []float64) {
-	left, right := x[16], x[17]
-	top := y[15]
-	certBottom := y[18]
-	bottom := y[19]
-
-	p.pdf.SetDrawColor(0, 0, 0)
-	// The template's 1 px grid line maps to roughly 0.14 mm on the final A4 page.
-	p.pdf.SetLineWidth(0.14)
-	p.pdf.Line(left, top, right, top)
-	p.pdf.Line(left, top, left, bottom)
-	p.pdf.Line(right, top, right, bottom)
-	p.pdf.Line(left, certBottom, right, certBottom)
-	p.pdf.Line(left, bottom, right, bottom)
 }

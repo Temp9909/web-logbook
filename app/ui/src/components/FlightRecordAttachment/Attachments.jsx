@@ -4,14 +4,8 @@ import { useErrorNotification } from "../../hooks/useAppNotifications";
 import { fetchFlightRecordAttachments } from "../../util/http/attachment";
 import Attachment from "./Attachment";
 import AddAttachmentButton from "./AddAttachmentButton";
-import AddTrackButton from "./AddTrackButton";
 
-const ActionButtons = ({ id }) => (
-  <>
-    <AddTrackButton id={id} />
-    <AddAttachmentButton id={id} />
-  </>
-);
+const ActionButtons = ({ id }) => <AddAttachmentButton id={id} />;
 
 export const Attachments = ({ id }) => {
   const { data, isLoading, isError, error } = useQuery({

@@ -1,17 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
-import { useCallback } from "react";
-// MUI UI elements
-import Tooltip from "@mui/material/Tooltip";
-import IconButton from "@mui/material/IconButton";
-import CircularProgress from "@mui/material/CircularProgress";
-// MUI Icons
-import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
+import { useCallback, useRef } from "react";
 // Custom components
 import { queryClient } from "../../util/http/http";
 import { useErrorNotification, useSuccessNotification } from "../../hooks/useAppNotifications";
 import { uploadAttachement } from "../../util/http/attachment";
 
 export const AddAttachmentButton = ({ id }) => {
+  const fileInputRef = useRef(null);
   const { mutateAsync: upload, isPending, isError, error, isSuccess } = useMutation({
     mutationFn: async ({ data }) => await uploadAttachement({ payload: data }),
     onSuccess: async () => {
@@ -36,14 +31,15 @@ export const AddAttachmentButton = ({ id }) => {
 
   return (
     <>
-      {isPending && <CircularProgress size={24} />}
-      {!isPending &&
-        <Tooltip title="Add new attachment">
-          <IconButton size="small" component="label" ><AddBoxOutlinedIcon />
-            <input hidden type="file" name="document" id="document" onChange={handleFileChange} multiple={true} />
-          </IconButton>
-        </Tooltip>
-      }
+      <input ref={fileInputRef} hidden type="file" name="document" onChange={handleFileChange} multiple />
+      <button
+        type="button"
+        className="btn primary exact-primary-action"
+        disabled={isPending}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        {isPending ? 'Adding…' : '＋ Add attachment'}
+      </button>
     </>
   );
 }
