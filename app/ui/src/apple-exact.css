@@ -3797,3 +3797,19 @@ textarea,
 .signature.signature-pdf-box{width:min(100%,420px);height:auto;aspect-ratio:1.5491285519 / 1;border:1px solid var(--label);border-radius:8px;background:#fff;overflow:hidden;box-sizing:border-box}
 .signature-pdf-canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
 .signature-pdf-note{max-width:420px;text-align:center;font-size:11.5px;line-height:1.35;color:var(--secondary)}
+
+/* iOS Safari zooms the visual viewport when a focused form control renders
+   below 16px. Keep mobile edit controls at that threshold so the app header
+   stays in view when the keyboard opens and closes. */
+@media (max-width: 720px) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  select,
+  textarea,
+  .MuiInputBase-input,
+  .MuiOutlinedInput-input,
+  .MuiInput-input,
+  .MuiFilledInput-input,
+  .exact-manual-time-input {
+    font-size: 16px !important;
+  }
+}
