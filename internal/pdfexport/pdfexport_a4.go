@@ -216,6 +216,7 @@ func (p *PDFExporter) printEASACompositePage(records []models.FlightRecord) {
 	p.drawCompositeRightTotals(rx, y, layout.scale)
 	p.drawCompositeCertification(rx, y)
 	p.drawCompositePilotSignature(rx, y)
+	p.drawCompositeCertificationGrid(rx, y)
 }
 
 func splitEASATime(value string) (string, string) {
@@ -526,4 +527,24 @@ func (p *PDFExporter) drawCompositePilotSignature(x, y []float64) {
 	// Keep the EASA "PILOT'S SIGNATURE" label visible at the top of the exact
 	// source box; place the image in the lower part of that same measured cell.
 	p.pdf.Image("signature", cellX0+cellW*0.14, cellY0+cellH*0.32, cellW*0.78, cellH*0.58, false, "", 0, "")
+}
+
+// drawCompositeCertificationGrid redraws only the thin grid lines around the
+// EASA certification/signature area. The background template is raster, and
+// repainting the certification text can otherwise make the neighbouring line
+// look faint or discontinuous in the browser preview.
+func (p *PDFExporter) drawCompositeCertificationGrid(x, y []float64) {
+	left, right := x[16], x[17]
+	top := y[15]
+	certBottom := y[18]
+	bottom := y[19]
+
+	p.pdf.SetDrawColor(0, 0, 0)
+	// The template's 1 px grid line maps to roughly 0.14 mm on the final A4 page.
+	p.pdf.SetLineWidth(0.14)
+	p.pdf.Line(left, top, right, top)
+	p.pdf.Line(left, top, left, bottom)
+	p.pdf.Line(right, top, right, bottom)
+	p.pdf.Line(left, certBottom, right, certBottom)
+	p.pdf.Line(left, bottom, right, bottom)
 }

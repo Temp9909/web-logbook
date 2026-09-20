@@ -27,6 +27,37 @@ const previousFields=[
   ['landings_night','Night landings'],
 ];
 
+
+const splitEASAAddress=(value='')=>{
+  const raw=String(value??'').replace(/\r/g,'');
+  const parts=raw.split('\n');
+  if(parts.length===1)return [parts[0]||'','',''];
+  return [parts[0]||'',parts[1]||'',parts.slice(2).join(' ').trim()];
+};
+const joinEASAAddress=(parts=[])=>[parts[0]||'',parts[1]||'',parts[2]||''].join('\n').replace(/\n+$/,'');
+const EASAAddressFields=({value,onChange,title,actions})=>{
+  const parts=splitEASAAddress(value);
+  const setPart=(index,nextValue)=>{
+    const next=[...parts];
+    next[index]=nextValue;
+    onChange(joinEASAAddress(next));
+  };
+  return <div style={{gridColumn:'1 / -1'}}>
+    <div className="row space" style={{marginBottom:8}}>
+      <div>
+        <div className="section-label" style={{padding:0}}>{title}</div>
+        <div className="panel-sub" style={{margin:'3px 0 0'}}>EASA logbook format — one PDF line per field.</div>
+      </div>
+      {actions||null}
+    </div>
+    <div className="form-grid three">
+      <Field label="Street address" placeholder="Street and number" value={parts[0]} onChange={v=>setPart(0,v)}/>
+      <Field label="Postal code / City" placeholder="75008 Paris" value={parts[1]} onChange={v=>setPart(1,v)}/>
+      <Field label="Country" placeholder="France" value={parts[2]} onChange={v=>setPart(2,v)}/>
+    </div>
+  </div>;
+};
+
 const switchColors=[
   {name:'Automatic',value:'',color:'#4AD968'},
   {name:'Red',value:'#FF3B30',color:'#FF3B30'},
@@ -72,7 +103,7 @@ export const Settings=()=>{
   const allowedTabs=['general','previous','signature'];
   const requestedTab=searchParams.get('tab');
   const tab=allowedTabs.includes(requestedTab)?requestedTab:'general';
-  const {data,isLoading}=useSettings();const [settings,setSettings]=useState({});
+  const {data,isLoading}=useSettings();const [settings,setSettings]=useState({});const [showSecondAddress,setShowSecondAddress]=useState(false);
   const settingsHydratedRef=useRef(false);
   const settingsRef=useRef({});
   const generalSaveInFlightRef=useRef(false);
@@ -87,6 +118,7 @@ export const Settings=()=>{
       settingsHydratedRef.current=true;
       settingsRef.current=data;
       setSettings(data);
+      setShowSecondAddress(Boolean(String(data.address_2||'').trim()));
       const generalSnapshot={...data,signature_image:undefined};
       lastGeneralSnapshotRef.current=JSON.stringify(generalSnapshot);
       lastSignatureSnapshotRef.current=String(data.signature_image||'');
@@ -186,7 +218,7 @@ export const Settings=()=>{
 
     {tab==='general'?<div className="grid two">
       <Card title="General settings" subtitle="Owner information, application options and authentication.">
-        <div className="section-label">Owner information</div><div className="form-grid two"><Field label="Owner name" value={settings.owner_name||''} onChange={v=>change('owner_name',v)}/><Field label="Licence number" value={settings.license_number||''} onChange={v=>change('license_number',v)}/><Field label="Address" value={settings.address||''} onChange={v=>change('address',v)}/></div>
+        <div className="section-label">Owner information</div><div className="form-grid two"><Field label="Owner name" value={settings.owner_name||''} onChange={v=>change('owner_name',v)}/><Field label="Licence number" value={settings.license_number||''} onChange={v=>change('license_number',v)}/><EASAAddressFields title="Current address" value={settings.address||''} onChange={v=>change('address',v)} actions={<button className="btn small" type="button" onClick={()=>setShowSecondAddress(true)} disabled={showSecondAddress}>Add address</button>}/>{showSecondAddress?<EASAAddressFields title="Address change" value={settings.address_2||''} onChange={v=>change('address_2',v)} actions={<button className="btn small" type="button" onClick={()=>{change('address_2','');setShowSecondAddress(false)}}>Remove</button>}/>:null}</div>
         <div className="section-label" style={{marginTop:15}}>Logbook</div><div className="form-grid two"><Field label="Self PIC label" value={settings.self_pic_label||'Self'} onChange={v=>change('self_pic_label',v)}/><Field label="Expiry warning period (days)" type="number" value={settings.licenses_expiration?.warning_period||90} onChange={v=>change('licenses_expiration.warning_period',v)}/></div>
         <div className="card rows" style={{borderRadius:10,marginTop:12}}><SwitchRow label="Show licence warning" checked={Boolean(settings.licenses_expiration?.show_warning)} onChange={v=>change('licenses_expiration.show_warning',v)}/><SwitchRow label="Show expired licences" checked={Boolean(settings.licenses_expiration?.show_expired)} onChange={v=>change('licenses_expiration.show_expired',v)}/></div>
         <div className="section-label" style={{marginTop:15}}>Appearance</div>

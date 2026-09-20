@@ -257,6 +257,7 @@ type Settings struct {
 	OwnerName       string            `json:"owner_name"`
 	LicenseNumber   string            `json:"license_number"`
 	Address         string            `json:"address"`
+	Address2        string            `json:"address_2"`
 	SignatureText   string            `json:"signature_text"`
 	SignatureImage  string            `json:"signature_image"`
 	AircraftClasses map[string]string `json:"aircraft_classes"`

@@ -131,7 +131,7 @@ func (app *application) HandlerApiExportLogbook(w http.ResponseWriter, r *http.R
 
 	pdfExporter, err := pdfexport.NewPDFExporter(
 		exportA4,
-		settings.OwnerName, settings.LicenseNumber, settings.Address,
+		settings.OwnerName, settings.LicenseNumber, settings.Address, settings.Address2,
 		settings.SignatureText, settings.SignatureImage, exportSettings,
 		previousExperience,
 	)
@@ -195,7 +195,7 @@ func (app *application) HandlerApiPreviewLogbook(w http.ResponseWriter, r *http.
 
 	pdfExporter, err := pdfexport.NewPDFExporter(
 		exportA4,
-		settings.OwnerName, settings.LicenseNumber, settings.Address,
+		settings.OwnerName, settings.LicenseNumber, settings.Address, settings.Address2,
 		settings.SignatureText, settings.SignatureImage, exportSettings,
 		previousExperience,
 	)

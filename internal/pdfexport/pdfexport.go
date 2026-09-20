@@ -98,6 +98,7 @@ type PDFExporter struct {
 	OwnerName      string
 	LicenseNumber  string
 	Address        string
+	Address2       string
 	Signature      string
 	SignatureImage string
 
@@ -121,7 +122,7 @@ type PDFExporter struct {
 }
 
 // NewPDFExporter creates a new PDFExporter object
-func NewPDFExporter(format, ownerName, licenseNumber, address,
+func NewPDFExporter(format, ownerName, licenseNumber, address, address2,
 	signature, signatureImage string, exportConfig models.ExportPDF,
 	previousExperience models.FlightRecord) (*PDFExporter, error) {
 
@@ -131,6 +132,7 @@ func NewPDFExporter(format, ownerName, licenseNumber, address,
 		OwnerName:      ownerName,
 		LicenseNumber:  licenseNumber,
 		Address:        address,
+		Address2:       address2,
 		Signature:      EASACertificationText,
 		SignatureImage: signatureImage,
 
@@ -399,13 +401,62 @@ func (p *PDFExporter) titlePage() {
 	p.pdf.SetXY(pageX+2, pageY+2.5)
 	p.pdf.CellFormat(70, 4, "HOLDER'S ADDRESS:", "", 0, "L", false, 0, "")
 
-	writeAddressCell := func(x, y, w, h float64, lines []string, fillFirst bool) {
+	prepareAddressLines := func(raw string) []string {
+		addr := strings.ToUpper(strings.TrimSpace(strings.ReplaceAll(raw, "\r", "")))
+		if addr == "" {
+			return nil
+		}
+
+		rawLines := strings.Split(addr, "\n")
+		lines := []string{}
+		if len(rawLines) > 1 {
+			// Structured EASA address fields are stored as exactly three logical
+			// lines: street, postal code/city, country. Preserve blank positions so
+			// each value stays on its corresponding printed line.
+			for i := 0; i < 3; i++ {
+				if i < len(rawLines) {
+					lines = append(lines, strings.TrimSpace(rawLines[i]))
+				} else {
+					lines = append(lines, "")
+				}
+			}
+		} else {
+			lines = []string{strings.TrimSpace(addr)}
+		}
+
+		if len(lines) == 1 {
+			words := strings.Fields(lines[0])
+			lines = []string{}
+			line := ""
+			p.pdf.SetFont(fontRegular, "", 9.5)
+			for _, word := range words {
+				candidate := strings.TrimSpace(line + " " + word)
+				if line == "" || p.pdf.GetStringWidth(candidate) <= 84 {
+					line = candidate
+				} else {
+					lines = append(lines, line)
+					line = word
+				}
+			}
+			if line != "" {
+				lines = append(lines, line)
+			}
+		}
+
+		if len(lines) > 3 {
+			lines = lines[:3]
+		}
+		return lines
+	}
+
+	writeAddressCell := func(x, y, w, h float64, lines []string, showPlaceholder bool) {
 		left := x + 3
 		lineYs := []float64{y + 12, y + 18.5, y + 25}
 		for _, ly := range lineYs {
 			p.pdf.Line(left, ly, x+w-39, ly)
 		}
-		if fillFirst {
+
+		if len(lines) > 0 {
 			p.pdf.SetFont(fontRegular, "", 9.5)
 			for i, line := range lines {
 				if i >= len(lineYs) {
@@ -415,50 +466,32 @@ func (p *PDFExporter) titlePage() {
 				p.pdf.CellFormat(w-44, 4, line, "", 0, "L", false, 0, "")
 			}
 		}
-		p.pdf.SetFont(fontRegular, "", 10)
-		p.pdf.SetXY(left, y+h-11)
-		p.pdf.CellFormat(w-6, 5, "[space for address change]", "", 0, "L", false, 0, "")
-	}
 
-	addr := strings.ToUpper(strings.TrimSpace(strings.ReplaceAll(p.Address, "\r", "")))
-	addrLines := []string{}
-	if addr != "" {
-		parts := strings.Split(addr, "\n")
-		for _, part := range parts {
-			part = strings.TrimSpace(part)
-			if part != "" {
-				addrLines = append(addrLines, part)
-			}
-		}
-		if len(addrLines) == 1 {
-			words := strings.Fields(addrLines[0])
-			addrLines = []string{}
-			line := ""
-			p.pdf.SetFont(fontRegular, "", 9.5)
-			for _, w := range words {
-				candidate := strings.TrimSpace(line + " " + w)
-				if line == "" || p.pdf.GetStringWidth(candidate) <= 84 {
-					line = candidate
-				} else {
-					addrLines = append(addrLines, line)
-					line = w
-				}
-			}
-			if line != "" {
-				addrLines = append(addrLines, line)
-			}
-		}
-		if len(addrLines) > 3 {
-			addrLines = addrLines[:3]
+		if showPlaceholder {
+			p.pdf.SetFont(fontRegular, "", 10)
+			p.pdf.SetXY(left, y+h-11)
+			p.pdf.CellFormat(w-6, 5, "[space for address change]", "", 0, "L", false, 0, "")
 		}
 	}
 
+	primaryAddress := prepareAddressLines(p.Address)
+	secondAddress := prepareAddressLines(p.Address2)
 	cellW := pageW / 2
-	for row := 0; row < 3; row++ {
+
+	// Current address occupies the first box. A second address, when supplied in
+	// Settings, is written on the three lines of the first address-change box.
+	// The EASA "[space for address change]" label always remains visible below
+	// those lines, exactly like the printed model.
+	writeAddressCell(pageX, bodyY, cellW, rowH, primaryAddress, false)
+	writeAddressCell(pageX+cellW, bodyY, cellW, rowH, secondAddress, true)
+
+	// Remaining four boxes stay available for future address changes.
+	for row := 1; row < 3; row++ {
 		cy := bodyY + float64(row)*rowH
-		writeAddressCell(pageX, cy, cellW, rowH, addrLines, row == 0 && len(addrLines) > 0)
-		writeAddressCell(pageX+cellW, cy, cellW, rowH, nil, false)
+		writeAddressCell(pageX, cy, cellW, rowH, nil, true)
+		writeAddressCell(pageX+cellW, cy, cellW, rowH, nil, true)
 	}
+
 }
 
 // printCustomTitle prints custom title page
