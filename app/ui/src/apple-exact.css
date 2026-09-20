@@ -2057,14 +2057,13 @@ body.apple-legacy-page .MuiDialog-paper:has(.apple-dialog-panel) > .MuiCard-root
 
 /* V8.6.5 — real PDF export preview */
 .exact-pdf-preview-frame{width:100%;height:min(74vh,860px);min-height:560px;border:1px solid var(--separator);border-radius:10px;background:#fff;display:block}
-.exact-pdf-mobile-preview{display:none}
+.exact-pdf-canvas-preview{width:100%;height:min(74vh,860px);min-height:560px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:18px;background:#f3f3f3;border:1px solid var(--separator);border-radius:10px;display:grid;align-content:start;gap:18px;scrollbar-gutter:stable}
+.exact-pdf-canvas-page{position:relative;width:min(100%,1280px);margin:0 auto;overflow:hidden;contain:layout paint;background:#fff;box-shadow:0 5px 18px rgba(0,0,0,.14)}
+.exact-pdf-canvas-page canvas{position:absolute;inset:0;display:block;width:100%;height:100%;background:#fff}
+.exact-pdf-canvas-loading{min-height:520px;display:grid;place-items:center;color:var(--secondary);font-size:13px}
 @media(max-width:720px){
-  .exact-pdf-preview-frame{display:none}
-  .exact-pdf-mobile-preview{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px;border:1px solid var(--separator);border-radius:10px;background:var(--fill)}
-  .exact-pdf-mobile-preview>div{display:grid;gap:4px;min-width:0}
-  .exact-pdf-mobile-preview strong{font-size:14px;color:var(--label)}
-  .exact-pdf-mobile-preview span{font-size:12px;line-height:1.4;color:var(--secondary)}
-  .exact-pdf-mobile-preview a{flex:0 0 auto;text-decoration:none;white-space:nowrap}
+  .exact-pdf-canvas-preview{height:68dvh;min-height:420px;padding:8px;gap:10px;scrollbar-gutter:auto}
+  .exact-pdf-canvas-page{box-shadow:0 2px 9px rgba(0,0,0,.16)}
 }
 .exact-preview-loading{min-height:560px;display:grid;place-items:center;color:var(--secondary);font-size:13px;border:1px solid var(--separator);border-radius:10px;background:var(--fill)}
 .exact-preview-error{margin-bottom:10px;color:var(--red)}
