@@ -39,12 +39,9 @@ export const LicenseRecord = () => {
       else if (license.document) form.append('document', license.document);
       return license.uuid === 'new' ? createLicenseRecord({ payload: form }) : updateLicenseRecord({ uuid: license.uuid, payload: form });
     },
-    onSuccess: async (response) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({queryKey:['licensing']});
-      if (license.uuid === 'new') {
-        try { const payload = JSON.parse(await response.text()); if (payload?.data) navigate(`/licensing/${payload.data}`, {replace:true}); }
-        catch { navigate('/licensing'); }
-      }
+      navigate(-1);
     }
   });
   const remove = useMutation({ mutationFn:()=>deleteLicenseRecord({id:license.uuid}), onSuccess:async()=>{await queryClient.invalidateQueries({queryKey:['licensing']});navigate('/licensing');} });
@@ -109,7 +106,7 @@ export const LicenseRecord = () => {
   };
 
   return <section className="exact-react-page">
-    <PageHead title={id === 'new' ? 'Add a licensing record' : 'Licensing record'} subtitle={id === 'new' ? 'Add a licence, rating, medical or certification record.' : 'Review and update this licensing record.'} actions={<><button className="btn ghost exact-secondary-action" onClick={()=>navigate('/licensing')}>Back</button>{id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button>:null}<button className={`btn primary${id === 'new' ? ' exact-done-button' : ''}`} disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':(id === 'new' ? 'Done' : 'Save record')}</button></>} />
+    <PageHead title={id === 'new' ? 'Add a licensing record' : 'Licensing record'} subtitle={id === 'new' ? 'Add a licence, rating, medical or certification record.' : 'Review and update this licensing record.'} actions={<><button className="btn ghost exact-secondary-action" onClick={()=>navigate('/licensing')}>Back</button>{id !== 'new' ? <button className="btn danger" onClick={handleDelete}>Delete</button>:null}<button className="btn primary exact-done-button" disabled={save.isPending} onClick={()=>save.mutate()}>{save.isPending?'Saving…':'Done'}</button></>} />
     <Loading show={isLoading || save.isPending || remove.isPending}/>
     {save.error ? <div className="note exact-inline-danger">{String(save.error.message || save.error)}</div> : null}
     <div className="split">
