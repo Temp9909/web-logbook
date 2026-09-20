@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"codeberg.org/go-pdf/fpdf"
 	"codeberg.org/go-pdf/fpdf/contrib/gofpdi"
@@ -15,8 +16,10 @@ import (
 
 // Constants for page formats
 const (
+	// EASALogbookRows matches the 12 entry lines in the AMC1 FCL.050 pilot-logbook example.
+	EASALogbookRows = 12
+
 	PDFA4 string = "A4"
-	PDFA5 string = "A5"
 )
 
 // Constants for fonts
@@ -146,11 +149,23 @@ func NewPDFExporter(format, ownerName, licenseNumber, address,
 // init initializes the PDFExporter object
 func (p *PDFExporter) init() error {
 	// check if we have a right format
-	if p.Format != PDFA4 && p.Format != PDFA5 {
+	if p.Format != PDFA4 {
 		return fmt.Errorf("wrong format %s", p.Format)
 	}
 
 	p.pageBreaks = strings.Split(p.Export.PageBreaks, ",")
+
+	// The A4 export is fixed to the EASA AMC1 FCL.050 pilot-logbook structure.
+	// Legacy saved layout settings are intentionally ignored so an old database
+	// cannot alter the regulatory table layout after the settings UI was removed.
+	p.Export.LogbookRows = EASALogbookRows
+	p.Export.IsExtended = true
+	p.Export.LeftMargin = 10.0
+	p.Export.TopMargin = 30.0
+	p.Export.BodyRow = 5.0
+	p.Export.FooterRow = 6.0
+	p.Export.Fill = 3
+	p.Export.ReplaceSPTime = true
 
 	if !p.Export.IncludeSignature {
 		p.SignatureImage = ""
@@ -164,27 +179,20 @@ func (p *PDFExporter) init() error {
 
 // initHeaders initializes headers for the logbook
 func (p *PDFExporter) initHeaders() {
-	h := p.Export.Headers
-
 	p.headers = Headers{
 		header1: []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"},
 
 		header2: []string{
-			h.Date, h.Departure, h.Arrival, h.Aircraft, h.SPT, h.MCC, h.Total,
-			h.PICName, h.Landings, h.OCT, h.PFT, h.FSTD, h.Remarks,
+			"DATE\n(dd/mm/yy)", "DEPARTURE", "ARRIVAL", "AIRCRAFT", "SINGLE-PILOT TIME",
+			"MULTI-PILOT TIME", "TOTAL TIME\nOF FLIGHT", "NAME(S) PIC", "LANDINGS",
+			"OPERATIONAL\nCONDITION TIME", "PILOT FUNCTION TIME", "FSTD SESSION",
+			"REMARKS AND\nENDORSEMENTS",
 		},
 		header3: []string{
-			"", h.DepPlace, h.DepTime, h.ArrPlace, h.ArrTime, h.Model, h.Reg,
-			h.SE, h.ME, "", "", "", h.LandDay, h.LandNight, h.Night, h.IFR,
-			h.PIC, h.COP, h.Dual, h.Instr, h.SimType, h.SimTime, "",
+			"", "PLACE", "TIME", "PLACE", "TIME", "MAKE, MODEL,\nVARIANT", "REGISTRATION",
+			"SE", "ME", "", "", "", "DAY", "NIGHT", "NIGHT", "IFR",
+			"PIC", "CO-PILOT", "DUAL", "INSTRUCTOR", "TYPE", "TOTAL TIME\nOF SESSION", "",
 		},
-	}
-
-	for i := range p.headers.header2 {
-		p.headers.header2[i] = strings.ReplaceAll(p.headers.header2[i], "\\n", "\n")
-	}
-	for i := range p.headers.header3 {
-		p.headers.header3[i] = strings.ReplaceAll(p.headers.header3[i], "\\n", "\n")
 	}
 }
 
@@ -272,13 +280,8 @@ func (p *PDFExporter) initColumns() {
 
 // initPDF initializes the PDF object
 func (p *PDFExporter) initPDF() error {
-	// init pdf object
-	switch p.Format {
-	case PDFA4:
-		p.pdf = fpdf.New("L", "mm", "A4", "")
-	case PDFA5:
-		p.pdf = fpdf.New("L", "mm", "A5", "")
-	}
+	// The application exports only A4 landscape.
+	p.pdf = fpdf.New("L", "mm", "A4", "")
 
 	// page configuration
 	p.pdf.SetAutoPageBreak(true, 5)
@@ -349,12 +352,6 @@ func (p *PDFExporter) titlePage() {
 			License: {x: 65, y: 157},
 			Address: {x: 65, y: 164},
 		},
-		PDFA5: {
-			Title:   {x: 55, y: 60},
-			Name:    {x: 25, y: 100},
-			License: {x: 25, y: 107},
-			Address: {x: 25, y: 114},
-		},
 	}
 
 	if len(p.Export.CustomTitleBlob) != 0 {
@@ -388,7 +385,6 @@ func (p *PDFExporter) printCustomTitle() {
 	// some variables and parameters
 	sizes := map[string]fpdf.SizeType{
 		PDFA4: {Wd: 210, Ht: 297},
-		PDFA5: {Wd: 148, Ht: 210},
 	}
 
 	type pageParams struct{ x, y, w, h float64 }
@@ -396,10 +392,6 @@ func (p *PDFExporter) printCustomTitle() {
 		PDFA4: {
 			"P": {x: 0, y: 0, w: 210, h: 297},
 			"L": {x: 0, y: -87, w: 297, h: 297},
-		},
-		PDFA5: {
-			"P": {x: 0, y: 0, w: 148, h: 210},
-			"L": {x: 0, y: -62, w: 210, h: 210},
 		},
 	}
 
@@ -490,6 +482,27 @@ func (p *PDFExporter) printSinglePilotTime(w float64, value string, fill bool) {
 	} else {
 		p.printBodyTimeCell(w, value, fill)
 	}
+}
+
+// formatLogbookDate formats the date as required by the EASA example (dd/mm/yy).
+func formatLogbookDate(value string) string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return ""
+	}
+
+	for _, layout := range []string{"02/01/2006", "2/1/2006", "02-01-2006", "2-1-2006", "2006-01-02", "02/01/06", "2/1/06"} {
+		if parsed, err := time.Parse(layout, value); err == nil {
+			return parsed.Format("02/01/06")
+		}
+	}
+
+	return value
+}
+
+// isFSTDRecord identifies a simulator/FSTD entry so its date is printed in column 11.
+func isFSTDRecord(record models.FlightRecord) bool {
+	return strings.TrimSpace(record.SIM.Type) != "" || strings.TrimSpace(record.SIM.Time) != ""
 }
 
 // formatTimeField formats time field in the logbook

@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import LinearProgress from '@mui/material/LinearProgress';
 import ApplePanel from "../UIElements/ApplePanel";
 import { useErrorNotification } from "../../hooks/useAppNotifications";
 import { fetchFlightRecordAttachments } from "../../util/http/attachment";
@@ -28,7 +27,6 @@ export const Attachments = ({ id }) => {
 
   return (
     <ApplePanel title="Attachments" subtitle="Documents and tracks attached to this flight." actions={<ActionButtons id={id} />}>
-      {isLoading && <LinearProgress />}
       <div className="apple-list-stack">
         {(Array.isArray(data) ? data : []).map((attachment) => (
           <Attachment key={attachment.uuid} attachment={attachment} />

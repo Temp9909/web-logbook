@@ -1,69 +1,46 @@
 import AppleToolbarButton from '../UIElements/AppleToolbarButton';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
-// MUI UI elements
 import Tooltip from '@mui/material/Tooltip';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
-// MUI Icons
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
-// Custom
 import { useErrorNotification, useSuccessNotification } from '../../hooks/useAppNotifications';
 import { fetchExport } from '../../util/http/export';
 
 export const PDFExportButton = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-
-  const { mutateAsync: runExport, isPending: isExporting, isError: isExportError, error: exportError } = useMutation({
-    mutationFn: async (format) => {
-      const blob = await fetchExport(format);
+  const {
+    mutateAsync: runExport,
+    isPending: isExporting,
+    isError: isExportError,
+    error: exportError,
+    isSuccess: isExportSuccess,
+  } = useMutation({
+    mutationFn: async () => {
+      const blob = await fetchExport('A4');
       const url = window.URL.createObjectURL(blob);
-
-      // Create a link and trigger download
       const link = document.createElement('a');
       link.href = url;
-      link.download = `logbook-${format}.pdf`; // Set a dynamic filename
+      link.download = 'logbook-A4.pdf';
       link.click();
-
-      // Cleanup
       window.URL.revokeObjectURL(url);
     },
   });
+
   useErrorNotification({ isError: isExportError, error: exportError, fallbackMessage: 'Failed to export PDF' });
-  useSuccessNotification({ isSuccess: isExporting, message: 'PDF Exported successfully' });
+  useSuccessNotification({ isSuccess: isExportSuccess, message: 'PDF exported successfully' });
 
-  const handleClick = useCallback((event) => { setAnchorEl(event.currentTarget) }, []);
-  const handleClose = useCallback(() => { setAnchorEl(null) }, []);
-
-  const handleExport = useCallback(async (format) => {
-    await runExport(format);
-    handleClose();
-  }, [runExport, handleClose]);
+  const handleExport = useCallback(async () => {
+    if (!isExporting) await runExport();
+  }, [isExporting, runExport]);
 
   return (
-    <>
-      <Tooltip title="PDF Export">
-        <AppleToolbarButton onClick={handleClick} color="default" label='PDF Export'>
+    <Tooltip title="Export PDF (A4 landscape)">
+      <span>
+        <AppleToolbarButton onClick={handleExport} color="default" label="PDF Export" disabled={isExporting}>
           <PictureAsPdfOutlinedIcon />
         </AppleToolbarButton>
-      </Tooltip>
-      <Menu
-        anchorEl={anchorEl}
-        open={open}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-        transformOrigin={{ vertical: "top", horizontal: "left" }}
-      >
-        <MenuItem onClick={() => handleExport("A4")} sx={{ p: 0 }}>
-          <PictureAsPdfOutlinedIcon sx={{ m: 1 }} color="action" /> Export PDF A4
-        </MenuItem>
-        <MenuItem onClick={() => handleExport("A5")} sx={{ p: 0 }}>
-          <PictureAsPdfOutlinedIcon sx={{ m: 1 }} color="action" /> Export PDF A5
-        </MenuItem>
-      </Menu>
-    </>
-  )
+      </span>
+    </Tooltip>
+  );
 }
 
 export default PDFExportButton;

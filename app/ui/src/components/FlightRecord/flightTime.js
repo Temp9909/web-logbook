@@ -28,10 +28,10 @@ export const formatQuickFillLabel = (totalMinutes) => {
   const minutes = Number(totalMinutes);
   if (!Number.isFinite(minutes) || minutes <= 0) return '';
   const rounded = Math.floor(minutes);
-  if (rounded < 60) return `+${rounded}`;
   const hours = Math.floor(rounded / 60);
   const remainder = rounded % 60;
-  return `+${String(hours).padStart(2, '0')}${String(remainder).padStart(2, '0')}`;
+  const duration = `${hours}:${String(remainder).padStart(2, '0')}`;
+  return `+${duration}`;
 };
 
 const ROLE_FIELD = {

@@ -227,6 +227,13 @@
   table.easa th, table.easa td { padding: 6px 8px; text-align: center; }
   table.easa td:nth-child(2), table.easa td:nth-child(4) { text-align: left; }
   table.easa .muted { text-align: left; }
+  table.easa thead tr.num th {
+    font-size: 9.5px; font-weight: 600; color: var(--secondary); line-height: 1;
+    border-bottom: 1px solid var(--separator);
+    border-left: 1px solid var(--separator);
+    padding-top: 4px; padding-bottom: 4px;
+  }
+  table.easa thead tr.num th:first-child { border-left: 0; }
   table.easa thead tr.grp th {
     font-size: 9.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
     color: var(--secondary); line-height: 1.25; vertical-align: bottom;
@@ -3731,3 +3738,54 @@ body > div:not(#root) * {
 .sidebar .nav-group-sub a.selected:focus-visible {
   color:#000000 !important;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Interaction polish: app text is not selectable except inside edit controls. */
+/* -------------------------------------------------------------------------- */
+body,
+body * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable="plaintext-only"],
+.MuiInputBase-input,
+.MuiOutlinedInput-input,
+.MuiInput-input,
+.MuiFilledInput-input {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Flight-time quick fill uses readable H:MM labels without squeezing the text.
+   The wider duration chip naturally moves the clock glyph slightly left. */
+.exact-native-time-row.duration .exact-time-quick-fill {
+  flex: 0 0 48px;
+  width: 48px;
+  min-width: 48px;
+  max-width: 48px;
+  height: 26px;
+  min-height: 26px;
+  padding: 0 5px;
+  font-size: 10.5px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+}
+.exact-native-time-row.duration .exact-time-picker-hint {
+  margin-right: 1px;
+}
+
+@media(max-width:620px) {
+  .exact-native-time-row.duration .exact-time-quick-fill {
+    flex: 0 0 48px;
+    width: 48px;
+    min-width: 48px;
+    max-width: 48px;
+  }
+}
+

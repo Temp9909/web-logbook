@@ -6,6 +6,8 @@ import DashboardPageContent from '../components/UIElements/Dashboard/DashboardPa
 export default function Root() {
   const [sidebarOpen, setSidebarOpen] = useState(() => typeof window === 'undefined' || window.matchMedia('(min-width: 801px)').matches);
   const closeAfterNavigation = () => {
+    const mainContent = document.querySelector('.apple-main-content');
+    if (mainContent) mainContent.scrollTop = 0;
     if (window.matchMedia('(max-width: 800px)').matches) setSidebarOpen(false);
   };
   return (

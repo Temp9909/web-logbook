@@ -6,7 +6,6 @@ import Dialog from '@mui/material/Dialog';
 import Tooltip from "@mui/material/Tooltip";
 import IconButton from "@mui/material/IconButton";
 import Grid from "@mui/material/Grid";
-import LinearProgress from '@mui/material/LinearProgress';
 // MUI Icons
 import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
@@ -192,7 +191,6 @@ export const SignModal = ({ open, onClose, payload }) => {
         subtitle="Draw and save the signature for this flight record."
         actions={<ActionButtons onClose={onClose} uuid={payload.uuid} signature={signature} setSignature={setSignature} setPenColor={setPenColor} />}
       >
-        {signatureLoading && <LinearProgress />}
         <div className="apple-signature-pad">
           <canvas ref={canvasRef} className="apple-signature-canvas" />
         </div>

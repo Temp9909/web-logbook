@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import Grid from "@mui/material/Grid";
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import LinearProgress from "@mui/material/LinearProgress";
 // Custom
 import CardHeader from "../../UIElements/CardHeader";
 import Filters from "../../UIElements/Filters";
@@ -101,7 +100,6 @@ export const TotalsDashboard = () => {
 
   return (
     <>
-      {isLoading && <LinearProgress />}
       <Grid container spacing={1} >
         <Grid size={{ xs: 12, sm: 12, md: 3, lg: 3, xl: 3 }}>
           <Card variant="outlined" sx={{ mb: 1 }}>

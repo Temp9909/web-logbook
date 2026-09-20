@@ -1,215 +1,156 @@
 import { useMemo } from 'react';
 import { useGridApiRef } from '@mui/x-data-grid';
-// MUI icons
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
-// Custom components
-import XDataGrid from '../UIElements/XDataGrid/XDataGrid'
+import XDataGrid from '../UIElements/XDataGrid/XDataGrid';
 import {
-  createColumn, createDateColumn, createLandingColumn,
-  createTimeColumn, sumTime, createCustomFieldColumns,
-  getCustomFieldColumnsForGrouping,
-  createHasTrackColumn,
-  createHasAttachmentColumn
+  createColumn,
+  createDateColumn,
+  createLandingColumn,
+  createTimeColumn,
+  sumTime,
 } from './helpers';
 import NewFlightRecordButton from './NewFlightRecordButton';
 import useSettings from '../../hooks/useSettings';
-import useCustomFields from '../../hooks/useCustomFields';
 import TableHeader from '../UIElements/TableHeader';
 import CSVExportButton from '../UIElements/CSVExportButton';
 import PDFExportButton from './PDFExportButton';
 
+const isFSTDRecord = (row) => Boolean(row?.sim?.type || row?.sim?.time);
+
+const groupHeader = (title) => <TableHeader title={title} />;
+
 export const LogbookTable = ({ data, isLoading, ...props }) => {
   const apiRef = useGridApiRef();
-  const { settings, isSettingsLoading, fieldName, paginationOptions } = useSettings();
-  const { customFields, isCustomFieldsLoading } = useCustomFields();
+  const { settings, isSettingsLoading, paginationOptions } = useSettings();
 
   const columns = useMemo(() => {
-    if (isCustomFieldsLoading || isSettingsLoading) {
-      return [];
-    }
+    if (isSettingsLoading) return [];
 
     return [
-      // record number
-      createColumn({ field: "record_number", headerName: "#", width: 30, type: 'number', align: 'center', valueFormatter: (value) => value.toString() }),
-      // date
-      createDateColumn({ field: "date", headerName: fieldName("date"), width: 90 }),
-      // departure
-      createColumn({ field: "departure_place", headerName: fieldName("dep_place"), width: 60, valueGetter: (_value, row) => row.departure?.place }),
-      createColumn({ field: "departure_time", headerName: fieldName("dep_time"), width: 55, type: 'string', valueGetter: (_value, row) => row.departure?.time }),
-      ...createCustomFieldColumns(customFields, fieldName("departure")),
-      // arrival
-      createColumn({ field: "arrival_place", headerName: fieldName("arr_place"), width: 60, valueGetter: (_value, row) => row.arrival?.place }),
-      createColumn({ field: "arrival_time", headerName: fieldName("arr_time"), width: 55, type: 'string', valueGetter: (_value, row) => row.arrival?.time }),
-      ...createCustomFieldColumns(customFields, fieldName("arrival")),
-      // aircraft
-      createColumn({ field: "aircraft_model", headerName: fieldName("model"), width: 70, valueGetter: (_value, row) => row.aircraft?.model }),
-      createColumn({ field: "aircraft_reg", headerName: fieldName("reg"), width: 75, valueGetter: (_value, row) => row.aircraft?.reg_name }),
-      ...createCustomFieldColumns(customFields, fieldName("aircraft")),
-      // single pilot time
-      createTimeColumn({ field: "se_time", headerName: fieldName("se") }),
-      createTimeColumn({ field: "me_time", headerName: fieldName("me"), valueGetter: (_value, row) => row.time.mcc_time !== "" ? "" : row.time.me_time }),
-      ...createCustomFieldColumns(customFields, fieldName("spt")),
-      // MCC time
-      createTimeColumn({ field: "mcc_time", headerName: fieldName("mcc") }),
-      ...createCustomFieldColumns(customFields, fieldName("mcc")),
-      // total
-      createTimeColumn({ field: "total_time", headerName: fieldName("total") }),
-      ...createCustomFieldColumns(customFields, fieldName("total")),
-      // pic name
-      createColumn({ field: "pic_name", headerName: fieldName("pic_name"), width: 150, align: 'left' }),
-      // landings
-      createLandingColumn({ field: "landings_day", headerName: fieldName("land_day") }),
-      createLandingColumn({ field: "landings_night", headerName: fieldName("land_night") }),
-      ...createCustomFieldColumns(customFields, fieldName("landings")),
-      // operation condition time
-      createTimeColumn({ field: "night_time", headerName: fieldName("night"), width: 60 }),
-      createTimeColumn({ field: "ifr_time", headerName: fieldName("ifr"), width: 59 }),
-      ...createCustomFieldColumns(customFields, fieldName("oct")),
-      // pilot function time
-      createTimeColumn({ field: "pic_time", headerName: fieldName("pic") }),
-      createTimeColumn({ field: "co_pilot_time", headerName: fieldName("cop") }),
-      createTimeColumn({ field: "dual_time", headerName: fieldName("dual") }),
-      createTimeColumn({ field: "instructor_time", headerName: fieldName("instr") }),
-      ...createCustomFieldColumns(customFields, fieldName("pft")),
-      // sim
-      createColumn({ field: "sim_type", headerName: fieldName("sim_type"), width: 60, valueGetter: (_value, row) => row.sim.type }),
-      createColumn({ field: "sim_time", headerName: fieldName("sim_time"), width: 55, headerAlign: 'center', align: 'center', type: 'time', valueGetter: (_value, row) => row.sim.time, aggregationFn: sumTime }),
-      ...createCustomFieldColumns(customFields, fieldName("fstd")),
-      // custom
-      ...createCustomFieldColumns(customFields, "Custom"),
-      // remarks
-      createColumn({ field: "remarks", headerName: fieldName("remarks"), align: 'left', flex: 1, minWidth: 50 }),
-      ...createCustomFieldColumns(customFields, fieldName("remarks")),
-      // misc
-      createHasTrackColumn({ field: "has_track" }),
-      createHasAttachmentColumn({ field: "has_attachment" }),
-      createColumn({ field: "tags", headerName: fieldName("tags"), align: 'left' }),
-    ].map(col => ({ ...col, sortable: col.field === 'date' || col.field === 'record_number' }));
-  }, [isSettingsLoading, isCustomFieldsLoading, fieldName, customFields]);
+      // AMC1 FCL.050 - column 1
+      createDateColumn({
+        field: 'date',
+        headerName: 'DATE (dd/mm/yy)',
+        width: 96,
+        displayFormat: 'DD/MM/YY',
+        getValue: (_value, row) => (isFSTDRecord(row) ? null : row.date),
+      }),
 
-  const columnGroupingModel = useMemo(() => {
-    if (isCustomFieldsLoading || isSettingsLoading) {
-      return [];
-    }
+      // column 2 - departure
+      createColumn({ field: 'departure_place', headerName: 'PLACE', width: 72, valueGetter: (_value, row) => row.departure?.place }),
+      createColumn({ field: 'departure_time', headerName: 'TIME', width: 66, type: 'string', valueGetter: (_value, row) => row.departure?.time }),
 
-    return [
-      {
-        groupId: 'Departure',
-        headerName: <TableHeader title={fieldName("departure")} />,
+      // column 3 - arrival
+      createColumn({ field: 'arrival_place', headerName: 'PLACE', width: 72, valueGetter: (_value, row) => row.arrival?.place }),
+      createColumn({ field: 'arrival_time', headerName: 'TIME', width: 66, type: 'string', valueGetter: (_value, row) => row.arrival?.time }),
+
+      // column 4 - aircraft
+      createColumn({ field: 'aircraft_model', headerName: 'MAKE, MODEL, VARIANT', width: 150, valueGetter: (_value, row) => row.aircraft?.model }),
+      createColumn({ field: 'aircraft_reg', headerName: 'REGISTRATION', width: 108, valueGetter: (_value, row) => row.aircraft?.reg_name }),
+
+      // column 5 - single / multi-pilot time
+      createTimeColumn({ field: 'se_time', headerName: 'SE', width: 62, renderCell: (params) => (params.value && params.value !== '0:00' && params.value !== '00:00' ? '✓' : '') }),
+      createTimeColumn({ field: 'me_time', headerName: 'ME', width: 62, valueGetter: (_value, row) => row.time.mcc_time !== '' ? '' : row.time.me_time, renderCell: (params) => (params.value && params.value !== '0:00' && params.value !== '00:00' ? '✓' : '') }),
+      createTimeColumn({ field: 'mcc_time', headerName: 'MULTI-PILOT TIME', width: 108 }),
+
+      // columns 6-8
+      createTimeColumn({ field: 'total_time', headerName: 'TOTAL TIME OF FLIGHT', width: 108 }),
+      createColumn({ field: 'pic_name', headerName: 'NAME(S) PIC', width: 150, align: 'left' }),
+      createLandingColumn({ field: 'landings_day', headerName: 'DAY', width: 62 }),
+      createLandingColumn({ field: 'landings_night', headerName: 'NIGHT', width: 62 }),
+
+      // column 9
+      createTimeColumn({ field: 'night_time', headerName: 'NIGHT', width: 70 }),
+      createTimeColumn({ field: 'ifr_time', headerName: 'IFR', width: 70 }),
+
+      // column 10
+      createTimeColumn({ field: 'pic_time', headerName: 'PIC', width: 70 }),
+      createTimeColumn({ field: 'co_pilot_time', headerName: 'CO-PILOT', width: 78 }),
+      createTimeColumn({ field: 'dual_time', headerName: 'DUAL', width: 70 }),
+      createTimeColumn({ field: 'instructor_time', headerName: 'INSTRUCTOR', width: 86 }),
+
+      // column 11 - FSTD session. The date is the record date for an FSTD entry.
+      createDateColumn({
+        field: 'sim_date',
+        headerName: 'DATE (dd/mm/yy)',
+        width: 96,
+        displayFormat: 'DD/MM/YY',
+        getValue: (_value, row) => (isFSTDRecord(row) ? row.date : null),
+      }),
+      createColumn({ field: 'sim_type', headerName: 'TYPE', width: 86, valueGetter: (_value, row) => row.sim?.type }),
+      createColumn({
+        field: 'sim_time',
+        headerName: 'TOTAL TIME OF SESSION',
+        width: 108,
         headerAlign: 'center',
-        children: [
-          { field: 'departure_place' }, { field: 'departure_time' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("departure"))
-        ],
-      },
-      {
-        groupId: 'Arrival',
-        headerName: <TableHeader title={fieldName("arrival")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'arrival_place' }, { field: 'arrival_time' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("arrival"))
-        ],
-      },
-      {
-        groupId: 'Aircraft',
-        headerName: <TableHeader title={fieldName("aircraft")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'aircraft_model' }, { field: 'aircraft_reg' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("aircraft"))
-        ],
-      },
-      {
-        groupId: 'Single Pilot',
-        headerName: <TableHeader title={fieldName("spt")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'se_time' }, { field: 'me_time' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("spt"))
-        ],
-      },
-      getCustomFieldColumnsForGrouping(customFields, fieldName("mcc")).length > 0 && {
-        groupId: 'MCC',
-        headerName: <TableHeader title={fieldName("mcc")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'mcc_time' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("mcc"))
-        ],
-      },
-      getCustomFieldColumnsForGrouping(customFields, fieldName("total")).length > 0 && {
-        groupId: 'Total',
-        headerName: <TableHeader title={fieldName("total")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'total_time' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("total"))
-        ],
-      },
-      {
-        groupId: 'Landings',
-        headerName: <TableHeader title={fieldName("landings")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'landings_day' }, { field: 'landings_night' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("landings"))
-        ],
-      },
-      {
-        groupId: 'Operational Condition Time',
-        headerName: <TableHeader title={fieldName("oct")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'night_time' }, { field: 'ifr_time' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("oct"))
-        ],
-      },
-      {
-        groupId: 'Pilot Function Time',
-        headerName: <TableHeader title={fieldName("pft")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'pic_time' }, { field: 'co_pilot_time' }, { field: 'dual_time' }, { field: 'instructor_time' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("pft"))
-        ],
-      },
-      {
-        groupId: 'FSTD Sessions',
-        headerName: <TableHeader title={fieldName("fstd")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'sim_type' }, { field: 'sim_time' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("fstd"))
-        ],
-      },
-      getCustomFieldColumnsForGrouping(customFields, "Custom").length > 0 && {
-        groupId: 'Custom',
-        headerName: <TableHeader title={"Custom"} />,
-        headerAlign: 'center',
-        children: [
-          ...getCustomFieldColumnsForGrouping(customFields, "Custom")
-        ],
-      },
-      getCustomFieldColumnsForGrouping(customFields, fieldName("remarks")).length > 0 && {
-        groupId: 'Remarks',
-        headerName: <TableHeader title={fieldName("remarks")} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'remarks' },
-          ...getCustomFieldColumnsForGrouping(customFields, fieldName("remarks"))
-        ],
-      },
-      {
-        groupId: 'Misc',
-        headerName: <TableHeader title={"Misc"} />,
-        headerAlign: 'center',
-        children: [
-          { field: 'has_track' }, { field: 'has_attachment' }, { field: 'tags' },
-        ],
-      },
-    ].filter(Boolean);
-  }, [isSettingsLoading, isCustomFieldsLoading, fieldName, customFields]);
+        align: 'center',
+        type: 'time',
+        valueGetter: (_value, row) => row.sim?.time,
+        aggregationFn: sumTime,
+      }),
+
+      // column 12
+      createColumn({ field: 'remarks', headerName: 'REMARKS AND ENDORSEMENTS', align: 'left', width: 240 }),
+    ].map((col) => ({ ...col, sortable: col.field === 'date' }));
+  }, [isSettingsLoading]);
+
+  const columnGroupingModel = useMemo(() => [
+    { groupId: 'easa-1', headerName: '1', headerAlign: 'center', children: [{ field: 'date' }] },
+    {
+      groupId: 'easa-2', headerName: '2', headerAlign: 'center', children: [{
+        groupId: 'easa-departure', headerName: groupHeader('DEPARTURE'), headerAlign: 'center',
+        children: [{ field: 'departure_place' }, { field: 'departure_time' }],
+      }],
+    },
+    {
+      groupId: 'easa-3', headerName: '3', headerAlign: 'center', children: [{
+        groupId: 'easa-arrival', headerName: groupHeader('ARRIVAL'), headerAlign: 'center',
+        children: [{ field: 'arrival_place' }, { field: 'arrival_time' }],
+      }],
+    },
+    {
+      groupId: 'easa-4', headerName: '4', headerAlign: 'center', children: [{
+        groupId: 'easa-aircraft', headerName: groupHeader('AIRCRAFT'), headerAlign: 'center',
+        children: [{ field: 'aircraft_model' }, { field: 'aircraft_reg' }],
+      }],
+    },
+    {
+      groupId: 'easa-5', headerName: '5', headerAlign: 'center', children: [
+        {
+          groupId: 'easa-single-pilot', headerName: groupHeader('SINGLE-PILOT TIME'), headerAlign: 'center',
+          children: [{ field: 'se_time' }, { field: 'me_time' }],
+        },
+        { field: 'mcc_time' },
+      ],
+    },
+    { groupId: 'easa-6', headerName: '6', headerAlign: 'center', children: [{ field: 'total_time' }] },
+    { groupId: 'easa-7', headerName: '7', headerAlign: 'center', children: [{ field: 'pic_name' }] },
+    {
+      groupId: 'easa-8', headerName: '8', headerAlign: 'center', children: [{
+        groupId: 'easa-landings', headerName: groupHeader('LANDINGS'), headerAlign: 'center',
+        children: [{ field: 'landings_day' }, { field: 'landings_night' }],
+      }],
+    },
+    {
+      groupId: 'easa-9', headerName: '9', headerAlign: 'center', children: [{
+        groupId: 'easa-operational', headerName: groupHeader('OPERATIONAL CONDITION TIME'), headerAlign: 'center',
+        children: [{ field: 'night_time' }, { field: 'ifr_time' }],
+      }],
+    },
+    {
+      groupId: 'easa-10', headerName: '10', headerAlign: 'center', children: [{
+        groupId: 'easa-function', headerName: groupHeader('PILOT FUNCTION TIME'), headerAlign: 'center',
+        children: [{ field: 'pic_time' }, { field: 'co_pilot_time' }, { field: 'dual_time' }, { field: 'instructor_time' }],
+      }],
+    },
+    {
+      groupId: 'easa-11', headerName: '11', headerAlign: 'center', children: [{
+        groupId: 'easa-fstd', headerName: groupHeader('FSTD SESSION'), headerAlign: 'center',
+        children: [{ field: 'sim_date' }, { field: 'sim_type' }, { field: 'sim_time' }],
+      }],
+    },
+    { groupId: 'easa-12', headerName: '12', headerAlign: 'center', children: [{ field: 'remarks' }] },
+  ], []);
 
   const customActions = useMemo(() => (
     <>
@@ -222,30 +163,29 @@ export const LogbookTable = ({ data, isLoading, ...props }) => {
   return (
     <XDataGrid
       apiRef={apiRef}
-      tableId='logbook'
-      title='Logbook'
+      tableId="logbook"
+      title="Logbook"
       icon={<AutoStoriesOutlinedIcon />}
       loading={isLoading}
       rows={data}
       columns={columns}
       columnGroupingModel={columnGroupingModel}
+      columnGroupHeaderHeight={30}
+      columnHeaderHeight={50}
       pageSizeOptions={paginationOptions}
       getRowId={(row) => row.uuid}
-      footerFieldIdTotalLabel='aircraft_reg'
-      showAggregationFooter={true}
-      showPreviousPagesTotal={settings.logbook_totals_view === 1}
+      footerFieldIdTotalLabel="aircraft_reg"
+      showAggregationFooter
+      showPreviousPagesTotal
       initialValues={settings.previous_experience}
       disableColumnMenu
       customActions={customActions}
-      customColumnVisibilityModel={{
-        record_number: false,
-        has_track: false,
-        has_attachment: false,
-        tags: false,
-      }}
+      pageTotalLabel="TOTAL THIS PAGE"
+      previousTotalLabel="TOTAL FROM PREVIOUS PAGES"
+      grandTotalLabel="TOTAL TIME"
       {...props}
     />
-  )
-}
+  );
+};
 
 export default LogbookTable;

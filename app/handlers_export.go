@@ -16,7 +16,6 @@ import (
 )
 
 const exportA4 = "A4"
-const exportA5 = "A5"
 
 // validateCustomTitlePdf checks if the uploaded PDF file is supported by fpdf library
 func validateCustomTitlePdf(bs []byte) (err error) {
@@ -93,6 +92,10 @@ func (app *application) HandlerApiUploadCustomTitle(w http.ResponseWriter, r *ht
 // HandlerExportLogbook serves the GET request for logbook export
 func (app *application) HandlerApiExportLogbook(w http.ResponseWriter, r *http.Request) {
 	format := chi.URLParam(r, "format")
+	if format != exportA4 {
+		http.Error(w, "unsupported export format", http.StatusNotFound)
+		return
+	}
 
 	flightRecords, err := app.db.GetFlightRecordsForExport()
 	if err != nil {
@@ -106,66 +109,41 @@ func (app *application) HandlerApiExportLogbook(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	var contentType, fileName string
-	var exportFunc func() error
+	exportSettings := settings.ExportA4
 
-	switch format {
-	case exportA4, exportA5:
-		contentType = "application/pdf"
-		fileName = "logbook.pdf"
+	var previousExperience models.FlightRecord
+	previousExperience.Time.SE = settings.PreviousExperience.SE
+	previousExperience.Time.ME = settings.PreviousExperience.ME
+	previousExperience.Time.Total = settings.PreviousExperience.Total
+	previousExperience.Time.MCC = settings.PreviousExperience.MCC
+	previousExperience.Time.Night = settings.PreviousExperience.Night
+	previousExperience.Time.IFR = settings.PreviousExperience.IFR
+	previousExperience.Time.PIC = settings.PreviousExperience.PIC
+	previousExperience.Time.CoPilot = settings.PreviousExperience.CoPilot
+	previousExperience.Time.Dual = settings.PreviousExperience.Dual
+	previousExperience.Time.Instructor = settings.PreviousExperience.Instructor
+	previousExperience.Landings.Day = settings.PreviousExperience.LandingsDay
+	previousExperience.Landings.Night = settings.PreviousExperience.LandingsNight
+	previousExperience.SIM.Time = settings.PreviousExperience.SimTime
 
-		var exportSettings models.ExportPDF
+	att, _ := app.db.GetAttachmentByID("custom_title_a4")
+	exportSettings.CustomTitleBlob = att.Document
 
-		if format == exportA4 {
-			exportSettings = settings.ExportA4
-		} else {
-			exportSettings = settings.ExportA5
-		}
-
-		var previousExperience models.FlightRecord
-		previousExperience.Time.SE = settings.PreviousExperience.SE
-		previousExperience.Time.ME = settings.PreviousExperience.ME
-		previousExperience.Time.Total = settings.PreviousExperience.Total
-		previousExperience.Time.MCC = settings.PreviousExperience.MCC
-		previousExperience.Time.Night = settings.PreviousExperience.Night
-		previousExperience.Time.IFR = settings.PreviousExperience.IFR
-		previousExperience.Time.PIC = settings.PreviousExperience.PIC
-		previousExperience.Time.CoPilot = settings.PreviousExperience.CoPilot
-		previousExperience.Time.Dual = settings.PreviousExperience.Dual
-		previousExperience.Time.Instructor = settings.PreviousExperience.Instructor
-		previousExperience.Landings.Day = settings.PreviousExperience.LandingsDay
-		previousExperience.Landings.Night = settings.PreviousExperience.LandingsNight
-		previousExperience.SIM.Time = settings.PreviousExperience.SimTime
-
-		// custom title
-		id := fmt.Sprintf("custom_title_%s", strings.ToLower(format))
-		att, _ := app.db.GetAttachmentByID(id)
-		exportSettings.CustomTitleBlob = att.Document
-
-		pdfExporter, err := pdfexport.NewPDFExporter(format,
-			settings.OwnerName, settings.LicenseNumber, settings.Address,
-			settings.SignatureText, settings.SignatureImage, exportSettings,
-			previousExperience)
-
-		if err != nil {
-			app.handleError(w, err)
-			return
-		}
-
-		exportFunc = func() error {
-			if format == exportA4 {
-				return pdfExporter.ExportA4(flightRecords, w)
-			}
-			return pdfExporter.ExportA5(flightRecords, w)
-		}
-
+	pdfExporter, err := pdfexport.NewPDFExporter(
+		exportA4,
+		settings.OwnerName, settings.LicenseNumber, settings.Address,
+		settings.SignatureText, settings.SignatureImage, exportSettings,
+		previousExperience,
+	)
+	if err != nil {
+		app.handleError(w, err)
+		return
 	}
 
-	w.Header().Set("Content-Type", contentType)
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", "attachment; filename=logbook.pdf")
 
-	err = exportFunc()
-	if err != nil {
+	if err := pdfExporter.ExportA4(flightRecords, w); err != nil {
 		app.handleError(w, err)
 	}
 }
@@ -174,8 +152,8 @@ func (app *application) HandlerApiExportLogbook(w http.ResponseWriter, r *http.R
 // sent by the UI without persisting them to the database.
 func (app *application) HandlerApiPreviewLogbook(w http.ResponseWriter, r *http.Request) {
 	format := chi.URLParam(r, "format")
-	if format != exportA4 && format != exportA5 {
-		http.Error(w, "unsupported export format", http.StatusBadRequest)
+	if format != exportA4 {
+		http.Error(w, "unsupported export format", http.StatusNotFound)
 		return
 	}
 
@@ -212,13 +190,11 @@ func (app *application) HandlerApiPreviewLogbook(w http.ResponseWriter, r *http.
 	previousExperience.Landings.Night = settings.PreviousExperience.LandingsNight
 	previousExperience.SIM.Time = settings.PreviousExperience.SimTime
 
-	// Reuse the existing custom title page, if one is configured.
-	id := fmt.Sprintf("custom_title_%s", strings.ToLower(format))
-	att, _ := app.db.GetAttachmentByID(id)
+	att, _ := app.db.GetAttachmentByID("custom_title_a4")
 	exportSettings.CustomTitleBlob = att.Document
 
 	pdfExporter, err := pdfexport.NewPDFExporter(
-		format,
+		exportA4,
 		settings.OwnerName, settings.LicenseNumber, settings.Address,
 		settings.SignatureText, settings.SignatureImage, exportSettings,
 		previousExperience,
@@ -231,12 +207,7 @@ func (app *application) HandlerApiPreviewLogbook(w http.ResponseWriter, r *http.
 	w.Header().Set("Content-Type", "application/pdf")
 	w.Header().Set("Content-Disposition", "inline; filename=logbook-preview.pdf")
 
-	if format == exportA4 {
-		err = pdfExporter.ExportA4(flightRecords, w)
-	} else {
-		err = pdfExporter.ExportA5(flightRecords, w)
-	}
-	if err != nil {
+	if err := pdfExporter.ExportA4(flightRecords, w); err != nil {
 		app.handleError(w, err)
 	}
 }

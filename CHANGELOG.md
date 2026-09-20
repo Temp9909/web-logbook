@@ -399,7 +399,7 @@
 
 ## [2.38.0] - 25.06.2024
 
-- Fix: Bug with columns for the extended PDF format, both A4 and A5.
+- Fix: Bug with columns for the extended PDF format, A4.
 - Update: Update golang to 1.21.11 and golang packages
 - Fix: The daterange picker on the main Logbook page didn't recognize the settings for the first day of the week (Monday or Sunday)
 
@@ -441,7 +441,7 @@
 
 - New: Add support for MySQL database. Check [readme](https://github.com/vsimakhin/web-logbook?tab=readme-ov-file#mysql-database) for more details.
 - Update: Refactored PDF export package. No UI changes.
-- New: Add support for a custom title page for PDF A4/A5 exports.
+- New: Add support for a custom title page for PDF A4 exports.
 - Update: Update openlayers lib from 7.3.0 to 9.0.0. No UI changes.
 - Update: Update golang from 1.20.3 to 1.21.8. No UI changes.
 - Fix: Finally fixed the unit tests. No UI changes.
@@ -457,7 +457,7 @@
 
 ## [2.32.0] - 25.02.2024
 
-- New: Add autoformat for time fields. You can choose from three options: `None`, `HH:MM` (will add leading 0) and `H:MM` (will remove leading 0). Please note that this feature only affects how the time is displayed in the UI and does not modify the data in the database table. You can find this option in the `Settings`, `Export PDF A4`, and `Export PDF A5` pages.
+- New: Add autoformat for time fields. You can choose from three options: `None`, `HH:MM` (will add leading 0) and `H:MM` (will remove leading 0). Please note that this feature only affects how the time is displayed in the UI and does not modify the data in the database table. You can find this option in the `Settings`, `Export PDF A4` page.
 
 ## [2.31.0] - 27.01.2024
 
@@ -597,7 +597,6 @@ You can set `-url localhost` and app will listen on `localhost` or `127.0.0.1` o
 
 ## [2.13.0] - 24.02.2023
 
-- New: Add option for A5 pdf export format to add `Date` column to the `FSTD` section, which fully matches Part FCL.050 format (https://www.easa.europa.eu/sites/default/files/dfu/Part-FCL.pdf)
 - New: Now you can add a signature to the logbook in PDF format. The new signature pad on the `Settings` page allows you to write/draw your signature in any color or upload it from a file (`*.png` format only, and should be with transparent background). And then you can "turn it on" for each PDF export format with a checkbox `Include signature`
 - New: Added new setting `Replace SE and ME values for single pilot time with "✓" symbol` for PDF export formats. It's according to EASA Part FCL.050 logbook example https://www.easa.europa.eu/sites/default/files/dfu/Part-FCL.pdf
 - Updated: PDF export code adjustment to be more readable and flexible for future formats.

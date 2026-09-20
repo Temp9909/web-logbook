@@ -67,14 +67,9 @@ func (m *DBModel) UpdateSettings(settings Settings) error {
 	return nil
 }
 
-func (m *DBModel) GetPdfDefaults(format string) (pdfDefaults ExportPDF) {
-	if format == "A4" {
-		pdfDefaults = pdfA4Defaults
-		pdfDefaults.Columns = pdfA4DefaultColumns
-	} else if format == "A5" {
-		pdfDefaults = pdfA5Defaults
-		pdfDefaults.Columns = pdfA5DefaultColumns
-	}
+func (m *DBModel) GetPdfDefaults() (pdfDefaults ExportPDF) {
+	pdfDefaults = pdfA4Defaults
+	pdfDefaults.Columns = pdfA4DefaultColumns
 	pdfDefaults.Headers = pdfDefaultHeaders
 
 	return pdfDefaults

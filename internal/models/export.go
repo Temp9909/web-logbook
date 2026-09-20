@@ -21,18 +21,6 @@ func (m *DBModel) UpdateDefaults(param string) error {
 		s.ExportA4.Headers = pdfDefaultHeaders
 	case "a4columns":
 		s.ExportA4.Columns = pdfA4DefaultColumns
-	case "a5common":
-		s.ExportA5.LogbookRows = pdfA5Defaults.LogbookRows
-		s.ExportA5.Fill = pdfA5Defaults.Fill
-		s.ExportA5.LeftMarginA = pdfA5Defaults.LeftMarginA
-		s.ExportA5.LeftMarginB = pdfA5Defaults.LeftMarginB
-		s.ExportA5.TopMargin = pdfA5Defaults.TopMargin
-		s.ExportA5.BodyRow = pdfA5Defaults.BodyRow
-		s.ExportA5.FooterRow = pdfA5Defaults.FooterRow
-	case "a5headers":
-		s.ExportA5.Headers = pdfDefaultHeaders
-	case "a5columns":
-		s.ExportA5.Columns = pdfA5DefaultColumns
 	default:
 		return fmt.Errorf("wrong parameter name '%s'", param)
 	}

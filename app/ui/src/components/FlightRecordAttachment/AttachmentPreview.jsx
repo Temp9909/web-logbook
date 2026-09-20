@@ -4,7 +4,6 @@ import { useMutation } from '@tanstack/react-query';
 // MUI
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
-import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
 // Custom
 import { fetchAttachment } from '../../util/http/attachment';
@@ -74,7 +73,6 @@ export const AttachmentPreview = ({ attachment, open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogContent>
-        {isPending && <LinearProgress />}
         {!isPending && blobUrl && mimeType && (
           renderPreview()
         )}

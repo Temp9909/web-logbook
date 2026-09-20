@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import LinearProgress from '@mui/material/LinearProgress';
 import { fetchLogbookData } from '../../util/http/logbook';
 import { useErrorNotification } from '../../hooks/useAppNotifications';
 import { SelectField } from '../AppleExact/Primitives';
@@ -27,10 +26,10 @@ const yearOf = (date) => {
 const shortDate = (date) => {
   if (!date) return '—';
   const s = String(date);
-  const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
-  if (m) return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${m[3]}`;
+  const m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4}|\d{2})/);
+  if (m) return `${m[1].padStart(2,'0')}/${m[2].padStart(2,'0')}/${m[3].slice(-2)}`;
   const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1].slice(-2)}`;
   return s;
 };
 const humanDate = (date) => {
@@ -98,62 +97,82 @@ function SummaryTile({ title, value, delta }) {
 }
 
 function EasaTable({ rows, onOpen }) {
+  const isFSTDRecord = (r) => Boolean(r?.sim?.type || r?.sim?.time);
+
   return (
     <div className="card table-wrap">
       <table className="easa apple-logbook-table">
         <thead>
+          <tr className="num">
+            <th colSpan="1">1</th>
+            <th colSpan="2">2</th>
+            <th colSpan="2">3</th>
+            <th colSpan="2">4</th>
+            <th colSpan="3">5</th>
+            <th colSpan="1">6</th>
+            <th colSpan="1">7</th>
+            <th colSpan="2">8</th>
+            <th colSpan="2">9</th>
+            <th colSpan="4">10</th>
+            <th colSpan="3">11</th>
+            <th colSpan="1">12</th>
+          </tr>
           <tr className="grp">
-            <th rowSpan="2">Date</th>
-            <th colSpan="2">Departure</th>
-            <th colSpan="2">Arrival</th>
-            <th colSpan="2">Aircraft</th>
-            <th colSpan="2">Single Pilot Time</th>
-            <th rowSpan="2">Multi<br/>Pilot<br/>Time</th>
-            <th rowSpan="2">Total<br/>Time of<br/>Flight</th>
-            <th rowSpan="2">PIC Name</th>
-            <th colSpan="2">Landings</th>
-            <th colSpan="2">Operational<br/>Condition Time</th>
-            <th colSpan="4">Pilot Function Time</th>
-            <th colSpan="2">FSTD Session</th>
-            <th rowSpan="2">Remarks and Endorsements</th>
+            <th rowSpan="2">DATE<br/>(dd/mm/yy)</th>
+            <th colSpan="2">DEPARTURE</th>
+            <th colSpan="2">ARRIVAL</th>
+            <th colSpan="2">AIRCRAFT</th>
+            <th colSpan="2">SINGLE-PILOT TIME</th>
+            <th rowSpan="2">MULTI-PILOT<br/>TIME</th>
+            <th rowSpan="2">TOTAL TIME<br/>OF FLIGHT</th>
+            <th rowSpan="2">NAME(S) PIC</th>
+            <th colSpan="2">LANDINGS</th>
+            <th colSpan="2">OPERATIONAL<br/>CONDITION TIME</th>
+            <th colSpan="4">PILOT FUNCTION TIME</th>
+            <th colSpan="3">FSTD SESSION</th>
+            <th rowSpan="2">REMARKS AND<br/>ENDORSEMENTS</th>
           </tr>
           <tr className="sub">
-            <th>Place</th><th>Time</th>
-            <th>Place</th><th>Time</th>
-            <th>Type</th><th>Reg</th>
+            <th>PLACE</th><th>TIME</th>
+            <th>PLACE</th><th>TIME</th>
+            <th>MAKE, MODEL,<br/>VARIANT</th><th>REGISTRATION</th>
             <th>SE</th><th>ME</th>
-            <th>Day</th><th>Night</th>
-            <th>Night</th><th>IFR</th>
-            <th>PIC</th><th>COP</th><th>Dual</th><th>Instr</th>
-            <th>Type</th><th>Time</th>
+            <th>DAY</th><th>NIGHT</th>
+            <th>NIGHT</th><th>IFR</th>
+            <th>PIC</th><th>CO-PILOT</th><th>DUAL</th><th>INSTRUCTOR</th>
+            <th>DATE<br/>(dd/mm/yy)</th><th>TYPE</th><th>TOTAL TIME<br/>OF SESSION</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={r.uuid || r.record_number} onClick={() => r.uuid && onOpen(r.uuid)}>
-              <td className="mono">{shortDate(r.date)}</td>
-              <td>{dash(r.departure?.place)}</td><td className="mono">{dash(r.departure?.time)}</td>
-              <td>{dash(r.arrival?.place)}</td><td className="mono">{dash(r.arrival?.time)}</td>
-              <td>{dash(r.aircraft?.model)}</td><td>{dash(r.aircraft?.reg_name)}</td>
-              <td className={rowTime(r,'se_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'se_time'))}</td>
-              <td className={rowTime(r,'me_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'me_time'))}</td>
-              <td className={rowTime(r,'mcc_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'mcc_time'))}</td>
-              <td className={rowTime(r,'total_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'total_time'))}</td>
-              <td>{dash(r.pic_name)}</td>
-              <td className={rowLanding(r,'day') ? 'mono' : 'mono muted'}>{dash(rowLanding(r,'day'))}</td>
-              <td className={rowLanding(r,'night') ? 'mono' : 'mono muted'}>{dash(rowLanding(r,'night'))}</td>
-              <td className={rowTime(r,'night_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'night_time'))}</td>
-              <td className={rowTime(r,'ifr_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'ifr_time'))}</td>
-              <td className={rowTime(r,'pic_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'pic_time'))}</td>
-              <td className={rowTime(r,'co_pilot_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'co_pilot_time'))}</td>
-              <td className={rowTime(r,'dual_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'dual_time'))}</td>
-              <td className={rowTime(r,'instructor_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'instructor_time'))}</td>
-              <td className={r.sim?.type ? '' : 'muted'}>{dash(r.sim?.type)}</td>
-              <td className={r.sim?.time ? 'mono' : 'mono muted'}>{dash(r.sim?.time)}</td>
-              <td className={r.remarks ? '' : 'muted'}>{dash(r.remarks)}</td>
-            </tr>
-          ))}
-          {rows.length === 0 && <tr><td colSpan="23" className="muted">No flight found.</td></tr>}
+          {rows.map((r) => {
+            const fstd = isFSTDRecord(r);
+            return (
+              <tr key={r.uuid || r.record_number} onClick={() => r.uuid && onOpen(r.uuid)}>
+                <td className="mono">{fstd ? '—' : shortDate(r.date)}</td>
+                <td>{dash(r.departure?.place)}</td><td className="mono">{dash(r.departure?.time)}</td>
+                <td>{dash(r.arrival?.place)}</td><td className="mono">{dash(r.arrival?.time)}</td>
+                <td>{dash(r.aircraft?.model)}</td><td>{dash(r.aircraft?.reg_name)}</td>
+                <td className={rowTime(r,'se_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'se_time'))}</td>
+                <td className={rowTime(r,'me_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'me_time'))}</td>
+                <td className={rowTime(r,'mcc_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'mcc_time'))}</td>
+                <td className={rowTime(r,'total_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'total_time'))}</td>
+                <td>{dash(r.pic_name)}</td>
+                <td className={rowLanding(r,'day') ? 'mono' : 'mono muted'}>{dash(rowLanding(r,'day'))}</td>
+                <td className={rowLanding(r,'night') ? 'mono' : 'mono muted'}>{dash(rowLanding(r,'night'))}</td>
+                <td className={rowTime(r,'night_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'night_time'))}</td>
+                <td className={rowTime(r,'ifr_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'ifr_time'))}</td>
+                <td className={rowTime(r,'pic_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'pic_time'))}</td>
+                <td className={rowTime(r,'co_pilot_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'co_pilot_time'))}</td>
+                <td className={rowTime(r,'dual_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'dual_time'))}</td>
+                <td className={rowTime(r,'instructor_time') ? 'mono' : 'mono muted'}>{dash(rowTime(r,'instructor_time'))}</td>
+                <td className={fstd ? 'mono' : 'mono muted'}>{fstd ? shortDate(r.date) : '—'}</td>
+                <td className={r.sim?.type ? '' : 'muted'}>{dash(r.sim?.type)}</td>
+                <td className={r.sim?.time ? 'mono' : 'mono muted'}>{dash(r.sim?.time)}</td>
+                <td className={r.remarks ? '' : 'muted'}>{dash(r.remarks)}</td>
+              </tr>
+            );
+          })}
+          {rows.length === 0 && <tr><td colSpan="24" className="muted">No flight found.</td></tr>}
         </tbody>
       </table>
     </div>
@@ -256,7 +275,6 @@ export default function Logbook() {
           </div>
         </div>
       )}
-      {isLoading && <LinearProgress sx={{ mb: 1.5, borderRadius:99 }} />}
       <div className="tiles">
         {selectedMetrics.map((metricKey, index) => {
           const metric = METRIC_MAP.get(metricKey) || METRICS[0];

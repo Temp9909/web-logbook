@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 // MUI
 import Grid from "@mui/material/Grid";
-import LinearProgress from "@mui/material/LinearProgress";
 // Custom
 import CurrencyTable from "./CurrencyTable";
 import { useErrorNotification } from "../../hooks/useAppNotifications";
@@ -34,7 +33,7 @@ export const Currency = () => {
     gcTime: 3600000,
   })
 
-  if (isLogbookDataLoading || isCurrencyDataLoading || isAircraftsLoading) return <LinearProgress />;
+  if (isLogbookDataLoading || isCurrencyDataLoading || isAircraftsLoading) return null;
 
   return (
     <Grid container spacing={1} >

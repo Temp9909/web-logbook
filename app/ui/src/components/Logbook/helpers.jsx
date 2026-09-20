@@ -29,14 +29,17 @@ export const sumTime = (values) => {
   return `${hh}:${mm.toString().padStart(2, '0')}`;
 }
 
-export const createDateColumn = ({ field, headerName, width = 90 }) => ({
+export const createDateColumn = ({ field, headerName, width = 90, displayFormat = 'DD/MM/YYYY', getValue }) => ({
   field: field,
   headerName: headerName,
   headerAlign: 'center',
   width: width,
   type: 'date',
-  valueGetter: (value) => (value ? dayjs(value, 'DD/MM/YYYY').toDate() : null),
-  valueFormatter: (value) => (value ? dayjs(value).format('DD/MM/YYYY') : ''),
+  valueGetter: (value, row) => {
+    const source = typeof getValue === 'function' ? getValue(value, row) : value;
+    return source ? dayjs(source, 'DD/MM/YYYY').toDate() : null;
+  },
+  valueFormatter: (value) => (value ? dayjs(value).format(displayFormat) : ''),
   renderCell: (params) => (
     <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', width: '100%' }}>
       <Typography variant="body2" color="primary">

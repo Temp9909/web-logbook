@@ -340,7 +340,7 @@ export const SwitchRow = ({ label, sub, checked = false, onChange, disabled = fa
 
 export const Chip = ({ kind = '', children }) => <span className={`chip ${kind}`.trim()}>{children}</span>;
 
-export const Loading = ({ show = true }) => show ? <div className="exact-loading"><span /></div> : null;
+export const Loading = () => null;
 
 export const EmptyState = ({ children = 'No data available' }) => <div className="exact-empty">{children}</div>;
 

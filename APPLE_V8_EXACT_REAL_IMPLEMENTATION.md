@@ -11,7 +11,7 @@ Structurally rebuilt routed screens:
 - Airports: standard list, DB source, custom airports
 - Persons and person detail
 - Attachments
-- Export A4/A5
+- Export A4
 - Import CSV, mapping, options and progress
 - Settings: General, Previous flight experience, Logbook signature, Standard fields, Custom fields
 

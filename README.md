@@ -49,7 +49,7 @@ The application will automatically create a local SQLite database on the first s
 # Features
 
 - EASA-style flight logbook
-- Export logbook to PDF (A4 and A5 formats)
+- Export logbook to PDF (A4 landscape)
 - Flight map with route visualization
 - Automatic night-time calculation
 - Aircraft, airports, and persons management
@@ -149,7 +149,7 @@ You can access the application using any modern browser with JavaScript enabled.
 - Flight records table with filter for all fields and global search through all data
 - Customizable columns
 - Quick export to CSV
-- Export to PDF (A4, A5) formats
+- Export to PDF (A4 landscape)
 - Automatic totals and subtotals calculation
 
 ![EASA Logbook](./readme-assets/logbook.png)
@@ -222,7 +222,7 @@ You can access the application using any modern browser with JavaScript enabled.
 ![Currency](./readme-assets/currency.png)
 
 ## Export
-- Export to EASA PDF format (A4 and A5)
+- Export to EASA PDF format (A4 landscape)
 - PDF export formats with custom title pages (for example, include your CV automatically)
 - Adjustable settings for each export format
 - Instructor/Examiner signatures also included in the PDF export
@@ -232,9 +232,6 @@ You can access the application using any modern browser with JavaScript enabled.
 ### A4
 ![Export to PDF](./readme-assets/export-a4.png)
 
-### A5
-![Export to PDF](./readme-assets/export-a5-a.png)
-![Export to PDF](./readme-assets/export-a5-b.png)
 
 So in real life the logbook could look like
 ![Pilot logbook](./readme-assets/logbook_irl.jpg)

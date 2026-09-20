@@ -56,7 +56,7 @@ const AggregationRow = ({ label, values, columns, ...props }) => {
   );
 };
 
-const XFooter = ({ showPageTotal = true, showPagination = true, showPreviousPagesTotal = false, initialValues = {}, ...props }) => {
+const XFooter = ({ showPageTotal = true, showPagination = true, showPreviousPagesTotal = false, initialValues = {}, pageTotalLabel = 'Page:', previousTotalLabel = 'Previous:', grandTotalLabel = 'Total:', ...props }) => {
   const apiRef = useGridApiContext();
   const visibleColumns = useGridSelector(apiRef, gridVisibleColumnDefinitionsSelector);
   const allRowIds = useGridSelector(apiRef, gridFilteredSortedRowIdsSelector);
@@ -225,15 +225,15 @@ const XFooter = ({ showPageTotal = true, showPagination = true, showPreviousPage
         <Box ref={scrollRef} sx={{ overflow: 'hidden', width: '100%' }}>
           <Box sx={{ width: totalWidth, display: 'flex', flexDirection: 'column' }}>
             {showPageTotal && (
-              <AggregationRow label="Page:" values={pageTotals} columns={visibleColumns} {...props} />
+              <AggregationRow label={pageTotalLabel} values={pageTotals} columns={visibleColumns} {...props} />
             )}
             {showPreviousPagesTotal && (
               <>
-                <AggregationRow label="Previous:" values={previousPagesTotals} columns={visibleColumns} {...props} />
-                <AggregationRow label="Total:" values={pageAndPreviousTotals} columns={visibleColumns} {...props} />
+                <AggregationRow label={previousTotalLabel} values={previousPagesTotals} columns={visibleColumns} {...props} />
+                <AggregationRow label={grandTotalLabel} values={pageAndPreviousTotals} columns={visibleColumns} {...props} />
               </>
             ) || (
-                <AggregationRow label="Total:" values={grandTotals} columns={visibleColumns} {...props} />
+                <AggregationRow label={grandTotalLabel} values={grandTotals} columns={visibleColumns} {...props} />
               )}
           </Box>
         </Box>

@@ -22,11 +22,12 @@ describe('flight time helpers', () => {
     expect(durationToMinutes('1:26')).toBe(86);
   });
 
-  it('formats quick-fill labels as minutes below one hour and HHMM at one hour or more', () => {
-    expect(formatQuickFillLabel(40)).toBe('+40');
-    expect(formatQuickFillLabel(60)).toBe('+0100');
-    expect(formatQuickFillLabel(72)).toBe('+0112');
-    expect(formatQuickFillLabel(125)).toBe('+0205');
+  it('formats quick-fill labels as +H:MM', () => {
+    expect(formatQuickFillLabel(37)).toBe('+0:37');
+    expect(formatQuickFillLabel(40)).toBe('+0:40');
+    expect(formatQuickFillLabel(60)).toBe('+1:00');
+    expect(formatQuickFillLabel(97)).toBe('+1:37');
+    expect(formatQuickFillLabel(125)).toBe('+2:05');
   });
 
   it('fills the selected role and aircraft category rules', () => {

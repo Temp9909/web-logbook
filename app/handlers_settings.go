@@ -35,7 +35,6 @@ func (app *application) HandlerApiSettingsUpdate(w http.ResponseWriter, r *http.
 
 	// rewrite export settings since they are set from /export page
 	settings.ExportA4 = oldsettings.ExportA4
-	settings.ExportA5 = oldsettings.ExportA5
 	// Signature image is also updated separately
 	settings.SignatureImage = oldsettings.SignatureImage
 
@@ -101,7 +100,11 @@ func (app *application) HandlerApiSettingsAirports(w http.ResponseWriter, r *htt
 
 func (app *application) HandlerApiSettingsExportDefaults(w http.ResponseWriter, r *http.Request) {
 	format := chi.URLParam(r, "format")
-	defaults := app.db.GetPdfDefaults(format)
+	if format != "A4" {
+		http.Error(w, "unsupported export format", http.StatusNotFound)
+		return
+	}
+	defaults := app.db.GetPdfDefaults()
 	app.writeJSON(w, http.StatusOK, defaults)
 }
 
@@ -121,13 +124,12 @@ func (app *application) HandlerApiSettingsExportUpdate(w http.ResponseWriter, r 
 		return
 	}
 
-	var targetExport *models.ExportPDF
-	switch format {
-	case "A4":
-		targetExport = &s.ExportA4
-	case "A5":
-		targetExport = &s.ExportA5
+	if format != "A4" {
+		http.Error(w, "unsupported export format", http.StatusNotFound)
+		return
 	}
+
+	targetExport := &s.ExportA4
 
 	targetExport.LogbookRows = updated.LogbookRows
 	targetExport.Fill = updated.Fill

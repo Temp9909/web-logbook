@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import LinearProgress from "@mui/material/LinearProgress";
 import ApplePanel from "../UIElements/ApplePanel";
 import { useErrorNotification } from "../../hooks/useAppNotifications";
 import AddFlightrecordPersonButton from "./AddFlightrecordPersonButton";
@@ -20,7 +19,6 @@ export const FlightRecordPersons = ({ id }) => {
 
   return (
     <ApplePanel title="Persons" subtitle="People linked to this flight." actions={<AddFlightrecordPersonButton id={id} />}>
-      {isLoading && <LinearProgress />}
       <div className="apple-list-stack">
         {(Array.isArray(data) ? data : []).map((person) => (
           <PersonForLog key={person.uuid} person={person} logUuid={id} />

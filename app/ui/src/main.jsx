@@ -19,7 +19,6 @@ import StatsByYearPage from './pages/StatsByYearPage.jsx';
 import StatsByTypePage from './pages/StatsByTypePage.jsx';
 import StatsByCategoryPage from './pages/StatsByCategoryPage.jsx';
 import PdfExportA4Page from './pages/PdfExportA4Page.jsx';
-import PdfExportA5Page from './pages/PdfExportA5Page.jsx';
 import ImportPage from './pages/ImportPage.jsx';
 import PersonsPage from './pages/PersonsPage.jsx'
 import PersonViewPage from './pages/PersonViewPage.jsx';
@@ -74,7 +73,6 @@ const router = createBrowserRouter([
             path: 'export', children: [
               { index: true, element: <PdfExportA4Page /> },
               { path: 'a4', element: <PdfExportA4Page /> },
-              { path: 'a5', element: <PdfExportA5Page /> },
             ]
           },
           {

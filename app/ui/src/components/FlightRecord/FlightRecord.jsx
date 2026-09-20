@@ -275,7 +275,7 @@ export const FlightRecord = () => {
         </div>
       ) : null}
       <PageHead title={id === 'new' ? 'New flight' : 'Flight record'} subtitle={id === 'new' ? 'Create a new logbook entry.' : 'Review and edit the selected flight.'} actions={actions} />
-      <Loading show={isLoading || saveMutation.isPending || deleteMutation.isPending} />
+      <Loading show={isLoading || deleteMutation.isPending} />
       {(saveMutation.error || deleteMutation.error) ? <div className="note exact-inline-danger">{String(saveMutation.error || deleteMutation.error)}</div> : null}
       <div className="grid two">
         <Card title="Flight" subtitle="Date, departure and arrival.">

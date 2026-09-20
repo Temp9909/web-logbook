@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import LinearProgress from '@mui/material/LinearProgress';
 import { fetchLicenses } from '../../util/http/licensing';
 import { useErrorNotification } from '../../hooks/useAppNotifications';
 import useSettings from '../../hooks/useSettings';
@@ -75,7 +74,6 @@ export default function Licensing() {
     <section className="active apple-page-shell">
       <h1 className="page-title">Licensing</h1>
       <p className="page-sub">Licences, ratings and certificates — {expiring} item{expiring === 1 ? '' : 's'} expiring within {warningDays} days</p>
-      {isLoading && <LinearProgress sx={{mb:1.5,borderRadius:99}} />}
       <Group title="Licences" rows={groups.Licences} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />
       <Group title="Ratings" rows={groups.Ratings} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />
       <Group title="Medical" rows={groups.Medical} warningDays={warningDays} onOpen={(id)=>navigate(`/licensing/${id}`)} />

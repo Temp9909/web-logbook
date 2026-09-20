@@ -271,7 +271,6 @@ type Settings struct {
 	SecretKey   string `json:"secret_key"`
 
 	ExportA4 ExportPDF `json:"export_a4"`
-	ExportA5 ExportPDF `json:"export_a5"`
 
 	LogbookPagination     string        `json:"logbook_pagination"`
 	SelfPICLabel          string        `json:"self_pic_label"`
